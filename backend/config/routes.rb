@@ -1,5 +1,4 @@
-class TestController < ApplicationController
-  def index
-    render json: { message: "Backend connection successful", status: "online" }
-  end
+Rails.application.routes.draw do
+  get "up" => "rails/health#show", as: :rails_health_check
+  resources :menu_items, only: [:index]
 end

@@ -1,1 +1,8 @@
 mongodb+srv://<db_username>:<db_password>@homeseaside-v1.7t7fy1j.mongodb.net/?appName=homeSeaside-v1
+to initiate:
+    1. Frontend
+        Go to /frontend --> cd frontend
+        press --> npm run dev
+    2. Backend
+        Go to /backend --> cd backend
+        press --> bin/rails s
