@@ -1,0 +1,1 @@
+mongodb+srv://<db_username>:<db_password>@homeseaside-v1.7t7fy1j.mongodb.net/?appName=homeSeaside-v1

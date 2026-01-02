@@ -1,0 +1,15 @@
+# Security
+.env
+backend/config/mongoid.yml
+
+# Dependencies and OS
+node_modules/
+backend/vendor/bundle
+backend/.bundle/
+.DS_Store
+
+# Rails Metadata
+backend/log/*
+backend/tmp/*
+backend/public/assets
+backend/public/packs
