@@ -41,4 +41,5 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 end
 gem "mongoid", "~> 9.0"
+gem 'dotenv-rails', groups: [:development, :test]
 gem 'rack-cors'
