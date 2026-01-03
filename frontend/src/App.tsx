@@ -1,29 +1,18 @@
-import React from "react";
 import TopBar from "./components/TopBar";
+import CategoryNav from "./components/CategoryNav";
 import "./App.css";
 
-const App: React.FC = () => {
+function App() {
   return (
     <div className="app-container">
-      <TopBar />
-      <main id="main-content">
-        <article>
-          <section>
-            <h2
-              style={{
-                textAlign: "center",
-                marginTop: "2rem",
-                color: "var(--color-accent-red)",
-              }}
-            >
-              Welcome to Home Seaside
-            </h2>
-            {/* Menu items will load here */}
-          </section>
-        </article>
-      </main>
+      <header>
+        <TopBar />
+        <CategoryNav />
+      </header>
+
+      <main className="content">{/* Menu items will be rendered here */}</main>
     </div>
   );
-};
+}
 
 export default App;
