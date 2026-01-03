@@ -1,49 +1,82 @@
 :root {
-  --bg-soft: #f6d7e9; /* Soft Pink */
-  --text-main: #000000; /* Black */
-  --accent-muted: #9db2c3; /* Muted Blue */
-  --highlight: #e4b365; /* Gold */
-  --action: #e46054; /* Coral */
+  --pink-bg: #f6d7e9;
+  --black: #000000;
+  --blue-muted: #9db2c3;
+  --gold: #e4b365;
+  --coral: #e46054;
 }
 
 body {
-  background-color: var(--bg-soft);
-  color: var(--text-main);
-  font-family: sans-serif;
+  background-color: var(--pink-bg);
+  color: var(--black);
+  margin: 0;
+  font-family: "Inter", sans-serif;
 }
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 4px solid var(--black);
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+}
+
+.lang-toggle {
+  background: var(--gold);
+  border: 2px solid var(--black);
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+.lang-toggle:hover {
+  background: var(--coral);
+  color: white;
+}
+
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
 }
 .menu-card {
   background: white;
-  border: 2px solid var(--text-main);
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 4px 4px 0px var(--accent-muted);
+  padding: 1.5rem;
+  border: 2px solid var(--black);
+  border-radius: 4px;
+  box-shadow: 8px 8px 0px var(--blue-muted);
+  display: flex;
+  flex-direction: column;
 }
-.price-tag {
-  color: var(--action);
+
+.category-tag {
+  font-size: 0.75rem;
   font-weight: bold;
-  font-size: 1.2rem;
-}
-.category {
   text-transform: uppercase;
-  font-size: 0.8rem;
-  color: var(--accent-muted);
-  letter-spacing: 1px;
+  color: var(--blue-muted);
 }
-button {
-  background: var(--highlight);
-  color: var(--text-main);
-  border: 2px solid var(--text-main);
-  padding: 10px 20px;
-  cursor: pointer;
-  font-weight: bold;
+.allergens {
+  font-size: 0.85rem;
+  color: var(--coral);
+  margin-top: auto;
+  padding: 0.5rem 0;
 }
-button:hover {
-  background: var(--action);
+.price {
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+.order-btn {
+  background: var(--black);
   color: white;
+  border: none;
+  padding: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+.order-btn:hover {
+  background: var(--coral);
 }
