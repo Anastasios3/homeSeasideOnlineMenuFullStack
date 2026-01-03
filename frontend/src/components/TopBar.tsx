@@ -16,11 +16,8 @@ const TopBar: FC = () => {
   return (
     <header className="site-header" role="banner">
       <div className="header-inner-container">
-        {/* Left: Centered Silver Theme Toggle */}
-        <nav
-          className="header-nav section-left"
-          aria-label="Appearance settings"
-        >
+        {/* Left Slot: Silver Theme Toggle */}
+        <div className="nav-slot slot-left">
           <button
             onClick={toggleTheme}
             className="theme-toggle-btn"
@@ -29,15 +26,15 @@ const TopBar: FC = () => {
             } mode`}
           >
             {theme === "light" ? (
-              <Moon size={22} color="#C0C0C0" strokeWidth={2} />
+              <Moon size={18} color="#C0C0C0" strokeWidth={2.5} />
             ) : (
-              <Sun size={22} color="#C0C0C0" strokeWidth={2} />
+              <Sun size={18} color="#C0C0C0" strokeWidth={2.5} />
             )}
           </button>
-        </nav>
+        </div>
 
-        {/* Center: Brand Logo */}
-        <div className="header-logo-container">
+        {/* Center Slot: Brand Identity */}
+        <div className="logo-center-container">
           <img
             src={theme === "light" ? "/Logo_light.svg" : "/Logo_Dark.svg"}
             alt="Home Seaside Bar & More"
@@ -46,11 +43,8 @@ const TopBar: FC = () => {
           />
         </div>
 
-        {/* Right: Language Pill Toggle */}
-        <nav
-          className="header-nav section-right"
-          aria-label="Language selection"
-        >
+        {/* Right Slot: Language Selector */}
+        <div className="nav-slot slot-right">
           <div className="lang-pill">
             <button
               onClick={() => setLang("EN")}
@@ -66,7 +60,7 @@ const TopBar: FC = () => {
             </button>
             <div className={`lang-slider ${lang.toLowerCase()}`} />
           </div>
-        </nav>
+        </div>
       </div>
     </header>
   );

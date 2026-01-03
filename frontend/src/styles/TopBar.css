@@ -1,78 +1,90 @@
-/* Palette Overrides & Centering */
+/* Core Header Positioning */
 .site-header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 85px;
+  height: 70px; /* Reduced desktop height */
   z-index: 1000;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   display: flex;
   justify-content: center;
-  transition: all 0.4s ease;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  transition: height 0.3s ease, background 0.3s ease;
 }
 
-/* Updated Light Theme: Clean Silver-White instead of Pink */
+/* Professional Silver-White Light Theme */
 [data-theme="light"] .site-header {
-  background: rgba(248, 249, 250, 0.9);
-  border-bottom: 1px solid rgba(157, 178, 195, 0.2);
+  background: rgba(241, 243, 245, 0.9);
+  border-bottom: 1px solid rgba(157, 178, 195, 0.2); /* #9db2c3 */
 }
 
 [data-theme="dark"] .site-header {
   background: rgba(0, 0, 0, 0.9);
-  border-bottom: 1px solid rgba(228, 179, 101, 0.1);
+  border-bottom: 1px solid rgba(228, 179, 101, 0.1); /* #e4b365 */
 }
 
+/* The "Absolute Centering" Engine */
 .header-inner-container {
   width: 100%;
   max-width: 1400px;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr; /* Ensures absolute centering of logo */
-  align-items: center;
-  padding: 0 2rem;
-}
-
-.section-right {
+  height: 100%;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  padding: 0 1.5rem;
 }
 
-/* Perfect Icon Centering */
+.nav-slot {
+  flex: 1; /* Both slots take equal space */
+  display: flex;
+  align-items: center;
+}
+
+.slot-right {
+  justify-content: flex-end; /* Push lang selector to far right */
+}
+
+/* Logo container naturally takes center between two equal flex items */
+.logo-center-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.brand-logo {
+  height: 45px; /* Compact desktop sizing */
+  display: block;
+}
+
+/* Silver Theme Toggle */
 .theme-toggle-btn {
-  background: rgba(192, 192, 192, 0.1); /* Silver tint */
-  border: 1.5px solid #c0c0c0;
-  border-radius: 12px;
-  width: 44px;
-  height: 44px;
+  background: rgba(192, 192, 192, 0.1);
+  border: 1.5px solid #c0c0c0; /* Silver icon & border */
+  border-radius: 8px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 0; /* Prevents alignment offset */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .theme-toggle-btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   background: rgba(192, 192, 192, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #9db2c3; /* Seaside Blue accent on hover */
+  border-color: #9db2c3;
 }
 
-.brand-logo {
-  height: 60px;
-  transition: transform 0.4s ease;
-}
-
-/* Language Pill Stylings */
+/* Language Pill (Seaside Blue / Coral Accent) */
 .lang-pill {
   position: relative;
   display: flex;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 30px;
+  background: rgba(157, 178, 195, 0.1);
+  border-radius: 20px;
   padding: 2px;
-  border: 1px solid rgba(157, 178, 195, 0.3);
+  border: 1px solid rgba(192, 192, 192, 0.15);
 }
 
 .lang-option {
@@ -80,11 +92,11 @@
   z-index: 2;
   background: none;
   border: none;
-  padding: 8px 18px;
-  font-weight: 800;
-  font-size: 0.8rem;
+  padding: 6px 12px;
+  font-weight: 700;
+  font-size: 0.75rem;
   cursor: pointer;
-  color: #9db2c3;
+  color: #9db2c3; /* Blue from palette */
   transition: color 0.3s ease;
 }
 
@@ -98,12 +110,32 @@
   left: 2px;
   height: calc(100% - 4px);
   width: calc(50% - 2px);
-  background: #e46054; /* Coral accent */
-  border-radius: 28px;
-  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  background: #e46054; /* Coral from palette */
+  border-radius: 18px;
+  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   z-index: 1;
 }
 
 .lang-slider.el {
   transform: translateX(100%);
+}
+
+/* Mobile Viewport Optimization */
+@media (max-width: 600px) {
+  .site-header {
+    height: 55px; /* Compact mobile bar */
+  }
+
+  .header-inner-container {
+    padding: 0 1rem;
+  }
+
+  .brand-logo {
+    height: 32px; /* Smallest size for narrow screens */
+  }
+
+  .theme-toggle-btn {
+    width: 32px;
+    height: 32px;
+  }
 }
