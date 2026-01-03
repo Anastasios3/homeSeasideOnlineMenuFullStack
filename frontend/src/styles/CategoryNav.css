@@ -1,8 +1,15 @@
+/* Project: homeSeasideOnlineMenuFullStack
+   Category Navigation - Fixed Positioning & Theme Sync
+*/
+
+/* Positioning and Theme Sync */
 .category-nav {
-  background-color: #000000;
   width: 100%;
-  border-top: 1px solid #9db2c3;
-  z-index: 1000;
+  z-index: 1100;
+  /* Use CSS variables for instant theme sync */
+  background-color: var(--bg-nav);
+  border-top: 2px solid var(--nav-border);
+  transition: background-color var(--transition), border-color var(--transition);
 }
 
 .category-list {
@@ -12,34 +19,107 @@
   padding: 0;
   justify-content: space-around;
   align-items: center;
+  height: 100%;
+}
+
+.category-item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
 }
 
 .category-button {
   background: none;
   border: none;
-  color: #f6d7e9; /* Primary Pink from COLORS.pdf */
+  /* Use theme-aware variable for instant color sync */
+  color: var(--text-nav);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   padding: 12px 8px;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
+  border-radius: 16px;
+  position: relative;
 }
 
 .category-button:hover {
-  color: #e4b365; /* Accent Gold */
+  color: var(--accent-highlight);
+  transform: translateY(-2px);
+}
+
+/* Active State - High Contrast Pill Highlight */
+.category-button.active {
+  background-color: var(--btn-active-bg) !important;
+  color: var(--btn-active-text) !important;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 2px var(--accent-action);
+  transform: scale(1.08);
+  font-weight: 900;
+  position: relative;
+}
+
+[data-theme="dark"] .category-button.active {
+  box-shadow: 0 4px 20px rgba(246, 215, 233, 0.4),
+    0 0 0 2px var(--accent-action), 0 0 30px rgba(246, 215, 233, 0.3);
+}
+
+/* Glow effect for active state */
+.category-button.active::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: var(--radius-pill);
+  padding: 2px;
+  background: linear-gradient(
+    135deg,
+    var(--accent-action),
+    var(--accent-highlight)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .category-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 4px;
+  transition: transform 0.2s ease;
+}
+
+.category-button.active .category-icon {
+  transform: scale(1.15);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .category-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0.5px;
+  margin-top: 4px;
+  transition: font-weight 0.2s ease;
+}
+
+.category-button.active .category-label {
+  font-weight: 900;
+  letter-spacing: 0.8px;
 }
 
 /* Mobile: Bottom Fixed Navigation */
@@ -48,28 +128,84 @@
     position: fixed;
     bottom: 0;
     left: 0;
+    height: var(--nav-h);
     padding-bottom: env(safe-area-inset-bottom);
-  }
-}
-
-/* Large Screens: Under Top Bar */
-@media (min-width: 769px) {
-  .category-nav {
-    position: relative;
-    border-top: none;
-    border-bottom: 2px solid #e46054; /* Red Highlight */
-    background-color: transparent;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
   }
 
   .category-button {
-    color: #000000;
+    padding: 10px 4px;
+  }
+
+  .category-icon {
+    margin-bottom: 2px;
+  }
+}
+
+/* Large Screens: Fix Overlap & Alignment */
+@media (min-width: 769px) {
+  .category-nav {
+    /* CRITICAL FIX: Position directly under fixed header */
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    height: var(--nav-h);
+    border-top: none;
+    border-bottom: 2px solid var(--accent-action);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .category-list {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .category-item {
+    flex: 0 1 auto;
+  }
+
+  .category-button {
     flex-direction: row;
-    gap: 8px;
-    padding: 16px 20px;
-    font-size: 0.9rem;
+    gap: 10px;
+    padding: 16px 24px;
+    width: auto;
+    min-width: 140px;
+  }
+
+  .category-button:hover {
+    background: rgba(157, 178, 195, 0.12);
+    transform: translateY(-1px);
+  }
+
+  [data-theme="dark"] .category-button:hover {
+    background: rgba(255, 255, 255, 0.08);
   }
 
   .category-icon {
     margin-bottom: 0;
   }
+
+  .category-label {
+    font-size: 0.85rem;
+    margin-top: 0;
+  }
+
+  /* Enhanced active state for desktop */
+  .category-button.active {
+    padding: 16px 32px;
+    margin: 0 6px;
+    transform: scale(1.1);
+  }
+
+  .category-button.active::before {
+    inset: -3px;
+  }
+}
+
+/* High contrast focus state for accessibility */
+.category-button:focus-visible {
+  outline: 3px solid var(--accent-highlight);
+  outline-offset: 3px;
+  z-index: 10;
 }

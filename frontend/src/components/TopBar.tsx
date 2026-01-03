@@ -3,7 +3,11 @@ import type { FC } from "react";
 import { Sun, Moon } from "lucide-react";
 import "../styles/TopBar.css";
 
-const TopBar: FC = () => {
+interface TopBarProps {
+  onLanguageChange?: (lang: "EN" | "EL") => void;
+}
+
+const TopBar: FC<TopBarProps> = ({ onLanguageChange }) => {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [lang, setLang] = useState<"EN" | "EL">("EN");
 
@@ -11,26 +15,39 @@ const TopBar: FC = () => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme((p) => (p === "light" ? "dark" : "light"));
+  useEffect(() => {
+    // Notify parent component of language change
+    if (onLanguageChange) {
+      onLanguageChange(lang);
+    }
+  }, [lang, onLanguageChange]);
+
+  const handleLanguageChange = (newLang: "EN" | "EL") => {
+    setLang(newLang);
+  };
 
   return (
     <header className="site-header" role="banner">
       <div className="header-inner-container">
-        {/* Left Slot: Silver Theme Toggle */}
+        {/* Left Slot: Theme Toggle Pill */}
         <div className="nav-slot slot-left">
-          <button
-            onClick={toggleTheme}
-            className="theme-toggle-btn"
-            aria-label={`Switch to ${
-              theme === "light" ? "dark" : "light"
-            } mode`}
-          >
-            {theme === "light" ? (
-              <Moon size={18} color="#C0C0C0" strokeWidth={2.5} />
-            ) : (
-              <Sun size={18} color="#C0C0C0" strokeWidth={2.5} />
-            )}
-          </button>
+          <div className="theme-pill">
+            <button
+              onClick={() => setTheme("light")}
+              className={`theme-option ${theme === "light" ? "active" : ""}`}
+              aria-label="Switch to light mode"
+            >
+              <Sun size={16} strokeWidth={2.5} />
+            </button>
+            <button
+              onClick={() => setTheme("dark")}
+              className={`theme-option ${theme === "dark" ? "active" : ""}`}
+              aria-label="Switch to dark mode"
+            >
+              <Moon size={16} strokeWidth={2.5} />
+            </button>
+            <div className={`theme-slider ${theme}`} />
+          </div>
         </div>
 
         {/* Center Slot: Brand Identity */}
@@ -47,13 +64,13 @@ const TopBar: FC = () => {
         <div className="nav-slot slot-right">
           <div className="lang-pill">
             <button
-              onClick={() => setLang("EN")}
+              onClick={() => handleLanguageChange("EN")}
               className={`lang-option ${lang === "EN" ? "active" : ""}`}
             >
               EN
             </button>
             <button
-              onClick={() => setLang("EL")}
+              onClick={() => handleLanguageChange("EL")}
               className={`lang-option ${lang === "EL" ? "active" : ""}`}
             >
               EL

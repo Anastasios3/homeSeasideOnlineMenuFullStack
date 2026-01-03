@@ -6,6 +6,35 @@
   --coral: #e46054;
 }
 
+/* App Container - Root Level Styling */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-main);
+  position: relative;
+}
+
+/* Header wrapper - contains TopBar and CategoryNav */
+header {
+  z-index: 1000;
+}
+
+/* Main content area - inherits offset from index.css */
+/*.main-content {
+  /* Styles inherited from index.css */
+/* Desktop: margin-top = var(--total-top-offset) */
+/* Mobile: margin-top = var(--header-h), margin-bottom = var(--nav-h) */
+/*}*/
+
+/* Smooth transitions for theme changes */
+.app-container,
+.app-container * {
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 body {
   background-color: var(--pink-bg);
   color: var(--black);

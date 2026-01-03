@@ -3,31 +3,53 @@ import { Coffee, Martini, Beer, Utensils, Wine } from "lucide-react";
 import "../styles/CategoryNav.css";
 
 type CategoryType = "coffee" | "spirits" | "cocktails" | "beer&wine" | "food";
+type Language = "EN" | "EL";
 
 interface CategoryConfig {
   id: CategoryType;
-  label: string;
+  label: { EN: string; EL: string };
   icon: React.ReactNode;
 }
 
 const CATEGORIES: Record<CategoryType, CategoryConfig> = {
-  coffee: { id: "coffee", label: "coffee & more", icon: <Coffee size={24} /> },
-  spirits: { id: "spirits", label: "spirits", icon: <Wine size={24} /> },
+  coffee: {
+    id: "coffee",
+    label: { EN: "coffee & more", EL: "καφες & αλλα" },
+    icon: <Coffee size={24} />,
+  },
+  spirits: {
+    id: "spirits",
+    label: { EN: "spirits", EL: "ποτα" },
+    icon: <Wine size={24} />,
+  },
   cocktails: {
     id: "cocktails",
-    label: "cocktails",
+    label: { EN: "cocktails", EL: "κοκτειλ" },
     icon: <Martini size={24} />,
   },
   "beer&wine": {
     id: "beer&wine",
-    label: "beer&wine",
+    label: { EN: "beer & wine", EL: "μπυρα & κρασι" },
     icon: <Beer size={24} />,
   },
-  food: { id: "food", label: "food", icon: <Utensils size={24} /> },
+  food: {
+    id: "food",
+    label: { EN: "food", EL: "φαγητο" },
+    icon: <Utensils size={24} />,
+  },
 };
 
-const CategoryNav: React.FC = () => {
+interface CategoryNavProps {
+  currentLanguage?: Language;
+}
+
+const CategoryNav: React.FC<CategoryNavProps> = ({
+  currentLanguage = "EN",
+}) => {
   const [orderedKeys, setOrderedKeys] = useState<CategoryType[]>([]);
+  const [activeCategory, setActiveCategory] = useState<CategoryType | null>(
+    null
+  );
 
   const getOrder = (): CategoryType[] => {
     const hour = new Date().getHours();
@@ -49,27 +71,50 @@ const CategoryNav: React.FC = () => {
   };
 
   useEffect(() => {
-    setOrderedKeys(getOrder());
-    const interval = setInterval(() => setOrderedKeys(getOrder()), 60000); // Re-check every minute
+    const order = getOrder();
+    setOrderedKeys(order);
+    // Set first category as active by default
+    if (!activeCategory) {
+      setActiveCategory(order[0]);
+    }
+    const interval = setInterval(() => {
+      const newOrder = getOrder();
+      setOrderedKeys(newOrder);
+      // Update active category if the order changes and current active is not in first position
+      if (activeCategory && newOrder[0] !== activeCategory) {
+        setActiveCategory(newOrder[0]);
+      }
+    }, 60000); // Re-check every minute
     return () => clearInterval(interval);
-  }, []);
+  }, [activeCategory]);
+
+  const handleCategoryClick = (categoryId: CategoryType) => {
+    setActiveCategory(categoryId);
+    console.log(`Navigating to ${categoryId}`);
+    // Add your navigation logic here
+  };
 
   return (
     <nav className="category-nav" aria-label="Menu Categories">
       <ul className="category-list">
         {orderedKeys.map((key) => {
           const cat = CATEGORIES[key];
+          const isActive = activeCategory === cat.id;
+
           return (
             <li key={cat.id} className="category-item">
               <button
-                className="category-button"
-                onClick={() => console.log(`Navigating to ${cat.label}`)}
-                aria-label={`View ${cat.label}`}
+                className={`category-button ${isActive ? "active" : ""}`}
+                onClick={() => handleCategoryClick(cat.id)}
+                aria-label={`View ${cat.label[currentLanguage]}`}
+                aria-current={isActive ? "page" : undefined}
               >
                 <span className="category-icon" aria-hidden="true">
                   {cat.icon}
                 </span>
-                <span className="category-label">{cat.label}</span>
+                <span className="category-label">
+                  {cat.label[currentLanguage]}
+                </span>
               </button>
             </li>
           );

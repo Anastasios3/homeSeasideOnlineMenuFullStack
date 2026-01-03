@@ -1,106 +1,144 @@
+/* Project: homeSeasideOnlineMenuFullStack
+  Lead Architect: High-Contrast & Semantic Foundation
+  Palette: #f6d7e9, #000000, #9db2c3, #e4b365, #e46054 
+*/
+
 :root {
-  --p-pink: #f6d7e9;
-  --p-black: #000000;
-  --p-blue: #9db2c3;
-  --p-gold: #e4b365;
-  --p-coral: #e46054;
+  /* Layout Constants - Orchestrated to prevent header overlap */
+  --header-h: 70px;
+  --nav-h: 64px;
+  --total-top-offset: calc(var(--header-h) + var(--nav-h));
+
+  /* Shared Tokens */
+  --radius-pill: 50px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --glass: blur(16px);
 }
 
+/* Light Mode: Enhanced for professional legibility */
 [data-theme="light"] {
-  --bg-header: var(--p-pink);
-  --text-main: var(--p-black);
-  --pill-bg: rgba(0, 0, 0, 0.05);
-  --pill-active: var(--p-blue);
+  --bg-main: #fefbfd; /* Ultra-light background for maximum contrast */
+  --bg-header: #f6d7e9; /* Brand Pink */
+  --bg-nav: #f6d7e9; /* Navigation matches header */
+  --text-primary: #0a0a0a; /* Nearly black for AAA contrast */
+  --text-muted: #3d5266; /* Deepened blue-grey for better visibility */
+  --text-nav: #0a0a0a; /* Navigation text */
+  --accent-action: #c73628; /* High-contrast coral */
+  --accent-highlight: #b87e2a; /* Deepened gold */
+  --border-subtle: rgba(157, 178, 195, 0.5);
+  --btn-active-bg: #0000007e;
+  --btn-active-text: #ffffff;
+  --nav-border: rgba(157, 178, 195, 0.4);
 }
 
+/* Dark Mode: AAA Contrast Aesthetic */
 [data-theme="dark"] {
-  --bg-header: var(--p-black);
-  --text-main: #ffffff;
-  --pill-bg: rgba(255, 255, 255, 0.1);
-  --pill-active: var(--p-pink); /* Matches active state in reference */
+  --bg-main: #000000;
+  --bg-header: #000000;
+  --bg-nav: #000000; /* Navigation matches header */
+  --text-primary: #fef5fb; /* High-luminance pink for black background */
+  --text-muted: #b8cdd9; /* Lightened blue for better visibility */
+  --text-nav: #fef5fb; /* Navigation text */
+  --accent-action: #4a0b05; /* Brightened coral for visibility */
+  --accent-highlight: #f4c574; /* Brightened gold */
+  --border-subtle: rgba(228, 179, 101, 0.35);
+  --btn-active-bg: rgba(244, 197, 116, 0.5);
+  --btn-active-text: #000000;
+  --nav-border: rgba(228, 179, 101, 0.3);
 }
 
-.site-header {
+/* Foundation */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  transition: background-color var(--transition), color var(--transition);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1.5rem;
-  height: 70px;
-  background-color: var(--bg-header);
-  transition: background-color 0.3s ease;
-  border-bottom: 1px solid rgba(157, 178, 195, 0.3); /* Subtle blue-grey border */
+  flex-direction: column;
 }
 
-.header-nav {
+/* FIX: Content Offset Logic (Prevents Overlap) */
+.main-content {
   flex: 1;
-  display: flex;
-  align-items: center;
-}
-.section-right {
-  justify-content: flex-end;
-}
-
-.brand-logo {
-  height: 38px;
-  width: auto;
-  transition: opacity 0.2s ease;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  /* DESKTOP: Header + Nav height combined */
+  margin-top: var(--total-top-offset);
 }
 
-.settings-btn {
-  background: rgba(157, 178, 195, 0.15); /* Blue-grey wash */
+@media (max-width: 768px) {
+  :root {
+    --header-h: 60px;
+    --nav-h: 72px; /* Bottom nav height */
+  }
+
+  .main-content {
+    /* MOBILE: Only TopBar is fixed at top */
+    margin-top: var(--header-h);
+    margin-bottom: var(--nav-h);
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* Global Navigation (TopBar) */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--header-h);
+  z-index: 1200;
+  background-color: var(--bg-header);
+  backdrop-filter: var(--glass);
+  transition: all var(--transition);
+}
+
+/* Interactive Utility Buttons */
+button {
+  cursor: pointer;
   border: none;
-  color: var(--text-main);
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  background: none;
+  font-family: inherit;
+  transition: all var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: transform 0.2s ease;
 }
 
-.settings-btn:hover {
-  background-color: var(--p-gold);
-  color: var(--p-black);
-  transform: rotate(30deg);
+/* Highlighted/Chosen Button State (Photo 2 Reference) */
+button.active {
+  background-color: var(--btn-active-bg) !important;
+  color: var(--btn-active-text) !important;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+  font-weight: 900;
 }
 
-.icon-svg {
-  width: 22px;
-  height: 22px;
+/* Focus for SEO/a11y */
+button:focus-visible {
+  outline: 3px solid var(--accent-highlight);
+  outline-offset: 3px;
 }
 
-/* Language Pill Component */
-.lang-pill {
-  display: flex;
-  align-items: center;
-  background-color: var(--pill-bg);
-  padding: 4px;
-  border-radius: 30px;
-  border: 1px solid rgba(157, 178, 195, 0.2);
-}
-
-.lang-option {
-  background: transparent;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-main);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.lang-option.active {
-  background-color: var(--pill-active);
-  color: var(--p-black);
-}
-
-.lang-divider {
-  font-size: 0.8rem;
-  opacity: 0.4;
-  margin: 0 2px;
-  color: var(--text-main);
+/* Smooth theme transitions */
+* {
+  transition-property: background-color, color, border-color;
+  transition-duration: var(--transition);
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
