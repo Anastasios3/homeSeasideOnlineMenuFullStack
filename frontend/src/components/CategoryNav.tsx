@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Coffee, Martini, Beer, Utensils, Wine } from "lucide-react";
 import "../styles/CategoryNav.css";
 
@@ -15,104 +15,94 @@ const CATEGORIES: Record<CategoryType, CategoryConfig> = {
   coffee: {
     id: "coffee",
     label: { EN: "coffee & more", EL: "καφες & αλλα" },
-    icon: <Coffee size={24} />,
+    icon: <Coffee size={20} strokeWidth={1.8} />,
   },
   spirits: {
     id: "spirits",
     label: { EN: "spirits", EL: "ποτα" },
-    icon: <Wine size={24} />,
+    icon: <Wine size={20} strokeWidth={1.8} />,
   },
   cocktails: {
     id: "cocktails",
     label: { EN: "cocktails", EL: "κοκτειλ" },
-    icon: <Martini size={24} />,
+    icon: <Martini size={20} strokeWidth={1.8} />,
   },
   "beer&wine": {
     id: "beer&wine",
     label: { EN: "beer & wine", EL: "μπυρα & κρασι" },
-    icon: <Beer size={24} />,
+    icon: <Beer size={20} strokeWidth={1.8} />,
   },
   food: {
     id: "food",
     label: { EN: "food", EL: "φαγητο" },
-    icon: <Utensils size={24} />,
+    icon: <Utensils size={20} strokeWidth={1.8} />,
   },
 };
 
 interface CategoryNavProps {
   currentLanguage?: Language;
+  onCategoryChange?: (category: CategoryType) => void;
 }
+
+const getOrder = (): CategoryType[] => {
+  const hour = new Date().getHours();
+  if (hour >= 6 && hour < 12)
+    return ["coffee", "food", "beer&wine", "cocktails", "spirits"];
+  if (hour >= 12 && hour < 17)
+    return ["food", "coffee", "beer&wine", "spirits", "cocktails"];
+  if (hour >= 17 && hour < 21)
+    return ["cocktails", "coffee", "food", "beer&wine", "spirits"];
+  return ["cocktails", "spirits", "beer&wine", "food", "coffee"];
+};
 
 const CategoryNav: React.FC<CategoryNavProps> = ({
   currentLanguage = "EN",
+  onCategoryChange,
 }) => {
-  const [orderedKeys, setOrderedKeys] = useState<CategoryType[]>([]);
-  const [activeCategory, setActiveCategory] = useState<CategoryType | null>(
-    null
+  const [orderedKeys, setOrderedKeys] = useState<CategoryType[]>(getOrder);
+  const [activeCategory, setActiveCategory] = useState<CategoryType>(
+    getOrder()[0]
   );
 
-  const getOrder = (): CategoryType[] => {
-    const hour = new Date().getHours();
-
-    // Morning: 06:00 - 11:59
-    if (hour >= 6 && hour < 12) {
-      return ["coffee", "food", "beer&wine", "cocktails", "spirits"];
-    }
-    // Lunch: 12:00 - 16:59
-    if (hour >= 12 && hour < 17) {
-      return ["food", "coffee", "beer&wine", "spirits", "cocktails"];
-    }
-    // Afternoon: 17:00 - 20:59
-    if (hour >= 17 && hour < 21) {
-      return ["cocktails", "coffee", "food", "beer&wine", "spirits"];
-    }
-    // Night: 21:00 - 05:59
-    return ["cocktails", "spirits", "beer&wine", "food", "coffee"];
-  };
-
   useEffect(() => {
-    const order = getOrder();
-    setOrderedKeys(order);
-    // Set first category as active by default
-    if (!activeCategory) {
-      setActiveCategory(order[0]);
-    }
     const interval = setInterval(() => {
       const newOrder = getOrder();
       setOrderedKeys(newOrder);
-      // Update active category if the order changes and current active is not in first position
-      if (activeCategory && newOrder[0] !== activeCategory) {
-        setActiveCategory(newOrder[0]);
-      }
-    }, 60000); // Re-check every minute
+    }, 60000);
     return () => clearInterval(interval);
-  }, [activeCategory]);
+  }, []);
 
-  const handleCategoryClick = (categoryId: CategoryType) => {
-    setActiveCategory(categoryId);
-    console.log(`Navigating to ${categoryId}`);
-    // Add your navigation logic here
-  };
+  const handleClick = useCallback(
+    (id: CategoryType) => {
+      setActiveCategory(id);
+      onCategoryChange?.(id);
+    },
+    [onCategoryChange]
+  );
+
+  // Notify parent of initial category
+  useEffect(() => {
+    onCategoryChange?.(activeCategory);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <nav className="category-nav" aria-label="Menu Categories">
-      <ul className="category-list">
+    <nav className="category-nav" aria-label="Menu categories">
+      <ul className="category-list" role="tablist">
         {orderedKeys.map((key) => {
           const cat = CATEGORIES[key];
           const isActive = activeCategory === cat.id;
-
           return (
-            <li key={cat.id} className="category-item">
+            <li key={cat.id} className="category-item" role="presentation">
               <button
-                className={`category-button ${isActive ? "active" : ""}`}
-                onClick={() => handleCategoryClick(cat.id)}
-                aria-label={`View ${cat.label[currentLanguage]}`}
-                aria-current={isActive ? "page" : undefined}
+                role="tab"
+                aria-selected={isActive}
+                className={`category-btn ${isActive ? "category-btn--active" : ""}`}
+                onClick={() => handleClick(cat.id)}
               >
-                <span className="category-icon" aria-hidden="true">
+                <span className="category-btn__icon" aria-hidden="true">
                   {cat.icon}
                 </span>
-                <span className="category-label">
+                <span className="category-btn__label">
                   {cat.label[currentLanguage]}
                 </span>
               </button>

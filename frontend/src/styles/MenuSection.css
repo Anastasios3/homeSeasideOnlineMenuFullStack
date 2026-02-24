@@ -1,0 +1,566 @@
+/* ============================================================
+   MenuSection – Customer menu display
+   Refactoring UI: visual hierarchy, spacing, subtle shadows,
+   fewer borders, labels-as-last-resort
+   ============================================================ */
+
+/* Section grouping */
+.menu-category {
+  margin-bottom: var(--sp-10);
+}
+
+.menu-category:last-child {
+  margin-bottom: 0;
+}
+
+.menu-category__title {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  padding-bottom: var(--sp-4);
+  margin-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+/* Items list – no bullets, clean spacing */
+.menu-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* ---- Individual item row ---- */
+.menu-item {
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) var(--ease-in-out);
+}
+
+.menu-item:hover {
+  background-color: var(--bg-card-hover);
+}
+
+/* Clickable button wrapping entire item */
+.menu-item__button {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  padding: var(--sp-4) var(--sp-5);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  color: inherit;
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) var(--ease-in-out);
+}
+
+.menu-item__button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+}
+
+/* Left: name + description */
+.menu-item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-item__name {
+  font-size: var(--text-md);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  line-height: var(--lh-tight);
+}
+
+.menu-item__desc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--lh-normal);
+  margin-top: var(--sp-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+/* Right: price – right aligned, prominent */
+.menu-item__price {
+  font-size: var(--text-md);
+  font-weight: var(--fw-semibold);
+  color: var(--text-price);
+  white-space: nowrap;
+  padding-top: 1px;
+  flex-shrink: 0;
+}
+
+/* Dual price — compact inline layout, slash separator
+   Refactoring UI: "labels are a last resort" — small, de-emphasized labels
+   sit above the values; the prices themselves carry the visual weight. */
+.price-dual {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.price-dual__entry {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.price-dual__label {
+  font-size: 0.5625rem;
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  line-height: 1;
+  margin-bottom: 1px;
+}
+
+.price-dual__value {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-price);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Slash separator — lighter, less dominant than a divider bar */
+.price-dual__sep {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-normal);
+  color: var(--text-tertiary);
+  line-height: 1;
+  align-self: flex-end;
+  padding-bottom: 1px;
+}
+
+/* ---- Large variant (modal) ---- */
+.price-dual--lg {
+  gap: var(--sp-3);
+}
+
+.price-dual--lg .price-dual__label {
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+}
+
+.price-dual--lg .price-dual__value {
+  font-size: var(--text-xl);
+  font-weight: var(--fw-bold);
+  color: var(--accent-primary);
+}
+
+.price-dual--lg .price-dual__sep {
+  font-size: var(--text-base);
+  color: var(--border-primary);
+  padding-bottom: 2px;
+}
+
+/* ============================================================
+   Subcategory filter dropdown
+   ============================================================ */
+.subcategory-filter {
+  position: relative;
+  margin-bottom: var(--sp-6);
+}
+
+.subcategory-filter__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-5);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-in-out);
+  white-space: nowrap;
+}
+
+.subcategory-filter__toggle:hover {
+  color: var(--text-primary);
+  background: var(--nav-hover-bg);
+  border-color: var(--border-focus);
+}
+
+.subcategory-filter__toggle--open {
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+}
+
+.subcategory-filter__chevron {
+  transition: transform var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.subcategory-filter__toggle--open .subcategory-filter__chevron {
+  transform: rotate(180deg);
+}
+
+.subcategory-filter__dropdown {
+  position: absolute;
+  top: calc(100% + var(--sp-2));
+  left: 0;
+  z-index: 100;
+  min-width: 200px;
+  max-width: 320px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  animation: dropdown-in var(--duration-fast) var(--ease-out);
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.subcategory-filter__option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-in-out);
+}
+
+.subcategory-filter__option:hover {
+  color: var(--text-primary);
+  background: var(--nav-hover-bg);
+}
+
+.subcategory-filter__option--active {
+  color: var(--text-nav-active);
+  background: var(--accent-soft);
+  font-weight: var(--fw-semibold);
+}
+
+/* ============================================================
+   Item Detail Modal
+   Refactoring UI: generous whitespace, clear visual hierarchy,
+   emphasise by de-emphasising surrounding elements.
+   Inclusive Components: focus trap, aria-modal, aria-labelledby.
+   ============================================================ */
+.item-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-5);
+  animation: modal-fade-in var(--duration-normal) var(--ease-out);
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.item-modal {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 400px;
+  max-height: 85vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: modal-slide-up var(--duration-normal) var(--ease-out);
+}
+
+.item-modal--no-image {
+  max-width: 400px;
+}
+
+@keyframes modal-slide-up {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Close — subtle pill, semi-transparent backdrop */
+.item-modal__close {
+  position: absolute;
+  top: var(--sp-4);
+  right: var(--sp-4);
+  z-index: 10;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration-fast) var(--ease-in-out),
+              color var(--duration-fast) var(--ease-in-out);
+}
+
+.item-modal__close:hover,
+.item-modal__close:focus-visible {
+  background: var(--nav-hover-bg);
+  color: var(--text-primary);
+}
+
+.item-modal__close:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Image — wider, hero-style with rounded top */
+.item-modal__image-area {
+  width: 100%;
+  height: 200px;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.item-modal__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Body — generous padding, clear vertical rhythm */
+.item-modal__body {
+  padding: var(--sp-7) var(--sp-7) var(--sp-8);
+}
+
+.item-modal--no-image .item-modal__body {
+  padding-top: var(--sp-10);
+}
+
+/* Category — smallest text, de-emphasised (Refactoring UI: labels last resort) */
+.item-modal__category {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin-bottom: var(--sp-3);
+}
+
+/* Name — strongest visual weight in the modal */
+.item-modal__name {
+  font-size: var(--text-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  line-height: var(--lh-tight);
+  margin-bottom: var(--sp-3);
+}
+
+/* Description — secondary, softer */
+.item-modal__desc {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
+  margin-bottom: var(--sp-6);
+}
+
+/* Single price in modal */
+.item-modal__price {
+  font-size: var(--text-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--accent-primary);
+  white-space: nowrap;
+}
+
+/* Price area — subtle background panel for visual separation
+   Refactoring UI: use background color differences instead of borders */
+.item-modal__price-area {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-6);
+  margin: 0 calc(-1 * var(--sp-7));
+  background: var(--bg-secondary);
+}
+
+/* Allergens — bottom of hierarchy, subtlest section */
+.item-modal__allergens {
+  margin-top: var(--sp-7);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--border-secondary);
+}
+
+.item-modal__allergens-label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 0.6875rem;
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--allergen-text);
+  margin-bottom: var(--sp-3);
+}
+
+.item-modal__allergen-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.allergen-tag {
+  font-size: 0.6875rem;
+  font-weight: var(--fw-medium);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius-full);
+  background-color: var(--allergen-bg);
+  color: var(--allergen-text);
+  line-height: 1;
+}
+
+/* ---- Loading skeleton ---- */
+.menu-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  padding: var(--sp-5);
+}
+
+.menu-skeleton__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-5);
+}
+
+.menu-skeleton__bar {
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--border-secondary);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.menu-skeleton__bar--name {
+  width: 55%;
+}
+
+.menu-skeleton__bar--price {
+  width: 48px;
+}
+
+.menu-skeleton__bar--desc {
+  width: 40%;
+  height: 12px;
+  margin-top: var(--sp-1);
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ---- Empty state ---- */
+.menu-empty {
+  text-align: center;
+  padding: var(--sp-11) var(--sp-7);
+  color: var(--text-tertiary);
+}
+
+.menu-empty__icon {
+  font-size: var(--text-4xl);
+  margin-bottom: var(--sp-5);
+  opacity: 0.4;
+}
+
+.menu-empty__text {
+  font-size: var(--text-md);
+}
+
+/* ---- Mobile tweaks ---- */
+@media (max-width: 768px) {
+  .menu-item__button {
+    padding: var(--sp-4);
+  }
+
+  .menu-item__name {
+    font-size: var(--text-base);
+  }
+
+  .menu-item__price {
+    font-size: var(--text-base);
+  }
+
+  .item-modal {
+    max-width: 100%;
+    max-height: 92vh;
+    margin: var(--sp-3);
+    border-radius: var(--radius-lg);
+  }
+
+  .item-modal__image-area {
+    height: 180px;
+  }
+
+  .item-modal__body {
+    padding: var(--sp-6) var(--sp-5) var(--sp-7);
+  }
+
+  .item-modal--no-image .item-modal__body {
+    padding-top: var(--sp-9);
+  }
+
+  .item-modal__name {
+    font-size: var(--text-xl);
+  }
+
+  .item-modal__price {
+    font-size: var(--text-xl);
+  }
+
+  .item-modal__price-area {
+    padding: var(--sp-4) var(--sp-5);
+    margin: 0 calc(-1 * var(--sp-5));
+  }
+
+  .price-dual--lg .price-dual__value {
+    font-size: var(--text-lg);
+  }
+
+  .subcategory-filter__dropdown {
+    min-width: 180px;
+  }
+}

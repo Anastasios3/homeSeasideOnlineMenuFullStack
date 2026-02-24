@@ -1,15 +1,14 @@
-/* Project: homeSeasideOnlineMenuFullStack
-   Category Navigation - Fixed Positioning & Theme Sync
-*/
+/* ============================================================
+   CategoryNav – Clean tab navigation
+   ============================================================ */
 
-/* Positioning and Theme Sync */
 .category-nav {
   width: 100%;
   z-index: 1100;
-  /* Use CSS variables for instant theme sync */
   background-color: var(--bg-nav);
-  border-top: 2px solid var(--nav-border);
-  transition: background-color var(--transition), border-color var(--transition);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: background-color var(--duration-normal) var(--ease-in-out);
 }
 
 .category-list {
@@ -17,112 +16,111 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  justify-content: space-around;
-  align-items: center;
+  justify-content: center;
+  align-items: stretch;
   height: 100%;
+  gap: var(--sp-1);
 }
 
 .category-item {
-  flex: 1;
   display: flex;
-  justify-content: center;
 }
 
-.category-button {
+.category-btn {
   background: none;
   border: none;
-  /* Use theme-aware variable for instant color sync */
   color: var(--text-nav);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 12px 8px;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-6);
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 100%;
-  border-radius: 16px;
   position: relative;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-in-out),
+              background-color var(--duration-fast) var(--ease-in-out);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
-.category-button:hover {
-  color: var(--accent-highlight);
-  transform: translateY(-2px);
+.category-btn:hover {
+  color: var(--text-nav-active);
+  background-color: var(--nav-hover-bg);
 }
 
-/* Active State - High Contrast Pill Highlight */
-.category-button.active {
-  background-color: var(--btn-active-bg) !important;
-  color: var(--btn-active-text) !important;
-  border-radius: var(--radius-pill);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 2px var(--accent-action);
-  transform: scale(1.08);
-  font-weight: 900;
-  position: relative;
+/* Active: underline indicator */
+.category-btn--active {
+  color: var(--text-nav-active);
+  font-weight: var(--fw-semibold);
 }
 
-[data-theme="dark"] .category-button.active {
-  box-shadow: 0 4px 20px rgba(246, 215, 233, 0.4),
-    0 0 0 2px var(--accent-action), 0 0 30px rgba(246, 215, 233, 0.3);
-}
-
-/* Glow effect for active state */
-.category-button.active::before {
+.category-btn--active::after {
   content: "";
   position: absolute;
-  inset: -2px;
-  border-radius: var(--radius-pill);
-  padding: 2px;
-  background: linear-gradient(
-    135deg,
-    var(--accent-action),
-    var(--accent-highlight)
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0.6;
-  animation: pulse-border 2s ease-in-out infinite;
+  bottom: 0;
+  left: var(--sp-5);
+  right: var(--sp-5);
+  height: 2px;
+  background-color: var(--nav-indicator);
+  border-radius: 2px 2px 0 0;
 }
 
-@keyframes pulse-border {
-  0%,
-  100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.category-icon {
+.category-btn__icon {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
-  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 
-.category-button.active .category-icon {
-  transform: scale(1.15);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+.category-btn--active .category-btn__icon {
+  opacity: 1;
 }
 
-.category-label {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  margin-top: 4px;
-  transition: font-weight 0.2s ease;
+.category-btn__label {
+  line-height: 1;
 }
 
-.category-button.active .category-label {
-  font-weight: 900;
-  letter-spacing: 0.8px;
+/* Focus */
+.category-btn:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
+  z-index: 10;
 }
 
-/* Mobile: Bottom Fixed Navigation */
+/* ============================================================
+   Desktop: Fixed under TopBar, horizontal tabs
+   ============================================================ */
+@media (min-width: 769px) {
+  .category-nav {
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    height: var(--nav-h);
+    border-bottom: 1px solid var(--border-primary);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .category-list {
+    max-width: var(--content-wide-max-w);
+    margin: 0 auto;
+    padding: 0 var(--sp-7);
+    gap: var(--sp-2);
+  }
+
+  .category-btn {
+    padding: var(--sp-4) var(--sp-7);
+    font-size: var(--text-base);
+  }
+}
+
+/* ============================================================
+   Mobile: Fixed bottom nav
+   ============================================================ */
 @media (max-width: 768px) {
   .category-nav {
     position: fixed;
@@ -130,82 +128,41 @@
     left: 0;
     height: var(--nav-h);
     padding-bottom: env(safe-area-inset-bottom);
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  .category-button {
-    padding: 10px 4px;
-  }
-
-  .category-icon {
-    margin-bottom: 2px;
-  }
-}
-
-/* Large Screens: Fix Overlap & Alignment */
-@media (min-width: 769px) {
-  .category-nav {
-    /* CRITICAL FIX: Position directly under fixed header */
-    position: fixed;
-    top: var(--header-h);
-    left: 0;
-    height: var(--nav-h);
-    border-top: none;
-    border-bottom: 2px solid var(--accent-action);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--border-primary);
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.06);
   }
 
   .category-list {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2rem;
+    gap: 0;
   }
 
   .category-item {
-    flex: 0 1 auto;
+    flex: 1;
   }
 
-  .category-button {
-    flex-direction: row;
-    gap: 10px;
-    padding: 16px 24px;
-    width: auto;
-    min-width: 140px;
+  .category-btn {
+    width: 100%;
+    flex-direction: column;
+    gap: var(--sp-1);
+    padding: var(--sp-3) var(--sp-2);
+    font-size: var(--text-xs);
+    border-radius: 0;
   }
 
-  .category-button:hover {
-    background: rgba(157, 178, 195, 0.12);
-    transform: translateY(-1px);
+  .category-btn--active::after {
+    top: 0;
+    bottom: auto;
+    left: var(--sp-4);
+    right: var(--sp-4);
+    border-radius: 0 0 2px 2px;
   }
 
-  [data-theme="dark"] .category-button:hover {
-    background: rgba(255, 255, 255, 0.08);
+  .category-btn__icon {
+    font-size: 0;
   }
 
-  .category-icon {
-    margin-bottom: 0;
+  .category-btn__icon svg {
+    width: 20px;
+    height: 20px;
   }
-
-  .category-label {
-    font-size: 0.85rem;
-    margin-top: 0;
-  }
-
-  /* Enhanced active state for desktop */
-  .category-button.active {
-    padding: 16px 32px;
-    margin: 0 6px;
-    transform: scale(1.1);
-  }
-
-  .category-button.active::before {
-    inset: -3px;
-  }
-}
-
-/* High contrast focus state for accessibility */
-.category-button:focus-visible {
-  outline: 3px solid var(--accent-highlight);
-  outline-offset: 3px;
-  z-index: 10;
 }

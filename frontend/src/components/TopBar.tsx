@@ -16,66 +16,73 @@ const TopBar: FC<TopBarProps> = ({ onLanguageChange }) => {
   }, [theme]);
 
   useEffect(() => {
-    // Notify parent component of language change
-    if (onLanguageChange) {
-      onLanguageChange(lang);
-    }
+    onLanguageChange?.(lang);
   }, [lang, onLanguageChange]);
-
-  const handleLanguageChange = (newLang: "EN" | "EL") => {
-    setLang(newLang);
-  };
 
   return (
     <header className="site-header" role="banner">
-      <div className="header-inner-container">
-        {/* Left Slot: Theme Toggle Pill */}
-        <div className="nav-slot slot-left">
-          <div className="theme-pill">
+      <div className="header-inner">
+        {/* Theme toggle */}
+        <div className="header-slot header-slot-left">
+          <div className="pill-toggle" role="radiogroup" aria-label="Theme">
             <button
+              role="radio"
+              aria-checked={theme === "light"}
               onClick={() => setTheme("light")}
-              className={`theme-option ${theme === "light" ? "active" : ""}`}
-              aria-label="Switch to light mode"
+              className={`pill-toggle__option ${theme === "light" ? "pill-toggle__option--active" : ""}`}
+              aria-label="Light mode"
             >
-              <Sun size={16} strokeWidth={2.5} />
+              <Sun size={14} strokeWidth={2.5} />
             </button>
             <button
+              role="radio"
+              aria-checked={theme === "dark"}
               onClick={() => setTheme("dark")}
-              className={`theme-option ${theme === "dark" ? "active" : ""}`}
-              aria-label="Switch to dark mode"
+              className={`pill-toggle__option ${theme === "dark" ? "pill-toggle__option--active" : ""}`}
+              aria-label="Dark mode"
             >
-              <Moon size={16} strokeWidth={2.5} />
+              <Moon size={14} strokeWidth={2.5} />
             </button>
-            <div className={`theme-slider ${theme}`} />
+            <div
+              className={`pill-toggle__indicator ${theme === "dark" ? "pill-toggle__indicator--right" : ""}`}
+              aria-hidden="true"
+            />
           </div>
         </div>
 
-        {/* Center Slot: Brand Identity */}
-        <div className="logo-center-container">
+        {/* Logo */}
+        <div className="header-logo-wrap">
           <img
             src={theme === "light" ? "/Logo_light.svg" : "/Logo_Dark.svg"}
             alt="Home Seaside Bar & More"
-            className="brand-logo"
+            className="header-logo"
             loading="eager"
           />
         </div>
 
-        {/* Right Slot: Language Selector */}
-        <div className="nav-slot slot-right">
-          <div className="lang-pill">
+        {/* Language selector */}
+        <div className="header-slot header-slot-right">
+          <div className="pill-toggle" role="radiogroup" aria-label="Language">
             <button
-              onClick={() => handleLanguageChange("EN")}
-              className={`lang-option ${lang === "EN" ? "active" : ""}`}
+              role="radio"
+              aria-checked={lang === "EN"}
+              onClick={() => setLang("EN")}
+              className={`pill-toggle__option ${lang === "EN" ? "pill-toggle__option--active" : ""}`}
             >
               EN
             </button>
             <button
-              onClick={() => handleLanguageChange("EL")}
-              className={`lang-option ${lang === "EL" ? "active" : ""}`}
+              role="radio"
+              aria-checked={lang === "EL"}
+              onClick={() => setLang("EL")}
+              className={`pill-toggle__option ${lang === "EL" ? "pill-toggle__option--active" : ""}`}
             >
               EL
             </button>
-            <div className={`lang-slider ${lang.toLowerCase()}`} />
+            <div
+              className={`pill-toggle__indicator ${lang === "EL" ? "pill-toggle__indicator--right" : ""}`}
+              aria-hidden="true"
+            />
           </div>
         </div>
       </div>
