@@ -62,7 +62,7 @@ const MAIN_CATEGORIES: { id: MainCategoryId; en: string; el: string }[] = [
 ];
 
 /* ============================================================
-   Default subcategories per main category
+   Subcategories — all dynamic, none hardcoded as "default"
    ============================================================ */
 interface SubcategoryDef {
   en: string;
@@ -70,43 +70,35 @@ interface SubcategoryDef {
   parent: MainCategoryId;
 }
 
-const DEFAULT_SUBCATEGORIES: SubcategoryDef[] = [
-  { en: "Espresso", el: "Εσπρέσο", parent: "coffee" },
-  { en: "Espresso with Milk", el: "Εσπρέσο με Γάλα", parent: "coffee" },
-  { en: "More Kinds of Coffee", el: "Άλλα Είδη Καφέ", parent: "coffee" },
-  { en: "Drinks & Tea", el: "Ροφήματα & Τσάι", parent: "coffee" },
-  { en: "Homemade", el: "Σπιτικά", parent: "coffee" },
-  { en: "Fresh Juice", el: "Φρέσκοι Χυμοί", parent: "coffee" },
-  { en: "Soft Drinks", el: "Αναψυκτικά", parent: "coffee" },
-  { en: "Beers", el: "Μπύρες", parent: "beer&wine" },
-  { en: "Wine List", el: "Λίστα Κρασιών", parent: "beer&wine" },
-  { en: "Food", el: "Φαγητό", parent: "food" },
-];
+const STORAGE_KEY = "homeseaside_subcategories_v3";
 
-const STORAGE_KEY = "homeseaside_custom_subcategories_v2";
+/** Build subcategories from existing menu items */
+const buildSubcategoriesFromItems = (items: MenuItemData[]): SubcategoryDef[] => {
+  const seen = new Set<string>();
+  const subs: SubcategoryDef[] = [];
+  for (const item of items) {
+    const en = typeof item.category === "object" ? item.category.en : (item.category ?? "");
+    const el = typeof item.category === "object" ? item.category.el : (item.category ?? "");
+    const parent = item.main_category ?? ("coffee" as MainCategoryId);
+    const key = `${parent}::${en.toLowerCase()}`;
+    if (en && !seen.has(key)) {
+      seen.add(key);
+      subs.push({ en, el: el || en, parent });
+    }
+  }
+  return subs;
+};
 
 const loadSubcategories = (): SubcategoryDef[] => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const custom = JSON.parse(stored) as SubcategoryDef[];
-      const all = [...DEFAULT_SUBCATEGORIES];
-      for (const c of custom) {
-        if (!all.some((a) => a.en.toLowerCase() === c.en.toLowerCase())) {
-          all.push(c);
-        }
-      }
-      return all;
-    }
+    if (stored) return JSON.parse(stored) as SubcategoryDef[];
   } catch { /* ignore */ }
-  return [...DEFAULT_SUBCATEGORIES];
+  return [];
 };
 
-const saveCustomSubcategories = (subs: SubcategoryDef[]) => {
-  const custom = subs.filter(
-    (c) => !DEFAULT_SUBCATEGORIES.some((d) => d.en.toLowerCase() === c.en.toLowerCase())
-  );
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(custom));
+const saveSubcategories = (subs: SubcategoryDef[]) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(subs));
 };
 
 const getId = (item: MenuItemData): string => {
@@ -294,11 +286,6 @@ const SubcategoryManager: FC<SubcategoryManagerProps> = ({
   };
 
   const handleDelete = (idx: number) => {
-    const sub = subcategories[idx];
-    if (DEFAULT_SUBCATEGORIES.some((d) => d.en.toLowerCase() === sub.en.toLowerCase())) {
-      setError("Default subcategories cannot be deleted.");
-      return;
-    }
     onSubcategoriesChange(subcategories.filter((_, i) => i !== idx));
   };
 
@@ -341,18 +328,13 @@ const SubcategoryManager: FC<SubcategoryManagerProps> = ({
                 <div className="subcat-list" role="list">
                   {subs.map((sub) => {
                     const globalIdx = subcategories.indexOf(sub);
-                    const isDefault = DEFAULT_SUBCATEGORIES.some((d) => d.en.toLowerCase() === sub.en.toLowerCase());
                     return (
                       <div key={sub.en} className="subcat-item" role="listitem">
                         <div className="subcat-item__info">
                           <span className="subcat-item__name">{sub.en}</span>
                           <span className="subcat-item__name-el">{sub.el}</span>
                         </div>
-                        {isDefault ? (
-                          <span className="subcat-item__badge">Default</span>
-                        ) : (
-                          <button className="btn btn--danger btn--sm" onClick={() => handleDelete(globalIdx)} aria-label={`Delete ${sub.en}`}><Trash2 size={14} /></button>
-                        )}
+                        <button className="btn btn--danger btn--sm" onClick={() => handleDelete(globalIdx)} aria-label={`Delete ${sub.en}`}><Trash2 size={14} /></button>
                       </div>
                     );
                   })}
@@ -738,24 +720,21 @@ const AdminPanel: FC<AdminPanelProps> = ({ language }) => {
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
-  // Auto-discover subcategories from fetched items
+  // Build subcategories from fetched items, merging with any saved in localStorage
   useEffect(() => {
     if (items.length === 0) return;
-    let changed = false;
-    const updated = [...knownSubcategories];
-    for (const item of items) {
-      const en = getField(item.category, "EN");
-      const el = getField(item.category, "EL");
-      const parent = item.main_category || "coffee";
-      if (en && !updated.some((c) => c.en.toLowerCase() === en.toLowerCase())) {
-        updated.push({ en, el: el || en, parent });
-        changed = true;
+    const fromItems = buildSubcategoriesFromItems(items);
+    const saved = loadSubcategories();
+    // Merge: start with items-derived, add any saved ones not already present
+    const merged = [...fromItems];
+    for (const s of saved) {
+      const key = `${s.parent}::${s.en.toLowerCase()}`;
+      if (!merged.some((m) => `${m.parent}::${m.en.toLowerCase()}` === key)) {
+        merged.push(s);
       }
     }
-    if (changed) {
-      setKnownSubcategories(updated);
-      saveCustomSubcategories(updated);
-    }
+    setKnownSubcategories(merged);
+    saveSubcategories(merged);
   }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showToast = (message: string, type: "success" | "error") => {
@@ -785,7 +764,7 @@ const AdminPanel: FC<AdminPanelProps> = ({ language }) => {
 
   const handleSubcategoriesChange = (subs: SubcategoryDef[]) => {
     setKnownSubcategories(subs);
-    saveCustomSubcategories(subs);
+    saveSubcategories(subs);
   };
 
   // For filter pills — show subcategory names
