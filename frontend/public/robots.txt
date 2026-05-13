@@ -1,0 +1,32 @@
+# Home Seaside Bar & More — Rethymno, Crete
+# https://home-seaside.gr
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /visit
+Disallow: /uploads/
+
+# AI search crawlers — explicitly welcome, with the admin surface blocked.
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /visit
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /visit
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /visit
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /visit
+
+Sitemap: https://home-seaside.gr/sitemap.xml

@@ -13,3 +13,18 @@ backend/log/*
 backend/tmp/*
 backend/public/assets
 backend/public/packs
+
+# Admin-uploaded photos (user-generated content lives on the server,
+# not in source control — these are the local-disk fallback when
+# S3_UPLOADS_BUCKET isn't configured).
+backend/public/uploads/
+
+# Claude Code — session metadata and project instructions
+.claude/
+.claude*
+CLAUDE.md
+**/CLAUDE.md
+
+# Generated SEO artifacts (rebuilt by `npm run prebuild`)
+frontend/public/sitemap.xml
+frontend/public/og.jpg
