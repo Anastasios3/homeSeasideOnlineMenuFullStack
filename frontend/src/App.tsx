@@ -14,6 +14,7 @@ type CategoryType = "coffee" | "spirits" | "cocktails" | "beer&wine" | "food";
 
 import { getAdminToken, setAdminToken, clearAdminToken } from "./auth";
 import { loadScheduleFromServer } from "./config/schedule";
+import { loadSubcategoriesFromServer } from "./config/subcategories";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -241,10 +242,11 @@ function ScrollToTop() {
 }
 
 function App() {
-  // Hydrate the cached schedule from the server once on app boot. Subsequent
-  // changes flow through StorageEvent and the in-memory cache.
+  // Hydrate cached schedule + subcategory overrides from the server once at
+  // app boot. Subsequent changes flow through StorageEvent + in-memory cache.
   useEffect(() => {
     loadScheduleFromServer();
+    loadSubcategoriesFromServer();
   }, []);
 
   return (

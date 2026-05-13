@@ -4,7 +4,7 @@ import axios from "axios";
 import {
   Plus, Pencil, Trash2, X, FolderPlus, Search,
   Upload, Image as ImageIcon, Crop, Clock, RotateCcw,
-  ChevronUp, ChevronDown,
+  ChevronUp, ChevronDown, Eye, EyeOff,
 } from "lucide-react";
 import { getAdminToken } from "../auth";
 import {
@@ -16,6 +16,15 @@ import {
   type DayPhase,
   type DaySchedule,
 } from "../config/schedule";
+import {
+  MAIN_CATEGORIES as SUB_MAIN_CATEGORIES,
+  EMPTY_OVERRIDES,
+  getOverrides,
+  mergeDerivedWithOverrides,
+  saveSubcategoryOverrides,
+  type MainCategoryId as SubMainCategoryId,
+  type SubcategoryOverrides,
+} from "../config/subcategories";
 import "../styles/AdminPanel.css";
 
 /** Build Authorization header from stored JWT */
@@ -253,6 +262,194 @@ const ImageCropper: FC<ImageCropperProps> = ({ file, onCrop, onCancel }) => {
       <div className="image-cropper__actions">
         <button type="button" className="btn btn--secondary" onClick={onCancel}>Cancel</button>
         <button type="button" className="btn btn--primary" onClick={handleCrop}><Crop size={14} /> Apply Crop</button>
+      </div>
+    </div>
+  );
+};
+
+/* ============================================================
+   Subcategory Editor — server-backed rename / reorder / hide
+   ============================================================ */
+interface SubcategoryEditorProps {
+  items: MenuItemData[];
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+const SUB_MAIN_LABELS: Record<SubMainCategoryId, string> = {
+  coffee:     "Coffee & More",
+  cocktails:  "Cocktails",
+  "beer&wine": "Beer & Wine",
+  food:       "Food",
+  spirits:    "Spirits",
+};
+
+function moveInArray<T>(arr: T[], from: number, to: number): T[] {
+  if (to < 0 || to >= arr.length) return arr;
+  const next = [...arr];
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next;
+}
+
+const SubcategoryEditor: FC<SubcategoryEditorProps> = ({ items, onClose, onSaved }) => {
+  // Derive the canonical slug list from current items, keyed by main_category.
+  const derived = useMemo(() => {
+    const out: Record<SubMainCategoryId, { slug: string; label_en: string; label_el: string }[]> = {
+      coffee: [], cocktails: [], "beer&wine": [], food: [], spirits: [],
+    };
+    const seen = new Set<string>();
+    for (const item of items) {
+      const main = (item.main_category ?? "coffee") as SubMainCategoryId;
+      const enLabel = typeof item.category === "object" ? item.category.en : (item.category ?? "");
+      const elLabel = typeof item.category === "object" ? item.category.el : (item.category ?? "");
+      const slug = enLabel;
+      if (!slug) continue;
+      const key = `${main}::${slug.toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out[main].push({ slug, label_en: enLabel, label_el: elLabel || enLabel });
+    }
+    return out;
+  }, [items]);
+
+  // Initial draft is the merge of derived + server overrides.
+  const initial = useMemo(() => {
+    void getOverrides; // hydration already happens at boot
+    return mergeDerivedWithOverrides(derived);
+  }, [derived]);
+
+  const [draft, setDraft] = useState<SubcategoryOverrides>(initial);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Refresh draft whenever the derived list shifts (e.g., an item was added).
+  useEffect(() => { setDraft(initial); }, [initial]);
+
+  const update = (main: SubMainCategoryId, idx: number, patch: Partial<SubcategoryOverrides[SubMainCategoryId][number]>) => {
+    setDraft((prev) => {
+      const arr = prev[main];
+      const next = arr.map((row, i) => (i === idx ? { ...row, ...patch } : row));
+      return { ...prev, [main]: next };
+    });
+  };
+
+  const move = (main: SubMainCategoryId, idx: number, direction: -1 | 1) => {
+    setDraft((prev) => {
+      const next = moveInArray(prev[main], idx, idx + direction).map((row, i) => ({ ...row, position: i }));
+      return { ...prev, [main]: next };
+    });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      // Renumber positions before saving to guarantee 0..N-1.
+      const normalized: SubcategoryOverrides = { ...EMPTY_OVERRIDES };
+      for (const mc of SUB_MAIN_CATEGORIES) {
+        normalized[mc] = draft[mc].map((row, i) => ({ ...row, position: i }));
+      }
+      await saveSubcategoryOverrides(normalized);
+      onSaved();
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save subcategories");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="subcat-editor-title">
+      <div className="modal modal--subcat-editor">
+        <div className="modal-header">
+          <h2 id="subcat-editor-title" className="modal-title">Subcategories</h2>
+          <button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
+        </div>
+        <div className="modal-body">
+          <p className="schedule__intro">
+            Rename subcategories per language, drag with the arrows to set the
+            order, or hide a subcategory from the customer menu (items will
+            still exist — they just won't appear).
+          </p>
+
+          {SUB_MAIN_CATEGORIES.map((mc) => {
+            const rows = draft[mc];
+            if (rows.length === 0) return (
+              <div key={mc} className="subcat-edit-group">
+                <div className="subcat-edit-group__title">{SUB_MAIN_LABELS[mc]}</div>
+                <p className="subcat-group__empty">No subcategories under this main category yet.</p>
+              </div>
+            );
+            return (
+              <div key={mc} className="subcat-edit-group">
+                <div className="subcat-edit-group__title">{SUB_MAIN_LABELS[mc]}</div>
+                <ul className="subcat-edit-list">
+                  {rows.map((row, idx) => (
+                    <li key={row.slug} className={`subcat-edit-row ${row.hidden ? "subcat-edit-row--hidden" : ""}`}>
+                      <span className="schedule__order-controls">
+                        <button
+                          type="button"
+                          className="schedule__order-btn"
+                          aria-label={`Move ${row.label_en} up`}
+                          disabled={idx === 0}
+                          onClick={() => move(mc, idx, -1)}
+                        ><ChevronUp size={14} /></button>
+                        <button
+                          type="button"
+                          className="schedule__order-btn"
+                          aria-label={`Move ${row.label_en} down`}
+                          disabled={idx === rows.length - 1}
+                          onClick={() => move(mc, idx, 1)}
+                        ><ChevronDown size={14} /></button>
+                      </span>
+                      <div className="subcat-edit-fields">
+                        <label className="subcat-edit-field">
+                          <span className="subcat-edit-field__label">English</span>
+                          <input
+                            type="text"
+                            className="form-input form-input--sm"
+                            value={row.label_en}
+                            onChange={(e) => update(mc, idx, { label_en: e.target.value })}
+                          />
+                        </label>
+                        <label className="subcat-edit-field">
+                          <span className="subcat-edit-field__label">Ελληνικά</span>
+                          <input
+                            type="text"
+                            className="form-input form-input--sm"
+                            value={row.label_el}
+                            onChange={(e) => update(mc, idx, { label_el: e.target.value })}
+                          />
+                        </label>
+                      </div>
+                      <button
+                        type="button"
+                        className={`schedule__order-btn subcat-edit-hide ${row.hidden ? "subcat-edit-hide--on" : ""}`}
+                        aria-label={row.hidden ? `Show ${row.label_en} on menu` : `Hide ${row.label_en} from menu`}
+                        aria-pressed={row.hidden}
+                        onClick={() => update(mc, idx, { hidden: !row.hidden })}
+                      >
+                        {row.hidden ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+
+          {error && <div className="schedule__error" role="alert">{error}</div>}
+        </div>
+        <div className="modal-footer">
+          <div className="modal-footer__right">
+            <button className="btn btn--secondary" onClick={onClose} disabled={saving}>Cancel</button>
+            <button className="btn btn--primary" onClick={handleSave} disabled={saving}>
+              {saving ? "Saving…" : "Save subcategories"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1095,7 +1292,13 @@ const AdminPanel: FC<AdminPanelProps> = ({ language }) => {
       )}
 
       {showForm && <ItemForm item={editingItem} subcategories={knownSubcategories} onSave={handleSave} onClose={handleCloseForm} />}
-      {showSubcatManager && <SubcategoryManager subcategories={knownSubcategories} onSubcategoriesChange={handleSubcategoriesChange} onClose={() => setShowSubcatManager(false)} />}
+      {showSubcatManager && (
+        <SubcategoryEditor
+          items={items}
+          onClose={() => setShowSubcatManager(false)}
+          onSaved={() => showToast("Subcategories updated", "success")}
+        />
+      )}
       {showSchedule && <SchedulePanel onClose={() => setShowSchedule(false)} onSaved={() => showToast("Schedule updated", "success")} />}
       {toast && <div className={`toast toast--${toast.type}`} role="status" aria-live="polite">{toast.message}</div>}
     </div>

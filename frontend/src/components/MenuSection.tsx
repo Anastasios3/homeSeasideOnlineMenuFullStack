@@ -2,6 +2,11 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { FC } from "react";
 import axios from "axios";
 import { Search, X, AlertTriangle } from "lucide-react";
+import {
+  getMeta as getSubcategoryMeta,
+  SUBCATEGORIES_STORAGE_KEY,
+  type MainCategoryId,
+} from "../config/subcategories";
 import "../styles/MenuSection.css";
 
 type Language = "EN" | "EL";
@@ -288,6 +293,9 @@ const SubcategoryChips: FC<SubcategoryChipsProps> = ({
 }) => {
   const localized = useCallback((subEN: string): string => {
     const item = items.find((i) => getCategoryEN(i) === subEN);
+    const main = (item?.main_category ?? "coffee") as MainCategoryId;
+    const override = getSubcategoryMeta(main, subEN);
+    if (override) return language === "EN" ? override.label_en : override.label_el;
     return item ? getField(item.category, language) : subEN;
   }, [items, language]);
 
@@ -415,9 +423,22 @@ const MenuSection: FC<MenuSectionProps> = ({ language, activeCategory }) => {
     return items.filter((item) => item.main_category === activeCategory);
   }, [items, activeCategory]);
 
+  // Bump on admin subcategory edits so chips re-render with new labels/order.
+  const [overridesVersion, setOverridesVersion] = useState(0);
+  useEffect(() => {
+    const onChange = (e: StorageEvent) => {
+      if (e.key === SUBCATEGORIES_STORAGE_KEY) setOverridesVersion((v) => v + 1);
+    };
+    window.addEventListener("storage", onChange);
+    return () => window.removeEventListener("storage", onChange);
+  }, []);
+
   /** Available subcategories for the current main category, with counts that
       respect the current search query — chip counts reflect what the user
-      would actually see if they tapped the chip. */
+      would actually see if they tapped the chip. Hidden subcategories
+      (admin-flagged) drop out of the chip list. Ordering follows the admin
+      override position when present; new/unoverridden slugs fall back to
+      alphabetic at the tail. */
   const { subcategories, subcategoryCounts } = useMemo(() => {
     const counts = new Map<string, number>();
     for (const item of filteredItems) {
@@ -425,21 +446,44 @@ const MenuSection: FC<MenuSectionProps> = ({ language, activeCategory }) => {
       const k = getCategoryEN(item);
       counts.set(k, (counts.get(k) ?? 0) + 1);
     }
-    const subs = Array.from(counts.keys()).sort();
-    return { subcategories: subs, subcategoryCounts: counts };
-  }, [filteredItems, searchQuery]);
+    const slugs = Array.from(counts.keys()).filter((slug) => {
+      const item = filteredItems.find((i) => getCategoryEN(i) === slug);
+      const main = (item?.main_category ?? "coffee") as MainCategoryId;
+      return !getSubcategoryMeta(main, slug)?.hidden;
+    });
+    slugs.sort((a, b) => {
+      const itemA = filteredItems.find((i) => getCategoryEN(i) === a);
+      const itemB = filteredItems.find((i) => getCategoryEN(i) === b);
+      const mainA = (itemA?.main_category ?? "coffee") as MainCategoryId;
+      const mainB = (itemB?.main_category ?? "coffee") as MainCategoryId;
+      const posA = getSubcategoryMeta(mainA, a)?.position;
+      const posB = getSubcategoryMeta(mainB, b)?.position;
+      if (posA != null && posB != null) return posA - posB;
+      if (posA != null) return -1;
+      if (posB != null) return 1;
+      return a.localeCompare(b);
+    });
+    return { subcategories: slugs, subcategoryCounts: counts };
+    // overridesVersion intentionally listed so re-renders refresh ordering.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredItems, searchQuery, overridesVersion]);
 
-  /** Further filter by subcategory + search query. */
+  /** Further filter by subcategory + search query. Items whose subcategory
+      has been admin-hidden disappear from customer view entirely. */
   const displayItems = useMemo(() => {
     return filteredItems.filter((item) => {
       if (!matchesQuery(item, searchQuery)) return false;
+      const slug = getCategoryEN(item);
+      const main = (item.main_category ?? "coffee") as MainCategoryId;
+      if (getSubcategoryMeta(main, slug)?.hidden) return false;
       if (activeSubcategory &&
-        getCategoryEN(item).toLowerCase() !== activeSubcategory.toLowerCase()) {
+        slug.toLowerCase() !== activeSubcategory.toLowerCase()) {
         return false;
       }
       return true;
     });
-  }, [filteredItems, activeSubcategory, searchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredItems, activeSubcategory, searchQuery, overridesVersion]);
 
   /** Group items by subcategory */
   const grouped = useMemo(() => {
@@ -503,10 +547,16 @@ const MenuSection: FC<MenuSectionProps> = ({ language, activeCategory }) => {
             onClear={() => { setSearchQuery(""); setActiveSubcategory(null); }}
           />
         ) : (
-          Array.from(grouped.entries()).map(([category, categoryItems]) => (
+          Array.from(grouped.entries()).map(([category, categoryItems]) => {
+            const main = (categoryItems[0]?.main_category ?? "coffee") as MainCategoryId;
+            const override = getSubcategoryMeta(main, category);
+            const heading = override
+              ? (language === "EN" ? override.label_en : override.label_el)
+              : getField(categoryItems[0]?.category, language);
+            return (
             <section key={category} className="menu-category" aria-label={category}>
               <h2 className="menu-category__title">
-                {getField(categoryItems[0]?.category, language)}
+                {heading}
               </h2>
               <ul className="menu-items">
                 {categoryItems.map((item) => {
@@ -540,7 +590,8 @@ const MenuSection: FC<MenuSectionProps> = ({ language, activeCategory }) => {
                 })}
               </ul>
             </section>
-          ))
+            );
+          })
         )}
       </div>
 
