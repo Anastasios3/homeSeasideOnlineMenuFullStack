@@ -6,8 +6,14 @@
  * admin photo manager is a yak too long. The admin pays a few seconds of
  * "uploading 3 sizes" once; customers never pay.
  *
- * The output is a manifest with three JPG URLs (640w, 1280w, 1920w) ready to
- * plug straight into <Picture srcSet=…> on the customer side.
+ * Output format: WebP. At quality 0.82 a WebP is ~25–35 % smaller than the
+ * equivalent JPEG with no visible difference, and every browser the menu
+ * runs on (~99 % of global traffic in 2026) decodes WebP natively. Source
+ * files can be any image MIME the backend accepts (jpg/png/webp/gif) —
+ * the canvas re-encode normalises everything.
+ *
+ * The output is a manifest with three WebP URLs (640w, 1280w, 1920w) ready
+ * to plug straight into <Picture srcSet=…> on the customer side.
  */
 
 import axios from "axios";
@@ -18,10 +24,14 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 export const PHOTO_SIZES = [640, 1280, 1920] as const;
 export type PhotoSize = typeof PHOTO_SIZES[number];
 
+/** WebP encode quality. 0.82 is the sweet spot — same perceived quality as
+ *  JPEG @ 0.90 at ~70 % of the byte size. Tune cautiously. */
+const WEBP_QUALITY = 0.82;
+
 export interface UploadedPhotoManifest {
   /** Display URL — the largest size, used as the default <img src>. */
   url: string;
-  /** Per-width JPG URLs for the srcSet attribute. */
+  /** Per-width WebP URLs for the srcSet attribute. */
   srcset: Record<PhotoSize, string>;
   /** Intrinsic dimensions of the original (pre-resize) image. */
   width: number;
@@ -33,30 +43,34 @@ interface ResizedBlob {
   blob: Blob;
 }
 
-/**
- * Render the given file at the requested target widths via an offscreen
- * canvas. Aspect ratio is preserved; if the source is narrower than a target
- * width we cap at the source width so we don't upscale.
- */
-async function resizeToWidths(
-  file: File,
-  widths: ReadonlyArray<PhotoSize>,
-  quality = 0.85,
-): Promise<{ resized: ResizedBlob[]; width: number; height: number }> {
+async function blobToImage(blob: Blob): Promise<HTMLImageElement> {
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(reader.error);
     reader.onload = () => resolve(String(reader.result));
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(blob);
   });
-
-  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
     const el = new Image();
     el.onerror = () => reject(new Error("Failed to decode image"));
     el.onload = () => resolve(el);
     el.src = dataUrl;
   });
+}
 
+/**
+ * Render the given image at the requested target widths via an offscreen
+ * canvas. Aspect ratio is preserved; if the source is narrower than a target
+ * width we cap at the source width so we don't upscale.
+ *
+ * Each output is WebP — see WEBP_QUALITY for the encode setting.
+ */
+async function resizeToWidths(
+  input: File | Blob,
+  widths: ReadonlyArray<PhotoSize>,
+  quality = WEBP_QUALITY,
+): Promise<{ resized: ResizedBlob[]; width: number; height: number }> {
+  const img = await blobToImage(input);
   const sourceW = img.naturalWidth;
   const sourceH = img.naturalHeight;
   const ratio = sourceH / sourceW;
@@ -74,7 +88,7 @@ async function resizeToWidths(
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(img, 0, 0, w, h);
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob((b) => resolve(b), "image/jpeg", quality),
+      canvas.toBlob((b) => resolve(b), "image/webp", quality),
     );
     if (!blob) throw new Error(`Failed to encode ${target}w blob`);
     resized.push({ width: target, blob });
@@ -101,27 +115,31 @@ async function uploadBlob(blob: Blob, filename: string): Promise<string> {
 }
 
 /**
- * Take a file from <input type=file>, resize to 3 widths, upload each, and
- * return a srcset manifest ready to store in SiteSetting.homepage_photos.
+ * Take a file from <input type=file> (or a pre-cropped Blob from the
+ * cropper), resize to 3 widths in WebP, upload each, and return a srcset
+ * manifest ready to store in SiteSetting.homepage_photos.
  *
  * Throws on any individual failure — caller decides whether to retry or
  * roll back partial uploads.
  */
-export async function uploadResponsivePhoto(file: File): Promise<UploadedPhotoManifest> {
-  if (!file.type.startsWith("image/")) {
+export async function uploadResponsivePhoto(input: File | Blob): Promise<UploadedPhotoManifest> {
+  if (!input.type.startsWith("image/")) {
     throw new Error("Only image files are allowed.");
   }
   // 5 MB matches the backend's UploadsController guard — fail early.
-  if (file.size > 5 * 1024 * 1024) {
+  // Note: this is the SOURCE size; outputs are typically far smaller.
+  if (input.size > 5 * 1024 * 1024) {
     throw new Error("Image must be 5MB or smaller.");
   }
 
-  const { resized, width, height } = await resizeToWidths(file, PHOTO_SIZES);
+  const { resized, width, height } = await resizeToWidths(input, PHOTO_SIZES);
 
-  const baseName = file.name.replace(/\.[^.]+$/, "");
+  const sourceName = input instanceof File && input.name
+    ? input.name.replace(/\.[^.]+$/, "")
+    : "photo";
   const srcset: Partial<Record<PhotoSize, string>> = {};
   for (const r of resized) {
-    const url = await uploadBlob(r.blob, `${baseName}-${r.width}w.jpg`);
+    const url = await uploadBlob(r.blob, `${sourceName}-${r.width}w.webp`);
     srcset[r.width] = url;
   }
 

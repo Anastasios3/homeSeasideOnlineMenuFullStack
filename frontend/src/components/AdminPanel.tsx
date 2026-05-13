@@ -34,6 +34,7 @@ import { getCurationAll } from "../config/curationRuntime";
 import { uploadResponsivePhoto } from "../lib/imageUpload";
 import type { CuratedEntry } from "../api/siteSetting";
 import { ALBUM1_PHOTOS } from "../assets/photos/album1";
+import { useTimeOfDay } from "../hooks/useTimeOfDay";
 import "../styles/AdminPanel.css";
 
 /** Build Authorization header from stored JWT */
@@ -153,28 +154,58 @@ const getImageFullUrl = (url: string | null | undefined): string | null => {
 };
 
 /* ============================================================
-   Image Cropper — simple 1:1 drag-to-crop
+   Image Cropper — drag-to-crop with configurable aspect ratio.
+
+   Outputs WebP at quality 0.88 (slightly higher than the resize
+   pipeline because this is the LARGEST size — downstream resizer
+   re-encodes at 0.82 for the actual served sizes). The combined
+   pipeline still produces files ~30 % smaller than the old JPEG path.
    ============================================================ */
 interface ImageCropperProps {
   file: File;
+  /** Width / height of the crop area. 1 = square (default), 16/9 = hero, etc. */
+  aspectRatio?: number;
+  /** Largest dimension of the output image. Defaults to 1920 — the resize
+   *  pipeline will further downsize this to 640/1280/1920 anyway, so any
+   *  value ≥ 1920 is fine here. */
+  outputMaxLong?: number;
   onCrop: (croppedBlob: Blob) => void;
   onCancel: () => void;
 }
 
-const ImageCropper: FC<ImageCropperProps> = ({ file, onCrop, onCancel }) => {
+const ImageCropper: FC<ImageCropperProps> = ({
+  file,
+  aspectRatio = 1,
+  outputMaxLong = 1920,
+  onCrop,
+  onCancel,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   // Derive the blob URL synchronously from the file so we don't need a
   // setState-in-effect — the cleanup effect below revokes on unmount/file change.
   const imgSrc = useMemo(() => URL.createObjectURL(file), [file]);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [cropArea, setCropArea] = useState({ x: 0, y: 0, size: 200 });
+  const [cropArea, setCropArea] = useState({ x: 0, y: 0, w: 200, h: 200 });
   const [dragging, setDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const [displaySize, setDisplaySize] = useState({ w: 0, h: 0 });
 
   useEffect(() => () => URL.revokeObjectURL(imgSrc), [imgSrc]);
+
+  /** Largest crop rect that fits inside the display at the requested aspect. */
+  const fitToAspect = useCallback((boxW: number, boxH: number) => {
+    const a = aspectRatio;
+    // Fit aspect ratio inside the available box
+    let w = boxW;
+    let h = w / a;
+    if (h > boxH) {
+      h = boxH;
+      w = h * a;
+    }
+    return { w, h };
+  }, [aspectRatio]);
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
@@ -188,9 +219,11 @@ const ImageCropper: FC<ImageCropperProps> = ({ file, onCrop, onCancel }) => {
     const dw = img.naturalWidth * scale;
     const dh = img.naturalHeight * scale;
     setDisplaySize({ w: dw, h: dh });
-    const minDim = Math.min(dw, dh);
-    const cropSize = minDim * 0.8;
-    setCropArea({ x: (dw - cropSize) / 2, y: (dh - cropSize) / 2, size: cropSize });
+    // Default crop: 85 % of the largest fitting rect, centred.
+    const fit = fitToAspect(dw, dh);
+    const w = fit.w * 0.85;
+    const h = fit.h * 0.85;
+    setCropArea({ x: (dw - w) / 2, y: (dh - h) / 2, w, h });
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -201,10 +234,10 @@ const ImageCropper: FC<ImageCropperProps> = ({ file, onCrop, onCancel }) => {
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!dragging) return;
-    const newX = Math.max(0, Math.min(displaySize.w - cropArea.size, e.clientX - dragStart.x));
-    const newY = Math.max(0, Math.min(displaySize.h - cropArea.size, e.clientY - dragStart.y));
+    const newX = Math.max(0, Math.min(displaySize.w - cropArea.w, e.clientX - dragStart.x));
+    const newY = Math.max(0, Math.min(displaySize.h - cropArea.h, e.clientY - dragStart.y));
     setCropArea((prev) => ({ ...prev, x: newX, y: newY }));
-  }, [dragging, dragStart, displaySize, cropArea.size]);
+  }, [dragging, dragStart, displaySize, cropArea.w, cropArea.h]);
 
   const handleMouseUp = useCallback(() => { setDragging(false); }, []);
 
@@ -223,36 +256,57 @@ const ImageCropper: FC<ImageCropperProps> = ({ file, onCrop, onCancel }) => {
     const img = imgRef.current;
     const canvas = canvasRef.current;
     if (!img || !canvas) return;
+    // Map display-space crop coordinates back to source-pixel coordinates.
     const scaleX = img.naturalWidth / displaySize.w;
     const scaleY = img.naturalHeight / displaySize.h;
     const sx = cropArea.x * scaleX;
     const sy = cropArea.y * scaleY;
-    const sSize = cropArea.size * scaleX;
-    const outputSize = Math.min(800, sSize);
-    canvas.width = outputSize;
-    canvas.height = outputSize;
+    const sw = cropArea.w * scaleX;
+    const sh = cropArea.h * scaleY;
+    // Cap output dimensions so we never produce a needlessly huge canvas.
+    // The resize pipeline will downsize again for the served widths.
+    const longSide = Math.max(sw, sh);
+    const outScale = longSide > outputMaxLong ? outputMaxLong / longSide : 1;
+    const outW = Math.round(sw * outScale);
+    const outH = Math.round(sh * outScale);
+    canvas.width = outW;
+    canvas.height = outH;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.drawImage(img, sx, sy, sSize, sSize, 0, 0, outputSize, outputSize);
-    canvas.toBlob((blob) => { if (blob) onCrop(blob); }, "image/jpeg", 0.85);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outW, outH);
+    canvas.toBlob((blob) => { if (blob) onCrop(blob); }, "image/webp", 0.88);
   };
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -10 : 10;
     setCropArea((prev) => {
-      const newSize = Math.max(60, Math.min(Math.min(displaySize.w, displaySize.h), prev.size + delta));
-      const newX = Math.max(0, Math.min(displaySize.w - newSize, prev.x - (newSize - prev.size) / 2));
-      const newY = Math.max(0, Math.min(displaySize.h - newSize, prev.y - (newSize - prev.size) / 2));
-      return { x: newX, y: newY, size: newSize };
+      // Resize along the width axis, height follows aspect.
+      const minW = 60;
+      const maxW = Math.min(displaySize.w, displaySize.h * aspectRatio);
+      const newW = Math.max(minW, Math.min(maxW, prev.w + delta));
+      const newH = newW / aspectRatio;
+      const newX = Math.max(0, Math.min(displaySize.w - newW, prev.x - (newW - prev.w) / 2));
+      const newY = Math.max(0, Math.min(displaySize.h - newH, prev.y - (newH - prev.h) / 2));
+      return { x: newX, y: newY, w: newW, h: newH };
     });
   };
+
+  const ratioLabel = aspectRatio === 1
+    ? "1:1"
+    : aspectRatio === 16 / 9
+      ? "16:9"
+      : aspectRatio === 4 / 3
+        ? "4:3"
+        : aspectRatio.toFixed(2);
 
   return (
     <div className="image-cropper">
       <div className="image-cropper__header">
         <Crop size={16} />
-        <span>Crop to 1:1 — drag to move, scroll to resize</span>
+        <span>Crop to {ratioLabel} — drag to move, scroll to resize</span>
       </div>
       <div ref={containerRef} className="image-cropper__container" onWheel={handleWheel}>
         {imgSrc && (
@@ -260,8 +314,8 @@ const ImageCropper: FC<ImageCropperProps> = ({ file, onCrop, onCancel }) => {
             <img src={imgSrc} onLoad={handleImageLoad} style={{ display: imgLoaded ? "block" : "none", width: displaySize.w || "auto", height: displaySize.h || "auto" }} alt="Crop preview" draggable={false} />
             {imgLoaded && (
               <>
-                <div className="image-cropper__overlay" style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", clipPath: `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${cropArea.x}px ${cropArea.y}px, ${cropArea.x}px ${cropArea.y + cropArea.size}px, ${cropArea.x + cropArea.size}px ${cropArea.y + cropArea.size}px, ${cropArea.x + cropArea.size}px ${cropArea.y}px, ${cropArea.x}px ${cropArea.y}px)`, pointerEvents: "none" }} />
-                <div className="image-cropper__handle" style={{ position: "absolute", left: cropArea.x, top: cropArea.y, width: cropArea.size, height: cropArea.size, border: "2px solid white", borderRadius: "var(--radius-md)", cursor: "move", boxShadow: "0 0 0 9999px transparent" }} onMouseDown={handleMouseDown} />
+                <div className="image-cropper__overlay" style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", clipPath: `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${cropArea.x}px ${cropArea.y}px, ${cropArea.x}px ${cropArea.y + cropArea.h}px, ${cropArea.x + cropArea.w}px ${cropArea.y + cropArea.h}px, ${cropArea.x + cropArea.w}px ${cropArea.y}px, ${cropArea.x}px ${cropArea.y}px)`, pointerEvents: "none" }} />
+                <div className="image-cropper__handle" style={{ position: "absolute", left: cropArea.x, top: cropArea.y, width: cropArea.w, height: cropArea.h, border: "2px solid white", borderRadius: "var(--radius-md)", cursor: "move", boxShadow: "0 0 0 9999px transparent" }} onMouseDown={handleMouseDown} />
               </>
             )}
           </div>
@@ -307,6 +361,55 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
   const [uploadingNew, setUploadingNew] = useState(false);
   const [activeTab, setActiveTab] = useState<"library" | "rotation" | "hero">("library");
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
+  /** Pending File for the Hero Override cropper. Null = no cropper open. */
+  const [heroCropFile, setHeroCropFile] = useState<File | null>(null);
+  /** Pending File for a Library "upload new photo" cropper. */
+  const [libraryCropFile, setLibraryCropFile] = useState<File | null>(null);
+
+  const { phase: currentPhase } = useTimeOfDay();
+
+  // ------------------------------------------------------------
+  // Phase-based auto-sort.
+  //
+  // Order rule:
+  //   1. Primary phase (first phase in PHASE_ORDER that's in entry.phases)
+  //   2. Priority descending within the same phase
+  //   3. Slug alphabetical as a stable tiebreaker
+  //
+  // Entries with no phases land in a synthetic "unassigned" group at the
+  // end. The In Rotation tab renders the list grouped by phase so the
+  // admin can see the order at a glance; the homepage journey scrolls
+  // through the same flattened order.
+  // ------------------------------------------------------------
+  const primaryPhaseIndex = (entry: CuratedEntry): number => {
+    if (entry.phases.length === 0) return PHASE_ORDER.length; // unassigned last
+    for (let i = 0; i < PHASE_ORDER.length; i++) {
+      if (entry.phases.includes(PHASE_ORDER[i])) return i;
+    }
+    return PHASE_ORDER.length;
+  };
+
+  const sortedCuration = useMemo(() => {
+    return [...draft.curation].sort((a, b) => {
+      const pa = primaryPhaseIndex(a);
+      const pb = primaryPhaseIndex(b);
+      if (pa !== pb) return pa - pb;
+      if (a.priority !== b.priority) return b.priority - a.priority;
+      return a.slug.localeCompare(b.slug);
+    });
+  }, [draft.curation]);
+
+  /** Group sortedCuration into phase buckets for rendering with section dividers. */
+  const groupedByPhase = useMemo(() => {
+    const groups: { phase: DayPhase | null; entries: CuratedEntry[] }[] = [];
+    for (const p of PHASE_ORDER) {
+      const entries = sortedCuration.filter((e) => primaryPhaseIndex(e) === PHASE_ORDER.indexOf(p));
+      if (entries.length > 0) groups.push({ phase: p, entries });
+    }
+    const unassigned = sortedCuration.filter((e) => e.phases.length === 0);
+    if (unassigned.length > 0) groups.push({ phase: null, entries: unassigned });
+    return groups;
+  }, [sortedCuration]);
 
   // ------------------------------------------------------------
   // Curation helpers — single source of truth for hero + journey
@@ -337,9 +440,7 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
   const removeFromRotation = (slug: string) => {
     setDraft((prev) => ({
       ...prev,
-      curation: prev.curation
-        .filter((e) => e.slug !== slug)
-        .map((e, i) => ({ ...e, position: i })),
+      curation: prev.curation.filter((e) => e.slug !== slug),
     }));
   };
 
@@ -354,37 +455,26 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
     }));
   };
 
-  const togglePhase = (slug: string, phase: DayPhase) => {
+  const togglePhase = (slug: string, p: DayPhase) => {
     setDraft((prev) => ({
       ...prev,
       curation: prev.curation.map((e) => {
         if (e.slug !== slug) return e;
-        const has = e.phases.includes(phase);
-        return { ...e, phases: has ? e.phases.filter((p) => p !== phase) : [...e.phases, phase] };
+        const has = e.phases.includes(p);
+        return { ...e, phases: has ? e.phases.filter((x) => x !== p) : [...e.phases, p] };
       }),
     }));
-  };
-
-  const moveEntry = (slug: string, direction: -1 | 1) => {
-    setDraft((prev) => {
-      const idx = prev.curation.findIndex((e) => e.slug === slug);
-      if (idx < 0) return prev;
-      const next = [...prev.curation];
-      const swap = idx + direction;
-      if (swap < 0 || swap >= next.length) return prev;
-      [next[idx], next[swap]] = [next[swap], next[idx]];
-      return { ...prev, curation: next.map((e, i) => ({ ...e, position: i })) };
-    });
   };
 
   // ------------------------------------------------------------
   // Hero override (manual lock — bypasses curation rotation)
   // ------------------------------------------------------------
-  const handleHeroUpload = async (file: File) => {
+  const handleHeroCropDone = async (blob: Blob) => {
+    setHeroCropFile(null);
     setUploadingHero(true);
     setError(null);
     try {
-      const manifest = await uploadResponsivePhoto(file);
+      const manifest = await uploadResponsivePhoto(blob);
       setDraft((prev) => ({
         ...prev,
         hero: {
@@ -416,11 +506,12 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
   // ------------------------------------------------------------
   // Custom upload — adds a new "custom" entry to the rotation
   // ------------------------------------------------------------
-  const handleCustomUpload = async (file: File) => {
+  const handleLibraryCropDone = async (blob: Blob) => {
+    setLibraryCropFile(null);
     setUploadingNew(true);
     setError(null);
     try {
-      const manifest = await uploadResponsivePhoto(file);
+      const manifest = await uploadResponsivePhoto(blob);
       const slug = `upload-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
       const entry: CuratedEntry = {
         kind: "custom",
@@ -452,7 +543,7 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
   };
 
   // ------------------------------------------------------------
-  // Save
+  // Save — write sorted positions so the homepage matches the editor view
   // ------------------------------------------------------------
   const handleSave = async () => {
     setSaving(true);
@@ -462,7 +553,7 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
         hero: draft.hero,
         journey: [],
         gallery: [],
-        curation: draft.curation.map((e, i) => ({ ...e, position: i })),
+        curation: sortedCuration.map((e, i) => ({ ...e, position: i })),
       };
       await saveHomepagePhotos(cleaned);
       setDraft(cleaned);
@@ -476,6 +567,26 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
   };
 
   // ------------------------------------------------------------
+  // Current rotation hero — what would auto-rotate as the hero right now
+  // (used as a preview in the Hero Override tab)
+  // ------------------------------------------------------------
+  const currentRotationHero = useMemo((): CuratedEntry | null => {
+    const visible = draft.curation.filter((e) => !e.hidden);
+    if (visible.length === 0) return null;
+    const matches = visible.filter((e) => e.phases.includes(currentPhase));
+    if (matches.length === 0) return visible[0];
+    return matches.reduce((best, e) => (e.priority > best.priority ? e : best), matches[0]);
+  }, [draft.curation, currentPhase]);
+
+  const resolveThumb = (entry: CuratedEntry): string => {
+    if (entry.kind === "bundled") {
+      const meta = ALBUM1_PHOTOS[entry.slug];
+      return meta?.src.jpg[400] ?? "";
+    }
+    return entry.url ? resolvePreviewUrl(entry.url) : "";
+  };
+
+  // ------------------------------------------------------------
   // Pre-compute lookup maps for the library grid
   // ------------------------------------------------------------
   const bundledSlugs = Object.keys(ALBUM1_PHOTOS);
@@ -483,12 +594,20 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
   const curatedCount = draft.curation.length;
   const visibleCount = draft.curation.filter((e) => !e.hidden).length;
 
-  const phaseLabels: Record<DayPhase, string> = {
+  const phaseChipLabels: Record<DayPhase, string> = {
     morning: "Morn",
     afternoon: "Noon",
     golden: "Gold",
     evening: "Eve",
     night: "Late",
+  };
+
+  const phaseHeaderLabels: Record<DayPhase, string> = {
+    morning: "Morning",
+    afternoon: "Afternoon",
+    golden: "Golden hour",
+    evening: "Evening",
+    night: "Late night",
   };
 
   return (
@@ -540,8 +659,8 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
               <p className="schedule__intro">
                 These are all the photos available on the site. Click any photo
                 to add it to <strong>In Rotation</strong> (so it shows on the
-                homepage) or remove it. The 16 hand-picked photos that the site
-                ships with are marked. Upload your own at the bottom.
+                homepage) or remove it. The photos currently running on the
+                homepage are highlighted with an orange border.
               </p>
 
               {/* Custom uploads first if any */}
@@ -603,26 +722,39 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
                 })}
               </div>
 
-              <div className="photo-upload-cta">
-                <label className="btn btn--secondary">
-                  <Upload size={14} />
-                  {uploadingNew ? "Uploading…" : "Upload a new photo"}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) void handleCustomUpload(f);
-                      e.target.value = "";
-                    }}
-                    disabled={uploadingNew}
+              {/* Library upload — opens a 1:1 cropper, output WebP */}
+              {libraryCropFile ? (
+                <div style={{ marginTop: "var(--sp-4)" }}>
+                  <ImageCropper
+                    file={libraryCropFile}
+                    aspectRatio={1}
+                    onCrop={(blob) => void handleLibraryCropDone(blob)}
+                    onCancel={() => setLibraryCropFile(null)}
                   />
-                </label>
-                <span className="photo-upload-cta__hint">
-                  Auto-resized to 640 / 1280 / 1920 px. Added straight to In Rotation.
-                </span>
-              </div>
+                </div>
+              ) : (
+                <div className="photo-upload-cta">
+                  <label className="btn btn--secondary">
+                    <Upload size={14} />
+                    {uploadingNew ? "Uploading…" : "Upload a new photo"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) setLibraryCropFile(f);
+                        e.target.value = "";
+                      }}
+                      disabled={uploadingNew}
+                    />
+                  </label>
+                  <span className="photo-upload-cta__hint">
+                    You'll crop to 1:1, then it's resized to 640 / 1280 / 1920 px
+                    WebP and added straight to In Rotation.
+                  </span>
+                </div>
+              )}
             </section>
           )}
 
@@ -630,112 +762,109 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
           {activeTab === "rotation" && (
             <section style={{ paddingTop: 0 }}>
               <p className="schedule__intro">
-                These photos run on the homepage. Edit captions and phase tags
-                here. The hero shows the highest-priority photo matching the
-                current time of day. The journey strip scrolls through all
-                visible photos in the order below.
+                These photos run on the homepage. They auto-sort by phase tag —
+                Morning first, then Noon, Gold, Eve, Late. Change a photo's
+                phase tag and it moves to the new section. Use Priority to
+                reorder within a section (higher = first; also wins the hero
+                rotation for that phase).
               </p>
 
               {draft.curation.length === 0 ? (
                 <div className="admin-empty"><p>No photos in rotation. Go to Library and pick some.</p></div>
               ) : (
-                <ul className="rotation-list">
-                  {draft.curation.map((entry, idx) => {
-                    const thumbUrl = entry.kind === "bundled"
-                      ? ALBUM1_PHOTOS[entry.slug]?.src.jpg[400]
-                      : entry.url ? resolvePreviewUrl(entry.url) : "";
-                    return (
-                      <li key={entry.slug} className={`rotation-row ${entry.hidden ? "rotation-row--hidden" : ""}`}>
-                        <div className="rotation-row__thumb">
-                          {thumbUrl && <img src={thumbUrl} alt="" loading="lazy" />}
-                        </div>
-                        <div className="rotation-row__main">
-                          <div className="rotation-row__head">
-                            <span className="rotation-row__slug">
-                              {entry.kind === "bundled" ? entry.slug : `Custom · ${entry.slug.slice(0, 14)}…`}
-                            </span>
-                            <span className="rotation-row__actions">
-                              <button
-                                type="button"
-                                className="schedule__order-btn"
-                                aria-label="Move up"
-                                disabled={idx === 0}
-                                onClick={() => moveEntry(entry.slug, -1)}
-                              ><ChevronUp size={14} /></button>
-                              <button
-                                type="button"
-                                className="schedule__order-btn"
-                                aria-label="Move down"
-                                disabled={idx === draft.curation.length - 1}
-                                onClick={() => moveEntry(entry.slug, 1)}
-                              ><ChevronDown size={14} /></button>
-                              <button
-                                type="button"
-                                className={`schedule__order-btn ${entry.hidden ? "subcat-edit-hide--on" : ""}`}
-                                aria-label={entry.hidden ? "Show on homepage" : "Hide from homepage"}
-                                aria-pressed={entry.hidden}
-                                onClick={() => updateEntry(entry.slug, { hidden: !entry.hidden })}
-                              >{entry.hidden ? <EyeOff size={14} /> : <Eye size={14} />}</button>
-                              <button
-                                type="button"
-                                className="schedule__order-btn"
-                                aria-label="Remove from rotation"
-                                onClick={() => removeFromRotation(entry.slug)}
-                              ><Trash2 size={14} /></button>
-                            </span>
-                          </div>
+                groupedByPhase.map((group) => (
+                  <div key={group.phase ?? "unassigned"} className="rotation-group">
+                    <div className="rotation-group__header">
+                      <span className="rotation-group__name">
+                        {group.phase ? phaseHeaderLabels[group.phase] : "Unassigned (no phase tag)"}
+                      </span>
+                      <span className="rotation-group__count">
+                        {group.entries.length} {group.entries.length === 1 ? "photo" : "photos"}
+                      </span>
+                    </div>
+                    <ul className="rotation-list">
+                      {group.entries.map((entry) => {
+                        const thumbUrl = resolveThumb(entry);
+                        return (
+                          <li key={entry.slug} className={`rotation-row ${entry.hidden ? "rotation-row--hidden" : ""}`}>
+                            <div className="rotation-row__thumb">
+                              {thumbUrl && <img src={thumbUrl} alt="" loading="lazy" />}
+                            </div>
+                            <div className="rotation-row__main">
+                              <div className="rotation-row__head">
+                                <span className="rotation-row__slug">
+                                  {entry.kind === "bundled" ? entry.slug : `Custom · ${entry.slug.slice(0, 14)}…`}
+                                </span>
+                                <span className="rotation-row__actions">
+                                  <button
+                                    type="button"
+                                    className={`schedule__order-btn ${entry.hidden ? "subcat-edit-hide--on" : ""}`}
+                                    aria-label={entry.hidden ? "Show on homepage" : "Hide from homepage"}
+                                    aria-pressed={entry.hidden}
+                                    onClick={() => updateEntry(entry.slug, { hidden: !entry.hidden })}
+                                  >{entry.hidden ? <EyeOff size={14} /> : <Eye size={14} />}</button>
+                                  <button
+                                    type="button"
+                                    className="schedule__order-btn"
+                                    aria-label="Remove from rotation"
+                                    onClick={() => removeFromRotation(entry.slug)}
+                                  ><Trash2 size={14} /></button>
+                                </span>
+                              </div>
 
-                          <div className="rotation-row__phases" role="group" aria-label="Day phases">
-                            {(["morning", "afternoon", "golden", "evening", "night"] as DayPhase[]).map((p) => (
-                              <button
-                                key={p}
-                                type="button"
-                                className={`phase-chip ${entry.phases.includes(p) ? "phase-chip--on" : ""}`}
-                                aria-pressed={entry.phases.includes(p)}
-                                onClick={() => togglePhase(entry.slug, p)}
-                              >
-                                {phaseLabels[p]}
-                              </button>
-                            ))}
-                            <label className="rotation-row__priority">
-                              <span>Priority</span>
-                              <input
-                                type="number"
-                                min={0}
-                                max={10}
-                                step={1}
-                                value={entry.priority}
-                                onChange={(e) => updateEntry(entry.slug, { priority: parseInt(e.target.value, 10) || 0 })}
-                                className="schedule__input"
-                              />
-                            </label>
-                          </div>
+                              <div className="rotation-row__phases" role="group" aria-label="Day phases">
+                                {(["morning", "afternoon", "golden", "evening", "night"] as DayPhase[]).map((p) => (
+                                  <button
+                                    key={p}
+                                    type="button"
+                                    className={`phase-chip ${entry.phases.includes(p) ? "phase-chip--on" : ""}`}
+                                    aria-pressed={entry.phases.includes(p)}
+                                    onClick={() => togglePhase(entry.slug, p)}
+                                  >
+                                    {phaseChipLabels[p]}
+                                  </button>
+                                ))}
+                                <label className="rotation-row__priority">
+                                  <span>Priority</span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={10}
+                                    step={1}
+                                    value={entry.priority}
+                                    onChange={(e) => updateEntry(entry.slug, { priority: parseInt(e.target.value, 10) || 0 })}
+                                    className="schedule__input"
+                                  />
+                                </label>
+                              </div>
 
-                          <div className="rotation-row__captions">
-                            <label className="subcat-edit-field">
-                              <span className="subcat-edit-field__label">Caption (EN)</span>
-                              <input
-                                type="text"
-                                className="form-input form-input--sm"
-                                value={entry.captionEN}
-                                onChange={(e) => updateEntry(entry.slug, { captionEN: e.target.value })}
-                              />
-                            </label>
-                            <label className="subcat-edit-field">
-                              <span className="subcat-edit-field__label">Caption (EL)</span>
-                              <input
-                                type="text"
-                                className="form-input form-input--sm"
-                                value={entry.captionEL}
-                                onChange={(e) => updateEntry(entry.slug, { captionEL: e.target.value })}
-                              />
-                            </label>
-                          </div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
+                              <div className="rotation-row__captions">
+                                <label className="subcat-edit-field">
+                                  <span className="subcat-edit-field__label">Caption (EN)</span>
+                                  <input
+                                    type="text"
+                                    className="form-input form-input--sm"
+                                    value={entry.captionEN}
+                                    onChange={(e) => updateEntry(entry.slug, { captionEN: e.target.value })}
+                                  />
+                                </label>
+                                <label className="subcat-edit-field">
+                                  <span className="subcat-edit-field__label">Caption (EL)</span>
+                                  <input
+                                    type="text"
+                                    className="form-input form-input--sm"
+                                    value={entry.captionEL}
+                                    onChange={(e) => updateEntry(entry.slug, { captionEL: e.target.value })}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))
               )}
             </section>
           )}
@@ -744,64 +873,101 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
           {activeTab === "hero" && (
             <section style={{ paddingTop: 0 }}>
               <p className="schedule__intro">
-                Set a specific photo as the homepage hero, locking it in regardless
-                of time of day. Leave this empty (Use auto-rotation) to let the
-                site pick the highest-priority photo for the current phase.
+                The hero auto-rotates by time of day — the highest-priority
+                photo matching the current phase wins. Lock a specific photo in
+                here to override the rotation. Uploaded photos are cropped to
+                16:9 and saved as compressed WebP at three sizes.
               </p>
-              <div className="photo-hero-card">
-                <div className="photo-hero-card__preview">
-                  {draft.hero?.url ? (
-                    <img src={resolvePreviewUrl(draft.hero.url)} alt="" />
-                  ) : (
-                    <div className="photo-hero-card__placeholder">
-                      <ImageIcon size={32} strokeWidth={1.4} />
-                      <span>Auto-rotation (recommended)</span>
-                    </div>
-                  )}
+
+              {/* Live preview — what's showing on the homepage right now */}
+              {currentRotationHero && !draft.hero && (
+                <div className="hero-current-preview">
+                  <div className="hero-current-preview__thumb">
+                    {(() => {
+                      const t = resolveThumb(currentRotationHero);
+                      return t ? <img src={t} alt="" /> : null;
+                    })()}
+                  </div>
+                  <div className="hero-current-preview__info">
+                    <span className="hero-current-preview__label">Currently shown on the homepage</span>
+                    <span className="hero-current-preview__slug">
+                      {currentRotationHero.kind === "bundled"
+                        ? currentRotationHero.slug
+                        : "Custom upload"}
+                    </span>
+                    <span className="hero-current-preview__meta">
+                      Phase: <strong>{phaseHeaderLabels[currentPhase]}</strong> ·
+                      Priority {currentRotationHero.priority} ·
+                      {currentRotationHero.captionEN || "—"}
+                    </span>
+                  </div>
                 </div>
-                <div className="photo-hero-card__controls">
-                  <label className="btn btn--secondary">
-                    <Upload size={14} />
-                    {uploadingHero ? "Uploading…" : draft.hero?.url ? "Replace" : "Upload hero override"}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      style={{ display: "none" }}
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) void handleHeroUpload(f);
-                        e.target.value = "";
-                      }}
-                      disabled={uploadingHero}
-                    />
-                  </label>
-                  {draft.hero && (
-                    <>
-                      <label className="subcat-edit-field">
-                        <span className="subcat-edit-field__label">Alt text (English)</span>
-                        <input
-                          type="text"
-                          className="form-input form-input--sm"
-                          value={draft.hero.alt_en}
-                          onChange={(e) => handleHeroAlt("alt_en", e.target.value)}
-                        />
-                      </label>
-                      <label className="subcat-edit-field">
-                        <span className="subcat-edit-field__label">Alt text (Ελληνικά)</span>
-                        <input
-                          type="text"
-                          className="form-input form-input--sm"
-                          value={draft.hero.alt_el}
-                          onChange={(e) => handleHeroAlt("alt_el", e.target.value)}
-                        />
-                      </label>
-                      <button type="button" className="btn btn--danger btn--sm" onClick={handleHeroClear}>
-                        <Trash2 size={14} /> Use auto-rotation
-                      </button>
-                    </>
-                  )}
+              )}
+
+              {/* Cropper takes over the tab while a file is selected */}
+              {heroCropFile ? (
+                <ImageCropper
+                  file={heroCropFile}
+                  aspectRatio={16 / 9}
+                  onCrop={(blob) => void handleHeroCropDone(blob)}
+                  onCancel={() => setHeroCropFile(null)}
+                />
+              ) : (
+                <div className="photo-hero-card">
+                  <div className="photo-hero-card__preview">
+                    {draft.hero?.url ? (
+                      <img src={resolvePreviewUrl(draft.hero.url)} alt="" />
+                    ) : (
+                      <div className="photo-hero-card__placeholder">
+                        <ImageIcon size={32} strokeWidth={1.4} />
+                        <span>Auto-rotation (recommended)</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="photo-hero-card__controls">
+                    <label className="btn btn--secondary">
+                      <Upload size={14} />
+                      {uploadingHero ? "Uploading…" : draft.hero?.url ? "Replace (crop + WebP)" : "Upload hero (crop + WebP)"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) setHeroCropFile(f);
+                          e.target.value = "";
+                        }}
+                        disabled={uploadingHero}
+                      />
+                    </label>
+                    {draft.hero && (
+                      <>
+                        <label className="subcat-edit-field">
+                          <span className="subcat-edit-field__label">Alt text (English)</span>
+                          <input
+                            type="text"
+                            className="form-input form-input--sm"
+                            value={draft.hero.alt_en}
+                            onChange={(e) => handleHeroAlt("alt_en", e.target.value)}
+                          />
+                        </label>
+                        <label className="subcat-edit-field">
+                          <span className="subcat-edit-field__label">Alt text (Ελληνικά)</span>
+                          <input
+                            type="text"
+                            className="form-input form-input--sm"
+                            value={draft.hero.alt_el}
+                            onChange={(e) => handleHeroAlt("alt_el", e.target.value)}
+                          />
+                        </label>
+                        <button type="button" className="btn btn--danger btn--sm" onClick={handleHeroClear}>
+                          <Trash2 size={14} /> Use auto-rotation
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </section>
           )}
 
@@ -1127,7 +1293,7 @@ const ItemForm: FC<ItemFormProps> = ({ item, subcategories, onSave, onClose }) =
     setError(null);
     try {
       const formData = new FormData();
-      formData.append("file", blob, "item-photo.jpg");
+      formData.append("file", blob, "item-photo.webp");
       const res = await axios.post(UPLOAD_API, formData, {
         headers: { "Content-Type": "multipart/form-data", ...authHeaders() },
       });
