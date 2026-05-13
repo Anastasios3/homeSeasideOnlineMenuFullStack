@@ -1,5 +1,6 @@
 # backend/db/seeds.rb
-# Auto-generated from JSON data files
+# Home Seaside Bar & More — Rethymno
+# Real menu, EN + EL bilingual. Wipes MenuItem and re-seeds. Safe to re-run.
 
 # --- Admin user ---
 admin_password = ENV.fetch("ADMIN_PASSWORD", "homeseaside2025")
@@ -11,502 +12,816 @@ puts "Admin user ready (username: admin)"
 
 MenuItem.delete_all
 
-# Helper: create a menu item with proper Mongoid localized fields
-def create_item(name_en:, name_el:, cat_en:, cat_el:, price:, main_category: nil, desc_en: nil, desc_el: nil, allergens: [], available: true, pricing_type: "single", price_secondary: nil)
-  item = MenuItem.new
-  item.price = price
-  item.main_category = main_category
-  item.pricing_type = pricing_type
-  item.price_secondary = price_secondary
-  item.available = available
-  item.allergens = allergens
+# ------------------------------------------------------------
+# Helper: create a menu item with localized fields
+# ------------------------------------------------------------
+def item(name_en:, name_el:, cat_en:, cat_el:, price:, main_category:,
+         desc_en: nil, desc_el: nil, allergens: [], available: true,
+         pricing_type: "single", price_secondary: nil)
+  i = MenuItem.new
+  i.price = price
+  i.main_category = main_category
+  i.pricing_type = pricing_type
+  i.price_secondary = price_secondary
+  i.available = available
+  i.allergens = allergens
 
   I18n.with_locale(:en) do
-    item.name = name_en
-    item.description = desc_en
-    item.category = cat_en
+    i.name = name_en
+    i.description = desc_en
+    i.category = cat_en
   end
   I18n.with_locale(:el) do
-    item.name = name_el
-    item.description = desc_el
-    item.category = cat_el
+    i.name = name_el
+    i.description = desc_el
+    i.category = cat_el
   end
-
-  item.save!
+  i.save!
 end
 
-# ============================================================
-# COFFEE (61 items)
-# ============================================================
-
-# --- Coffee ---
-create_item(name_en: "Espresso", name_el: "Espresso", cat_en: "Coffee", cat_el: "Καφές", price: 2.8, main_category: "coffee", desc_en: "Exquisite concentrated brew extracted by pressing hot water through aromatic finely-ground coffee beans", desc_el: "Εκλεκτός συμπυκνωμένος καφές που αποστάζεται με πίεση ζεστού νερού διαμέσου αρωματικών αλεσμένων κόκκων", pricing_type: "single_double", price_secondary: 3.8)
-create_item(name_en: "Americano", name_el: "Americano", cat_en: "Coffee", cat_el: "Καφές", price: 2.8, main_category: "coffee", desc_en: "Espresso elongated with pure hot water offering a balanced flavor profile and velvety texture", desc_el: "Εσπρέσσο με προσθήκη ζεστού νερού που προσφέρει ισορροπημένη γεύση και βελούδινη υφή", pricing_type: "single_double", price_secondary: 3.8)
-create_item(name_en: "Macciatto", name_el: "Macciatto", cat_en: "Coffee", cat_el: "Καφές", price: 3.0, main_category: "coffee", desc_en: "Espresso crowned with a delicate layer of silky foamed milk to accentuate the coffee's aromatic notes", desc_el: "Εσπρέσσο με λεπτή στρώση αφρόγαλου που αναδεικνύει τις αρωματικές νότες του καφέ", pricing_type: "single_double", price_secondary: 4.0)
-create_item(name_en: "Cappuccino", name_el: "Cappuccino", cat_en: "Coffee", cat_el: "Καφές", price: 3.8, main_category: "coffee", desc_en: "Harmonious blend of espresso, silky steamed milk and luxurious creamy milk foam in perfect proportion", desc_el: "Αρμονικός συνδυασμός εσπρέσσο, βελούδινου ζεστού γάλακτος και πλούσιου αφρογάλακτος", pricing_type: "single_double", price_secondary: 4.8)
-create_item(name_en: "Flat White", name_el: "Flat White", cat_en: "Coffee", cat_el: "Καφές", price: 4.5, main_category: "coffee", desc_en: "Double espresso with velvety microfoamed milk creating a silky texture with subtle sweetness", desc_el: "Διπλός εσπρέσσο με μεταξένιο ζεστό γάλα και μικροσκοπικές φυσαλίδες για βελούδινη υφή")
-create_item(name_en: "Latte", name_el: "Latte", cat_en: "Coffee", cat_el: "Καφές", price: 4.5, main_category: "coffee", desc_en: "Espresso embraced by generous portion of smooth steamed milk topped with a gossamer layer of foam", desc_el: "Εσπρέσσο με γενναιόδωρη ποσότητα ατμισμένου γάλακτος και λεπτό στρώμα αφρού στην κορυφή")
-create_item(name_en: "Greek Coffee", name_el: "Ελληνικός", cat_en: "Coffee", cat_el: "Καφές", price: 2.5, main_category: "coffee", desc_en: "Traditional slow-brewed coffee carefully prepared in a copper briki with a velvety cream surface", desc_el: "Παραδοσιακός καφές αργής παρασκευής σε χάλκινο μπρίκι με βελούδινη κρέμα στην επιφάνεια", pricing_type: "single_double", price_secondary: 3.5)
-create_item(name_en: "Filter Coffee", name_el: "Φίλτρου", cat_en: "Coffee", cat_el: "Καφές", price: 3.8, main_category: "coffee", desc_en: "Infusion of premium coffee beans with optional aromatic flavor enhancements (additional 0,30 €)", desc_el: "Εκχύλιση εκλεκτών κόκκων καφέ με προαιρετικές αρωματικές γεύσεις (επιπλέον 0,30 €)")
-create_item(name_en: "Irish", name_el: "Irish", cat_en: "Coffee", cat_el: "Καφές", price: 6.0, main_category: "coffee", desc_en: "Indulgent fusion of aromatic coffee, premium Irish whiskey and sumptuous cream crafted to perfection", desc_el: "Απολαυστικός συνδυασμός αρωματικού καφέ, εκλεκτού ιρλανδικού ουίσκι και βελούδινης κρέμας")
-create_item(name_en: "Nescafe", name_el: "Nescafe", cat_en: "Coffee", cat_el: "Καφές", price: 3.5, main_category: "coffee", desc_en: "Classic instant coffee with rich flavor and aroma for immediate enjoyment and quick satisfaction", desc_el: "Κλασικός στιγμιαίος καφές με πλούσια γεύση και άρωμα για γρήγορη απόλαυση")
-create_item(name_en: "Freddo Espresso", name_el: "Freddo Espresso", cat_en: "Coffee", cat_el: "Καφές", price: 3.8, main_category: "coffee", desc_en: "Aromatic espresso brewed hot, flash-chilled and served over crystal-clear ice for refreshing intensity", desc_el: "Αρωματικός εσπρέσσο που παρασκευάζεται ζεστός, ψύχεται ακαριαία και σερβίρεται με πάγο")
-create_item(name_en: "Freddo Cappuccino", name_el: "Freddo Cappuccino", cat_en: "Coffee", cat_el: "Καφές", price: 4.0, main_category: "coffee", desc_en: "Chilled espresso adorned with cold-crafted velvety milk foam, served over crystal ice for elegance", desc_el: "Κρύος εσπρέσσο με κρεμώδη αφρόγαλα που δημιουργείται από ψυχρή μέθοδο, με παγάκια")
-create_item(name_en: "Freddo Latte", name_el: "Freddo Latte", cat_en: "Coffee", cat_el: "Καφές", price: 4.0, main_category: "coffee", desc_en: "Refreshing fusion of chilled espresso with silken cold milk cascaded over crystalline ice for bliss", desc_el: "Δροσιστικός συνδυασμός κρύου εσπρέσσο με μεταξένιο παγωμένο γάλα σε κρυστάλλινο πάγο")
-create_item(name_en: "Frappe", name_el: "Φραπέ", cat_en: "Coffee", cat_el: "Καφές", price: 3.5, main_category: "coffee", desc_en: "Iconic Greek iced coffee with luxurious foam crown, crafted from instant coffee with refined method", desc_el: "Κλασικός ελληνικός κρύος καφές με πλούσιο αφρό, παρασκευασμένος με στιγμιαίο καφέ")
-
-# --- Tea ---
-create_item(name_en: "English Breakfast", name_el: "English Breakfast", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "A robust start to the day with a full-bodied taste and strong aroma. Black tea with characteristic flavor strength and longevity.", desc_el: "Ένα σώμα ξεκίνημα για την ημέρα με γεμάτη γεύση και έντονο άρωμα. Μαύρο τσάι με χαρακτηριστική γευστική δύναμη και διάρκεια.")
-create_item(name_en: "Black Almond", name_el: "Μαύρο πικραμύγδαλο", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Chinese black tea blended with almond pieces. Rich flavor with caramel notes and a subtle almond finish.", desc_el: "Μαύρο τσάι Κίνας συνδυασμένο με κομμάτια αμυγδάλου. Πλούσια γεύση με νότες καραμέλας και διακριτικό αμυγδαλένιο επίλογο.")
-create_item(name_en: "Black Rose", name_el: "Μαύρο τριαντάφυλλο", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Ceylon black tea with rose aroma. Elegant, aromatic tea with a floral character and velvety aftertaste.", desc_el: "Μαύρο τσάι Κεϋλάνης με άρωμα τριαντάφυλλου. Κομψό, αρωματικό τσάι με λουλουδάτο χαρακτήρα και βελούδινη επίγευση.")
-create_item(name_en: "Black Cinnamon", name_el: "Μαύρο κανέλα", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Ceylon black tea with cinnamon aroma. Warm, spicy profile with sweet notes and a comforting finish.", desc_el: "Μαύρο τσάι Κεϋλάνης με άρωμα κανέλας. Ζεστό, πικάντικο προφίλ με γλυκές νότες και παρηγορητική επίγευση.")
-create_item(name_en: "Green Tea", name_el: "Πράσινο", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Classic green tea with fine leaves and beneficial properties. Fresh, light with a subtle bitterness.", desc_el: "Κλασικό πράσινο τσάι με λεπτά φύλλα και ευεργετικές ιδιότητες. Φρέσκο, ανάλαφρο με διακριτική πικράδα.")
-create_item(name_en: "Green Orange", name_el: "Πράσινο πορτοκάλι", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Green FBOP tea (Flowery Broken Orange Pekoe) with orange aroma. Refreshing with a citrusy character.", desc_el: "Πράσινο τσάι FBOP (Flowery Broken Orange Pekoe) με άρωμα πορτοκαλιού. Αναζωογονητικό με εσπεριδοειδή χαρακτήρα.")
-create_item(name_en: "Green Forest Fruits", name_el: "Πράσινο φρούτα του δάσους", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Chinese green tea with dried strawberries & redcurrants. Sweet-tart flavor with fruity aromas and vibrant finish.", desc_el: "Πράσινο τσάι Κίνας με αποξηραμένες φράουλες & redcurrants. Γλυκόξινη γεύση με φρουτώδη αρώματα και ζωηρή επίγευση.")
-create_item(name_en: "Green Vanilla", name_el: "Πράσινο βανίλια", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Young Hyson green tea with vanilla aroma. Gentle, sweet profile with velvety texture and creamy finish.", desc_el: "Πράσινο τσάι Young Hyson με άρωμα βανίλιας. Απαλό, γλυκό προφίλ με βελούδινη υφή και κρεμώδη επίγευση.")
-create_item(name_en: "Green Mint", name_el: "Πράσινο μέντα", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Young Hyson green tea with mint aroma. Cooling, invigorating with a clean menthol finish.", desc_el: "Πράσινο τσάι Young Hyson με άρωμα μέντας. Δροσιστικό, αναζωογονητικό με διαυγή επίγευση μεντόλης.")
-create_item(name_en: "Green Lemon", name_el: "Πράσινο λεμόνι", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Young Hyson green tea with lemon aroma. Vibrant, bright profile with citrus freshness and invigorating finish.", desc_el: "Πράσινο τσάι Young Hyson με άρωμα λεμονιού. Ζωηρό, φωτεινό προφίλ με εσπεριδοειδή φρεσκάδα και τονωτική επίγευση.")
-create_item(name_en: "Little Prince", name_el: "Μικρός πρίγκιπας", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Red tea with apple, grape and strawberry pieces, hibiscus and chamomile flowers, and rose calyxes. Caffeine-free.", desc_el: "Κόκκινο τσάι με κομμάτια μήλου, σταφυλιού και φράουλας, άνθη ιβίσκου και χαμομηλιού και κάλυκες τριαντάφυλλιάς. Χωρίς καφεΐνη.")
-create_item(name_en: "Mountain Variety", name_el: "Βουνού ποικιλιακό", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Sage, chamomile, dittany, mallow. Traditional Greek herbal blend with therapeutic properties and earthy flavor.", desc_el: "Φασκόμηλο, χαμομήλι, δίκταμο, μολόχα. Παραδοσιακό μείγμα ελληνικών βοτάνων με θεραπευτικές ιδιότητες και γήινη γεύση.")
-create_item(name_en: "Chamomile", name_el: "Χαμομήλι", cat_en: "Tea", cat_el: "Τσάι", price: 3.8, main_category: "coffee", desc_en: "Dried chamomile flowers. Mild, soothing flavor with floral aromas and relaxing properties.", desc_el: "Αποξηραμένα άνθη χαμομηλιού. Απαλή, καταπραϋντική γεύση με ανθώδη αρώματα και χαλαρωτικές ιδιότητες.")
-
-# --- Soft Drinks ---
-create_item(name_en: "Coca Cola", name_el: "Coca Cola", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 3.3, main_category: "coffee", desc_en: "Classic caffeinated soft drink, 250ml.", desc_el: "Κλασικό αναψυκτικό με καφεΐνη, 250ml.")
-create_item(name_en: "Coca Cola Zero", name_el: "Coca Cola Zero", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 3.3, main_category: "coffee", desc_en: "Sugar-free soft drink, 250ml.", desc_el: "Αναψυκτικό χωρίς ζάχαρη, 250ml.")
-create_item(name_en: "Fanta Orange", name_el: "Fanta Πορτοκάλι", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 3.3, main_category: "coffee", desc_en: "Orange-flavored soft drink, 250ml.", desc_el: "Αναψυκτικό με γεύση πορτοκάλι, 250ml.")
-create_item(name_en: "Fanta Lemon", name_el: "Fanta Λεμόνι", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 3.3, main_category: "coffee", desc_en: "Lemon-flavored soft drink, 250ml.", desc_el: "Αναψυκτικό με γεύση λεμόνι, 250ml.")
-create_item(name_en: "Sprite", name_el: "Sprite", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 3.3, main_category: "coffee", desc_en: "Lemon-lime flavored soft drink, 250ml.", desc_el: "Αναψυκτικό με γεύση λεμονιού-lime, 250ml.")
-create_item(name_en: "Schweppes Soda", name_el: "Schweppes Σόδα", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 3.3, main_category: "coffee", desc_en: "Carbonated water with minerals, 250ml.", desc_el: "Ανθρακούχο νερό με μεταλλικά στοιχεία, 250ml.")
-create_item(name_en: "Schweppes Tonic", name_el: "Schweppes Tonic", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 3.3, main_category: "coffee", desc_en: "Carbonated water with quinine and sweeteners, 250ml.", desc_el: "Ανθρακούχο νερό με κινίνη και γλυκαντικά, 250ml.")
-create_item(name_en: "Sparkling Water 330ml", name_el: "Ανθρακούχο νερό 330ml", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 3.5, main_category: "coffee", desc_en: "Natural sparkling mineral water, 330ml.", desc_el: "Φυσικό ανθρακούχο μεταλλικό νερό, 330ml.")
-create_item(name_en: "Sparkling Water 1L", name_el: "Ανθρακούχο νερό 1lt", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 5.0, main_category: "coffee", desc_en: "Natural sparkling mineral water, 1 liter.", desc_el: "Φυσικό ανθρακούχο μεταλλικό νερό, 1 λίτρο.")
-create_item(name_en: "Red Bull", name_el: "Red Bull", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 5.0, main_category: "coffee", desc_en: "Energy drink with caffeine and taurine.", desc_el: "Ενεργειακό ποτό με καφεΐνη και ταυρίνη.")
-create_item(name_en: "Three Cents Tonic Water", name_el: "Three Cents Tonic Water", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 5.0, main_category: "coffee", desc_en: "Premium tonic with delicate citrus notes and balanced bitterness, 200ml.", desc_el: "Premium τόνικ με απαλή γεύση εσπεριδοειδών και ισορροπημένη πικράδα, 200ml.")
-create_item(name_en: "Three Cents Pink Grapefruit Soda", name_el: "Three Cents Pink Grapefruit Soda", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 5.0, main_category: "coffee", desc_en: "Premium soda with fresh pink grapefruit juice and citrus undertones, 200ml.", desc_el: "Premium σόδα με φρέσκο χυμό ροζ γκρέιπφρουτ και νότες εσπεριδοειδών, 200ml.")
-create_item(name_en: "Three Cents Aegean Tonic", name_el: "Three Cents Aegean Tonic", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 5.0, main_category: "coffee", desc_en: "Premium tonic with Mediterranean aromas, sea salt and samphire, 200ml.", desc_el: "Premium τόνικ με αρώματα Μεσογείου, θαλασσινό αλάτι και κρίταμο, 200ml.")
-create_item(name_en: "Three Cents Ginger Beer", name_el: "Three Cents Ginger Beer", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 5.0, main_category: "coffee", desc_en: "Premium ginger beer with intense spicy flavor and fresh ginger, 200ml.", desc_el: "Premium μπύρα τζίντζερ με έντονη πικάντικη γεύση και φρέσκο τζίντζερ, 200ml.")
-create_item(name_en: "Traditional Refreshments", name_el: "Παραδοσιακά Αναψυκτικά", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 4.5, main_category: "coffee", desc_en: "Handcrafted refreshments in traditional flavors: Lemonade, Rosehip, Fruit Punch, Apple-Pomegranate, Strawberry-Lemon.", desc_el: "Χειροποίητα αναψυκτικά σε παραδοσιακές γεύσεις: Λεμονάδα, Ροδακινάδα, Πανδαισία φρούτων, Μήλο-Ρόδι, Φράουλα-Λεμόνι.")
-create_item(name_en: "Milkshakes", name_el: "Milkshakes", cat_en: "Soft Drinks", cat_el: "Αναψυκτικά", price: 5.5, main_category: "coffee", desc_en: "Thick beverage with ice cream and milk in various flavors: Vanilla, Chocolate, Stracciatella, Banana, Strawberry, Biscuit, Bueno.", desc_el: "Ρόφημα με παγωτό και γάλα σε διάφορες γεύσεις: Βανίλια, Σοκολάτα, Στρατσιατέλα, Μπανάνα, Φράουλα, Μπισκότο, Μπουένο.")
-
-# --- Fresh Juice ---
-create_item(name_en: "Fresh Orange Juice", name_el: "Φρέσκος Χυμός Πορτοκάλι", cat_en: "Fresh Juice", cat_el: "Φρέσκοι Χυμοί", price: 4.0, main_category: "coffee", desc_en: "Freshly squeezed juice from juicy oranges, rich in vitamin C.", desc_el: "Φρεσκοστυμμένος χυμός από ζουμερά πορτοκάλια, πλούσιος σε βιταμίνη C.")
-create_item(name_en: "Fresh Pomegranate Juice", name_el: "Φρέσκος Χυμός Ρόδι", cat_en: "Fresh Juice", cat_el: "Φρέσκοι Χυμοί", price: 5.0, main_category: "coffee", desc_en: "Freshly squeezed juice from select pomegranates, rich in antioxidants.", desc_el: "Φρεσκοστυμμένος χυμός από εκλεκτά ρόδια, πλούσιος σε αντιοξειδωτικά.")
-create_item(name_en: "Fresh Banana & Orange Juice", name_el: "Φρέσκος Χυμός Μπανάνα & Πορτοκάλι", cat_en: "Fresh Juice", cat_el: "Φρέσκοι Χυμοί", price: 4.5, main_category: "coffee", desc_en: "Freshly squeezed orange juice with banana for an energetic start.", desc_el: "Φρεσκοστυμμένος χυμός πορτοκάλι με μπανάνα για ενεργητικό ξεκίνημα.")
-create_item(name_en: "Fresh Pomegranate & Orange Juice", name_el: "Φρέσκος Χυμός Ρόδι & Πορτοκάλι", cat_en: "Fresh Juice", cat_el: "Φρέσκοι Χυμοί", price: 5.0, main_category: "coffee", desc_en: "Freshly squeezed combination of orange and pomegranate juice, rich in vitamins.", desc_el: "Φρεσκοστυμμένος συνδυασμός χυμού πορτοκαλιού και ροδιού, πλούσιος σε βιταμίνες.")
-create_item(name_en: "Fresh Mixed Fruit Juice", name_el: "Φρέσκος Χυμός Ανάμεικτος", cat_en: "Fresh Juice", cat_el: "Φρέσκοι Χυμοί", price: 5.0, main_category: "coffee", desc_en: "Freshly squeezed juice from seasonal fruits, depending on availability.", desc_el: "Φρεσκοστυμμένος χυμός από εποχιακά φρούτα, ανάλογα με τη διαθεσιμότητα.")
-create_item(name_en: "Amita Fruit Juices", name_el: "Χυμοί Amita", cat_en: "Fresh Juice", cat_el: "Φρέσκοι Χυμοί", price: 3.3, main_category: "coffee", desc_en: "Packaged Amita juices in various flavors: Orange, Lemon, Peach, Pineapple, Banana, Sour Cherry, and Cranberry.", desc_el: "Συσκευασμένοι χυμοί Amita σε διάφορες γεύσεις: Πορτοκάλι, Λεμόνι, Ροδάκινο, Ανανάς, Μπανάνα, Βύσσινο και Cranberry.")
-
-# --- Chocolate ---
-create_item(name_en: "Classic or White Chocolate", name_el: "Κλασική ή λευκή σοκολάτα", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Rich and creamy classic dark chocolate or smooth white chocolate, crafted to warm perfection", desc_el: "Πλούσια και κρεμώδης κλασική σκούρα σοκολάτα ή απαλή λευκή σοκολάτα, παρασκευασμένη με ζεστή τελειότητα")
-create_item(name_en: "White Raspberry & Pomegranate", name_el: "Λευκή, Raspberry & Ρόδι", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Velvety white chocolate enhanced with the tartness of raspberry and antioxidant-rich pomegranate", desc_el: "Βελούδινη λευκή σοκολάτα εμπλουτισμένη με την οξύτητα του raspberry και το πλούσιο σε αντιοξειδωτικά ρόδι")
-create_item(name_en: "White Lemon & Nutmeg", name_el: "Λευκή, Λεμόνι & Μοσχοκάρυδο", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Silky white chocolate infused with zesty lemon brightness and warm nutmeg spice", desc_el: "Μεταξένια λευκή σοκολάτα με ζεστή λαμπρότητα λεμονιού και ζεστό άρωμα μοσχοκαρύδου")
-create_item(name_en: "Dark Coconut", name_el: "Σκούρα, Καρύδα", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Intense dark chocolate paired with tropical coconut for a rich and exotic experience", desc_el: "Έντονη σκούρα σοκολάτα συνδυασμένη με τροπική καρύδα για πλούσια και εξωτική εμπειρία")
-create_item(name_en: "Dark Rum", name_el: "Σκούρα, Ρούμι", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Bold dark chocolate elevated with the sophisticated warmth of premium rum essence", desc_el: "Τολμηρή σκούρα σοκολάτα εμπλουτισμένη με την εκλεπτυσμένη ζεστασιά premium ρούμι")
-create_item(name_en: "Dark Spiced", name_el: "Σκούρα, Μπαχαρικά", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Deep dark chocolate aromatic with traditional spices creating a warming and complex flavor profile", desc_el: "Βαθιά σκούρα σοκολάτα αρωματισμένη με παραδοσιακά μπαχαρικά που δημιουργούν ζεστό και πολύπλοκο γευστικό προφίλ")
-create_item(name_en: "Milk Hazelnut Praline", name_el: "Γάλακτος, Πραλίνα Φουντουκιού", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Smooth milk chocolate enriched with luxurious hazelnut praline for an indulgent nutty sweetness", desc_el: "Απαλή σοκολάτα γάλακτος εμπλουτισμένη με πολυτελή πραλίνα φουντουκιού για απολαυστική καρυδάτη γλυκύτητα")
-create_item(name_en: "Milk Sugar-Free", name_el: "Γάλακτος, 0% Ζάχαρη", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Creamy milk chocolate without added sugar, maintaining all the rich flavor and satisfaction", desc_el: "Κρεμώδης σοκολάτα γάλακτος χωρίς προσθήκη ζάχαρης, διατηρώντας όλη την πλούσια γεύση και ικανοποίηση")
-create_item(name_en: "Milk Salted Caramel", name_el: "Γάλακτος, Καραμέλα με θαλασσινό Αλάτι", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Luscious milk chocolate swirled with golden salted caramel for the perfect sweet and salty balance", desc_el: "Πολυτελής σοκολάτα γάλακτος με χρυσή καραμέλα και θαλασσινό αλάτι για την τέλεια ισορροπία γλυκού και αλμυρού")
-create_item(name_en: "Milk Peanut Butter", name_el: "Γάλακτος, Φυστικοβούτυρο", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Creamy milk chocolate blended with rich peanut butter for an irresistibly smooth and nutty delight", desc_el: "Κρεμώδης σοκολάτα γάλακτος αναμεμειγμένη με πλούσιο φυστικοβούτυρο για απολαυστικά απαλή και καρυδάτη απόλαυση")
-create_item(name_en: "Milk Orange & Cinnamon", name_el: "Γάλακτος, Πορτοκάλι & Κανέλα", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Smooth milk chocolate infused with bright orange zest and warming cinnamon spice", desc_el: "Απαλή σοκολάτα γάλακτος εμποτισμένη με φωτεινό άρωμα πορτοκαλιού και ζεστό μπαχαρικό κανέλας")
-create_item(name_en: "Milk Strawberry", name_el: "Γάλακτος, Φράουλα", cat_en: "Chocolate", cat_el: "Σοκολάτα", price: 4.8, main_category: "coffee", desc_en: "Velvety milk chocolate enhanced with the sweet and fruity essence of fresh strawberries", desc_el: "Βελούδινη σοκολάτα γάλακτος εμπλουτισμένη με την γλυκιά και φρουτώδη ουσία φρέσκων φραουλών")
+# Common allergen sets
+DAIRY   = %w[Dairy].freeze
+GLUTEN  = %w[Gluten].freeze
+EGGS    = %w[Eggs].freeze
+NUTS    = %w[Nuts].freeze
+SEAFOOD = %w[Seafood].freeze
+ALCOHOL = %w[Alcohol].freeze
 
 # ============================================================
-# BEER (26 items)
+# COFFEE — Espresso
 # ============================================================
+ESPRESSO_EN = "Espresso".freeze
+ESPRESSO_EL = "Espresso".freeze
 
-# --- Draft Beer ---
-create_item(name_en: "Alfa 400ml", name_el: "Alfa 400ml", cat_en: "Draft Beer", cat_el: "Βαρελίσια Μπύρα", price: 5.0, main_category: "beer&wine", desc_en: "Lager 5% / GREECE, 400ml", desc_el: "Λάγκερ 5% / ΕΛΛΑΔΑ, 400ml")
+item(name_en: "Espresso", name_el: "Εσπρέσσο",
+     cat_en: ESPRESSO_EN, cat_el: ESPRESSO_EL,
+     price: 3.50, main_category: "coffee")
 
-# --- Bottled Beer ---
-create_item(name_en: "Stella Artois", name_el: "Stella Artois", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 5.0, main_category: "beer&wine", desc_en: "Lager 5% / BELGIUM", desc_el: "Λάγκερ 5% / ΒΕΛΓΙΟ")
-create_item(name_en: "Mamos", name_el: "Mamos", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 4.5, main_category: "beer&wine", desc_en: "Pils 5% / GREECE", desc_el: "Πιλς 5% / ΕΛΛΑΔΑ")
-create_item(name_en: "Kaiser", name_el: "Kaiser", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 4.5, main_category: "beer&wine", desc_en: "Pils 5% / GERMANY", desc_el: "Πιλς 5% / ΓΕΡΜΑΝΙΑ")
-create_item(name_en: "Corona", name_el: "Corona", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 5.0, main_category: "beer&wine", desc_en: "Lager Cerveza 4,5% / MEXICO", desc_el: "Λάγκερ Cerveza 4,5% / ΜΕΞΙΚΟ")
-create_item(name_en: "Paulaner 500ml", name_el: "Paulaner", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 6.0, main_category: "beer&wine", desc_en: "Hefe Weisse 5,5% / GERMANY", desc_el: "Χέφε Βάισε 5,5% / ΓΕΡΜΑΝΙΑ")
-create_item(name_en: "Guinness 440ml", name_el: "Guinness", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 8.0, main_category: "beer&wine", desc_en: "Stout 4,2% / IRELAND, 440ml", desc_el: "Στάουτ 4,2% / ΙΡΛΑΝΔΙΑ, 440ml")
-create_item(name_en: "McFarland", name_el: "McFarland", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 5.0, main_category: "beer&wine", desc_en: "Irish Red Ale 5,4% / IRELAND", desc_el: "Ιρλανδική Κόκκινη Έιλ 5,4% / ΙΡΛΑΝΔΙΑ")
-create_item(name_en: "Amstel Radler", name_el: "Amstel Radler", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 4.5, main_category: "beer&wine", desc_en: "Radler 2% / NETHERLANDS", desc_el: "Ράντλερ 2% / ΟΛΛΑΝΔΙΑ")
-create_item(name_en: "Stella Artois Alcohol Free", name_el: "Stella Artois Alcohol Free", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 5.0, main_category: "beer&wine", desc_en: "Lager non-Alcohol 0,0% / BELGIUM", desc_el: "Λάγκερ χωρίς αλκοόλ 0,0% / ΒΕΛΓΙΟ")
-create_item(name_en: "Heineken Free", name_el: "Heineken Free", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 5.0, main_category: "beer&wine", desc_en: "Lager non-Alcohol 0,0% / NETHERLANDS", desc_el: "Λάγκερ χωρίς αλκοόλ 0,0% / ΟΛΛΑΝΔΙΑ")
-create_item(name_en: "Milokleftis Apple", name_el: "Milokleftis Apple", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 4.5, main_category: "beer&wine", desc_en: "Cider 4,5% / GREECE", desc_el: "Μηλίτης 4,5% / ΕΛΛΑΔΑ")
-create_item(name_en: "Strongbow Gold Red Berries", name_el: "Strongbow Gold Red Berries", cat_en: "Bottled Beer", cat_el: "Εμφιαλωμένες Μπύρες", price: 4.5, main_category: "beer&wine", desc_en: "Cider 4,5% / ENGLAND", desc_el: "Μηλίτης 4,5% / ΑΓΓΛΙΑ")
+item(name_en: "Espresso Doppio", name_el: "Εσπρέσσο Doppio",
+     cat_en: ESPRESSO_EN, cat_el: ESPRESSO_EL,
+     price: 3.50, main_category: "coffee",
+     desc_en: "Double shot of espresso", desc_el: "Διπλή δόση εσπρέσσο")
 
-# --- Craft Beer ---
-create_item(name_en: "Retimi", name_el: "Retimi", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 6.5, main_category: "beer&wine", desc_en: "Blonde Ale 5,3% / GREECE", desc_el: "Ξανθιά Έιλ 5,3% / ΕΛΛΑΔΑ")
-create_item(name_en: "Strange Brew Jasmine", name_el: "Strange Brew Jasmine", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 7.5, main_category: "beer&wine", desc_en: "India Pale Ale 6,2% / GREECE", desc_el: "Ινδική Pale Ale 6,2% / ΕΛΛΑΔΑ")
-create_item(name_en: "Strange Brew Dr. Haze", name_el: "Strange Brew Dr. Haze", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 8.0, main_category: "beer&wine", desc_en: "Double IPA 8% / GREECE", desc_el: "Διπλή IPA 8% / ΕΛΛΑΔΑ")
-create_item(name_en: "Blame the Sun", name_el: "Blame the Sun", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 6.5, main_category: "beer&wine", desc_en: "Tropic Ale 5% / GREECE", desc_el: "Τροπική Έιλ 5% / ΕΛΛΑΔΑ")
-create_item(name_en: "Brewtiful Reach 4 The Stars ", name_el: "Brewtiful Reach 4 The Stars", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 9.0, main_category: "beer&wine", desc_en: "Triple Galaxy Neipa 9% / GREECE", desc_el: "Τριπλή Γκάλαξι Neipa 9% / ΕΛΛΑΔΑ")
-create_item(name_en: "Strange Brew Superdelic Trip ", name_el: "Strange Brew Superdelic Trip", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 9.0, main_category: "beer&wine", desc_en: "West Coast Dipa 7,5% / GREECE", desc_el: "Γουέστ Κόστ Dipa 7,5% / ΕΛΛΑΔΑ")
-create_item(name_en: "Strange Brew Hay Joe", name_el: "Strange Brew Hay Joe", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 6.5, main_category: "beer&wine", desc_en: "Dry Hopped Farmhouse Ale 5,2% / GREECE", desc_el: "Ντράι Χοπ Farmhouse Ale 5,2% / ΕΛΛΑΔΑ")
-create_item(name_en: "Sourmena Brew Kyria Toula", name_el: "Sourmena Brew Κυρία Τούλα", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 6.5, main_category: "beer&wine", desc_en: "New England IPA 6% / GREECE", desc_el: "New England IPA 6% / ΕΛΛΑΔΑ")
-create_item(name_en: "Strange Brew & Alea Chloe ", name_el: "Strange Brew & Alea Chloe", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 7.5, main_category: "beer&wine", desc_en: "Unity Lager 5% / GREECE", desc_el: "Unity Λάγκερ 5% / ΕΛΛΑΔΑ")
-create_item(name_en: "Alea Brewing Co. Pale Ale ", name_el: "Alea Brewing Co. Pale Ale", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 9.0, main_category: "beer&wine", desc_en: "Pale Ale 5% / GREECE", desc_el: "Pale Ale 5% / ΕΛΛΑΔΑ")
-create_item(name_en: "Alea Brewing Co. Barley ", name_el: "Alea Brewing Co. Barley", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 8.0, main_category: "beer&wine", desc_en: "Easy IPA 4,5% / GREECE", desc_el: "Easy IPA 4,5% / ΕΛΛΑΔΑ")
-create_item(name_en: "Alea Brewing Co. Time Paradox ", name_el: "Alea Brewing Co. Time Paradox", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 9.0, main_category: "beer&wine", desc_en: "Hazy IPA 7% / GREECE", desc_el: "Hazy IPA 7% / ΕΛΛΑΔΑ")
-create_item(name_en: "Brewtiful Brewery X Sourmena Brew Good-Better-Bitter", name_el: "Brewtiful Brewery X Sourmena Brew Good-Better-Bitter", cat_en: "Craft Beer", cat_el: "Χειροποίητη Μπύρα", price: 9.0, main_category: "beer&wine", desc_en: "West Coast IPA 6.3% / GREECE", desc_el: "West Coast IPA 6,3% / ΕΛΛΑΔΑ")
+item(name_en: "Freddo Espresso", name_el: "Φρέντο Εσπρέσσο",
+     cat_en: ESPRESSO_EN, cat_el: ESPRESSO_EL,
+     price: 3.80, main_category: "coffee")
 
-# ============================================================
-# WINE (14 items)
-# ============================================================
+item(name_en: "Espresso Affogato", name_el: "Εσπρέσσο Affogato",
+     cat_en: ESPRESSO_EN, cat_el: ESPRESSO_EL,
+     price: 5.00, main_category: "coffee",
+     desc_en: "Double hot espresso with vanilla ice cream",
+     desc_el: "Διπλός ζεστός εσπρέσσο με παγωτό βανίλια",
+     allergens: DAIRY)
 
-# --- Sparkling ---
-create_item(name_en: "Beppe Marino / Moscato D'asti Muray", name_el: "Beppe Marino / Moscato D'asti Muray", cat_en: "Sparkling", cat_el: "Αφρώδη", price: 6.0, main_category: "beer&wine", desc_en: "A delicate sparkling Moscato from Piedmont with vibrant notes of peach, apricot, and orange blossom. Light and refreshing with a gentle effervescence and natural sweetness.", desc_el: "Ένα ντελικάτο αφρώδες Moscato από το Πιεμόντε με ζωντανές νότες ροδάκινου, βερίκοκου και ανθών πορτοκαλιάς. Ελαφρύ και δροσιστικό με απαλή αφρώδη υφή και φυσική γλυκύτητα.", pricing_type: "glass_bottle", price_secondary: 26.0)
-create_item(name_en: "Vino Spumante / Prosecco Amore Di Amanti", name_el: "Vino Spumante / Prosecco Amore Di Amanti", cat_en: "Sparkling", cat_el: "Αφρώδη", price: 6.0, main_category: "beer&wine", desc_en: "Classic Italian Prosecco with crisp green apple and pear flavors, complemented by delicate floral notes. Fine persistent bubbles create a celebratory experience in every glass.", desc_el: "Κλασικό ιταλικό Prosecco με δροσερές γεύσεις πράσινου μήλου και αχλαδιού, συμπληρωμένες από ντελικάτες ανθικές νότες. Λεπτές επίμονες φυσαλίδες δημιουργούν μια γιορτινή εμπειρία σε κάθε ποτήρι.", pricing_type: "glass_bottle", price_secondary: 26.0)
+item(name_en: "Freddo Espresso Affogato", name_el: "Φρέντο Εσπρέσσο Affogato",
+     cat_en: ESPRESSO_EN, cat_el: ESPRESSO_EL,
+     price: 5.50, main_category: "coffee",
+     desc_en: "Double espresso iced with vanilla ice cream",
+     desc_el: "Διπλός εσπρέσσο κρύος με παγωτό βανίλια",
+     allergens: DAIRY)
 
-# --- White Wine ---
-create_item(name_en: "Tsimpidis Winery / Voltes", name_el: "Οινοποιητική Τσιμπίδη / Βόλτες", cat_en: "White Wine", cat_el: "Λευκά Κρασιά", price: 5.0, main_category: "beer&wine", desc_en: "A harmonious blend of Roditis and Moschofilero from Monemvasia, offering citrus and white flower aromas with hints of rose petals. Crisp acidity balanced with subtle mineral notes from the coastal terroir.", desc_el: "Αρμονικό blend Ροδίτη και Μοσχοφίλερου από τη Μονεμβασιά, προσφέροντας αρώματα εσπεριδοειδών και λευκών λουλουδιών με νύξεις ροδοπέταλων. Τραγανή οξύτητα ισορροπημένη με διακριτικές μεταλλικές νότες από το παραθαλάσσιο terroir.", pricing_type: "glass_bottle", price_secondary: 22.0)
-create_item(name_en: "Patrianakis winery / Moschato Spinas", name_el: "Κτήμα Πατεριανάκη / Μοσχάτο Σπίνας", cat_en: "White Wine", cat_el: "Λευκά Κρασιά", price: 5.5, main_category: "beer&wine", desc_en: "Moschato Spinas white wine from the Patrianakis Estate with intense aromas of white flowers, fresh rose petals, and jasmine. Leaves sweet notes of Moschato on the palate.", desc_el: "Μοσχάτο Σπίνας λευκός οίνος από το Κτήμα Πατεριανάκη με έντονα αρώματα λευκών λουλουδιών, φρέσκων ροδοπέταλων και γιασεμιού. Αφήνει γλυκές νότες Μοσχάτου στον ουρανίσκο.", pricing_type: "glass_bottle", price_secondary: 24.0)
-create_item(name_en: "Techni Oinou Winery / Techni Alipias", name_el: "Οινοποιείο Τέχνη Οίνου / Τέχνη Αλυπίας", cat_en: "White Wine", cat_el: "Λευκά Κρασιά", price: 32.0, main_category: "beer&wine", desc_en: "An elegant blend of Sauvignon Blanc and Assyrtiko from Drama, showcasing tropical fruit aromas with citrus zest and herbal notes. The volcanic minerality of Assyrtiko adds complexity and depth.", desc_el: "Κομψό blend Sauvignon Blanc και Ασύρτικου από τη Δράμα, αναδεικνύοντας αρώματα τροπικών φρούτων με φλούδα εσπεριδοειδών και βοτανικές νότες. Η ηφαιστειακή μεταλλικότητα του Ασύρτικου προσθέτει πολυπλοκότητα και βάθος.")
-create_item(name_en: "Techni Oinou Winery / Plano", name_el: "Οινοποιείο Τέχνη Οίνου / Plano", cat_en: "White Wine", cat_el: "Λευκά Κρασιά", price: 32.0, main_category: "beer&wine", desc_en: "Pure Malagouzia from Drama expressing exotic aromas of peach, mango, and fresh herbs. Medium-bodied with a silky texture and refreshing acidity that highlights the grape's aromatic character.", desc_el: "Αμιγής Μαλαγουζιά από τη Δράμα που εκφράζει εξωτικά αρώματα ροδάκινου, μάνγκο και φρέσκων βοτάνων. Μεσαίου σώματος με μεταξένια υφή και δροσιστική οξύτητα που αναδεικνύει τον αρωματικό χαρακτήρα της ποικιλίας.")
-create_item(name_en: "Semeli Estate / Piccolo Mondo", name_el: "Κτήμα Σεμέλη / Piccolo Mondo", cat_en: "White Wine", cat_el: "Λευκά Κρασιά", price: 5.0, main_category: "beer&wine", desc_en: "Semi-sweet Moschofilero displaying delicate rose petal aromas with hints of lemon blossom and Turkish delight. The subtle sweetness perfectly balances the wine's natural acidity, creating a refreshing finish.", desc_el: "Ημίγλυκο Μοσχοφίλερο που αναδεικνύει ντελικάτα αρώματα ροδοπέταλων με νύξεις ανθών λεμονιάς και λουκουμιού. Η διακριτική γλυκύτητα ισορροπεί τέλεια με τη φυσική οξύτητα του κρασιού, δημιουργώντας ένα δροσιστικό τελείωμα.", pricing_type: "glass_bottle", price_secondary: 22.0)
+item(name_en: "Americano", name_el: "Americano",
+     cat_en: ESPRESSO_EN, cat_el: ESPRESSO_EL,
+     price: 3.50, main_category: "coffee")
 
-# --- Rosé ---
-create_item(name_en: "Malagaki Winery / 2 Faraggia", name_el: "Οινοποιείο Μαλαγάκη / 2 Φαράγγια", cat_en: "Rosé", cat_el: "Ροζέ", price: 5.0, main_category: "beer&wine", desc_en: "Unique rosé blend of Mourvedre and Malvasia from Heraklion, offering wild strawberry and pomegranate aromas with Mediterranean herbs. Dry and refreshing with a savory finish reminiscent of sea breeze.", desc_el: "Μοναδικό ροζέ blend Mourvedre και Μαλβαζίας από το Ηράκλειο, προσφέροντας αρώματα άγριας φράουλας και ροδιού με μεσογειακά βότανα. Ξηρό και δροσιστικό με αλμυρό τελείωμα που θυμίζει θαλασσινή αύρα.", pricing_type: "glass_bottle", price_secondary: 22.0)
-create_item(name_en: "Amargiotakis Winery / Kapetanissa", name_el: "Οινοποιείο Αμαργιωτάκης / Καπετάνισσα", cat_en: "Rosé", cat_el: "Ροζέ", price: 5.5, main_category: "beer&wine", desc_en: "Semi-dry rosé from Dafnes Heraklion region, combining 80% Moscato Spinas and 20% Liatiko from 12-year-old vineyards at 350m altitude. Hand-harvested on 2/9, this wine undergoes pre-fermentation extraction for 3 hours followed by classic white winemaking at 16°C, with fermentation stopped by cooling at the desired sugar level. Features 17g/L residual sugars and 12.5% alcohol.", desc_el: "Ημίξηρο ροζέ από την περιοχή Δαφνές Ηρακλείου, που συνδυάζει 80% Μοσχάτο Σπίνας και 20% Λιάτικο από αμπελώνες 12 ετών σε υψόμετρο 350 μέτρων. Χειρωνακτικός τρύγος στις 2/9, με προζυμωτική εκχύλιση για 3 ώρες που ακολουθείται από κλασσική λευκή οινοποίηση στους 16°C και διακοπή ζύμωσης με ψύξη στο επιθυμητό επίπεδο σακχάρων. Περιέχει 17g/L υπολειμματικά σάκχαρα και 12.5% αλκοόλ.", pricing_type: "glass_bottle", price_secondary: 24.0)
-create_item(name_en: "Thymiopoulos Vineyards / Rosé de Xinomavro", name_el: "Αμπελώνες Θυμιόπουλος / Rosé de Xinomavro", cat_en: "Rosé", cat_el: "Ροζέ", price: 32.0, main_category: "beer&wine", desc_en: "Elegant rosé from Naoussa's noble Xinomavro grape, displaying cherry blossom and red currant aromas with tomato leaf complexity. Bone-dry with vibrant acidity and a long, sophisticated finish.", desc_el: "Κομψό ροζέ από το ευγενές Ξινόμαυρο της Νάουσας, αναδεικνύοντας αρώματα ανθών κερασιάς και κόκκινου φραγκοστάφυλου με πολυπλοκότητα φύλλων τομάτας. Εντελώς ξηρό με ζωντανή οξύτητα και μακρύ, εκλεπτυσμένο τελείωμα.")
+item(name_en: "Americano Doppio", name_el: "Americano Doppio",
+     cat_en: ESPRESSO_EN, cat_el: ESPRESSO_EL,
+     price: 3.50, main_category: "coffee",
+     desc_en: "Double espresso with hot water",
+     desc_el: "Διπλός εσπρέσσο με ζεστό νερό")
 
-# --- Red Wine ---
-create_item(name_en: "Tsimpidis Winery / Voltes", name_el: "Οινοποιητική Τσιμπίδη / Βόλτες", cat_en: "Red Wine", cat_el: "Κόκκινα Κρασιά", price: 5.0, main_category: "beer&wine", desc_en: "Harmonious blend of Agiorgitiko and Mavroudi from Monemvasia, offering ripe cherry and plum flavors with hints of vanilla and spice. Medium-bodied with soft tannins and a warm, lingering finish.", desc_el: "Αρμονικό blend Αγιωργίτικου και Μαυρουδιού από τη Μονεμβασιά, προσφέροντας γεύσεις ώριμου κερασιού και δαμάσκηνου με νύξεις βανίλιας και μπαχαρικών. Μεσαίου σώματος με απαλές τανίνες και ζεστό, παρατεταμένο τελείωμα.", pricing_type: "glass_bottle", price_secondary: 22.0)
-create_item(name_en: "Semeli Estate / Piccolo Mondo", name_el: "Κτήμα Σεμέλη / Piccolo Mondo", cat_en: "Red Wine", cat_el: "Κόκκινα Κρασιά", price: 5.0, main_category: "beer&wine", desc_en: "Semi-sweet Agiorgitiko expressing jammy red fruit flavors with notes of sweet spice and chocolate. The residual sugar beautifully complements the grape's natural fruitiness, creating an approachable and comforting wine.", desc_el: "Ημίγλυκο Αγιωργίτικο που εκφράζει γεύσεις μαρμελάδας κόκκινων φρούτων με νότες γλυκών μπαχαρικών και σοκολάτας. Η υπολειμματική ζάχαρη συμπληρώνει όμορφα τη φυσική φρουτένια γεύση της ποικιλίας, δημιουργώντας ένα προσιτό και παρηγορητικό κρασί.", pricing_type: "glass_bottle", price_secondary: 22.0)
-create_item(name_en: "Patras Winery / Mavrodafne", name_el: "Οινοποιείο Πατρών / Μαυροδάφνη", cat_en: "Red Wine", cat_el: "Κόκκινα Κρασιά", price: 5.0, main_category: "beer&wine", desc_en: "Traditional semi-sweet Mavrodafne from Patras with rich flavors of dried figs, raisins, and caramel. Notes of cinnamon and clove add complexity to this velvety dessert-style wine.", desc_el: "Παραδοσιακή ημίγλυκη Μαυροδάφνη από την Πάτρα με πλούσιες γεύσεις αποξηραμένων σύκων, σταφίδων και καραμέλας. Νότες κανέλας και γαρίφαλου προσθέτουν πολυπλοκότητα σε αυτό το βελούδινο κρασί τύπου επιδορπίου.", pricing_type: "glass_bottle", price_secondary: 22.0)
-create_item(name_en: "Homemade Sangria", name_el: "Σαγκριά Σπιτική", cat_en: "Red Wine", cat_el: "Κόκκινα Κρασιά", price: 5.0, main_category: "beer&wine", desc_en: "Our signature sangria crafted with fruity red wine, fresh seasonal fruits, and a secret blend of spices. A refreshing and festive drink perfect for sharing and celebration.", desc_el: "Η signature σαγκριά μας παρασκευασμένη με φρουτώδες κόκκινο κρασί, φρέσκα εποχιακά φρούτα και σπιτικό μείγμα μπαχαρικών. Ένα δροσιστικό και γιορτινό ποτό ιδανικό για να μοιραστείτε και να γιορτάσετε.", pricing_type: "glass_bottle", price_secondary: 22.0)
+item(name_en: "Espresso Tonic", name_el: "Espresso Tonic",
+     cat_en: ESPRESSO_EN, cat_el: ESPRESSO_EL,
+     price: 5.00, main_category: "coffee",
+     desc_en: "Double espresso with premium tonic",
+     desc_el: "Διπλός εσπρέσσο με premium tonic")
 
 # ============================================================
-# FOOD (36 items)
+# COFFEE — Espresso with Milk
 # ============================================================
+MILK_EN = "Espresso with Milk".freeze
+MILK_EL = "Εσπρέσσο με Γάλα".freeze
 
-# --- Breakfast ---
-create_item(name_en: "Avocado Toast", name_el: "Αβοκάντο τοστ", cat_en: "Breakfast", cat_el: "Πρωινό", price: 7.0, main_category: "food", desc_en: "Sourdough toast with smashed avocado, scrambled eggs, cream cheese, cherry tomatoes & arugula.", desc_el: "Φρυγανισμένο ψωμί αργής ωρίμανσης, smashed αβοκάντο, αυγά scrambled, τυρί κρέμα, ντοματίνια και ρόκα")
-create_item(name_en: "English Breakfast", name_el: "Αγγλικό πρωινό", cat_en: "Breakfast", cat_el: "Πρωινό", price: 6.0, main_category: "food", desc_en: "Sourdough toast with tomato, eggs, cream cheese & bacon.", desc_el: "Φρυγανισμένο ψωμί αργής ωρίμανσης με ντομάτα, αυγά, κρέμα τυρί & μπέικον.")
-create_item(name_en: "Turkey Omelette", name_el: "Ομελέτα με Γαλοπούλα", cat_en: "Breakfast", cat_el: "Πρωινό", price: 5.5, main_category: "food", desc_en: "With cheese, tomatoes & peppers.", desc_el: "Μαζί με τυρί, ντομάτινα & πιπεριά.")
-create_item(name_en: "Ham Omelette", name_el: "Ομελέτα με ζαμπόν", cat_en: "Breakfast", cat_el: "Πρωινό", price: 5.5, main_category: "food", desc_en: "With cheese, tomatoes & peppers.", desc_el: "Μαζί με τυρί, ντομάτινα & πιπεριά.")
-create_item(name_en: "Cereal Muesli", name_el: "Muesli δημητριακών", cat_en: "Breakfast", cat_el: "Πρωινό", price: 5.0, main_category: "food", desc_en: "Oat flakes, yogurt, local honey, nuts, fresh & dried fruits.", desc_el: "Νιφάδες βρώμης, γιαούρτι, τοπικό μέλι, ξηροί καρποί, φρέσκα & αποξηραμένα φρούτα.")
+item(name_en: "Cappuccino", name_el: "Καπουτσίνο",
+     cat_en: MILK_EN, cat_el: MILK_EL,
+     price: 4.00, main_category: "coffee",
+     desc_en: "Espresso with steamed milk",
+     desc_el: "Εσπρέσσο με αφρόγαλα",
+     allergens: DAIRY)
 
-# --- Salads ---
-create_item(name_en: "Caesar's Salad", name_el: "Σαλάτα Caesar's", cat_en: "Salads", cat_el: "Σαλάτες", price: 7.5, main_category: "food", desc_en: "Green salad with chicken, caesar's sauce, crispy bacon, corn, freshly grated parmesan & croutons.", desc_el: "Πράσινη σαλάτα με κοτόπουλο, caesar's sauce, τραγανό μπέικον, καλαμπόκι, φρεσκοτριμμένη παρμεζάνα και κρουτόν .")
-create_item(name_en: "Superfood Salad", name_el: "Superfood", cat_en: "Salads", cat_el: "Σαλάτες", price: 7.0, main_category: "food", desc_en: "Green salad with cranberries, green apple, goji berry, sunflower seeds, cranberries, dried figs & balsamic.", desc_el: "Πράσινη σαλάτα με cranberries, πράσινο μήλο, goji berry, ηλιόσπορος, cranberries, αποξηραμένα σύκα & βαλσάμικο.")
-create_item(name_en: "Chicken Penne", name_el: "Πέννες με κοτόπουλο", cat_en: "Salads", cat_el: "Σαλάτες", price: 7.5, main_category: "food", desc_en: "Pasta salad with chicken, crispy bacon, tomatoes, green & red pepper, corn, parmesan & caesar's sauce.", desc_el: "Σαλάτα ζυμαρικών με κοτόπουλο, τραγανό μπέικον, ντομάτινα, πράσινη & κόκκινη πιπεριά, καλαμπόκι, παρμεζάνα & caesar's sauce.")
-create_item(name_en: "Tuna Penne", name_el: "Πέννες με τόνο", cat_en: "Salads", cat_el: "Σαλάτες", price: 7.5, main_category: "food", desc_en: "Pasta salad with tuna, corn, fresh onion, cucumber, dill, tomatoes, green & red pepper & cocktail sauce.", desc_el: "Σαλάτα ζυμαρικών με τόνο, καλαμπόκι, φρέσκο κρεμμύδι, αγγούρι, άνιθο, ντομάτινα, πράσινη & κόκκινη πιπεριά & cocktail sauce.")
-create_item(name_en: "Salmon Salad", name_el: "Σαλάτα Σολομού", cat_en: "Salads", cat_el: "Σαλάτες", price: 8.0, main_category: "food", desc_en: "Green salad with smoked salmon, tomatoes, citrus vinaigrette, dill, capers & flaxseed.", desc_el: "Πράσινη σαλάτα με καπνιστό σολομό, ντομάτινα, βινεγρέτα εσπεριδοειδών, άνηθο, κάπαρη & λινορόσπορο.")
+item(name_en: "Cappuccino Doppio", name_el: "Καπουτσίνο Doppio",
+     cat_en: MILK_EN, cat_el: MILK_EL,
+     price: 4.50, main_category: "coffee",
+     desc_en: "Double espresso with steamed milk",
+     desc_el: "Διπλός εσπρέσσο με αφρόγαλα",
+     allergens: DAIRY)
 
-# --- Snacks ---
-create_item(name_en: "Toast", name_el: "Τοστ", cat_en: "Snacks", cat_el: "Σνακ", price: 3.5, main_category: "food", desc_en: "Cheese & ham or turkey.", desc_el: "Τυρί & ζαμπόν ή γαλοπούλα.")
-create_item(name_en: "Classic Baguette", name_el: "Μπαγκέτα κλασσική", cat_en: "Snacks", cat_el: "Σνακ", price: 4.5, main_category: "food", desc_en: "Ham or turkey, cheese, tomato, lettuce & mayonnaise.", desc_el: "Ζαμπόν ή γαλοπούλα, τυρί, ντομάτα, μαρούλι & μαγιονέζα.")
-create_item(name_en: "Chicken Baguette", name_el: "Μπαγκέτα με κοτόπουλο", cat_en: "Snacks", cat_el: "Σνακ", price: 5.0, main_category: "food", desc_en: "Chicken, cheese, tomato, lettuce & mayonnaise.", desc_el: "Κοτόπουλο, τυρί, ντομάτα, μαρούλι & μαγιονέζα.")
-create_item(name_en: "Smoked Salmon Baguette", name_el: "Μπαγκέτα ολικής με καπνιστό σολομό", cat_en: "Snacks", cat_el: "Σνακ", price: 5.5, main_category: "food", desc_en: "Smoked salmon with cream cheese, cucumber, dill & lettuce.", desc_el: "Καπνιστό σολομό με κρέμα τυρί, αγγούρι, άνιθο & μαρούλι.")
-create_item(name_en: "Crispy Chicken Nuggets", name_el: "Κοτομπουκιές", cat_en: "Snacks", cat_el: "Σνακ", price: 7.0, main_category: "food", desc_en: "Crispy chicken nuggets with skin-on fries & salad.", desc_el: "Παναρισμενο φιλέτο κοτόπουλο με panko, τραγανές τηγανητές πατάτες και σαλάτα")
+item(name_en: "Freddo Cappuccino", name_el: "Φρέντο Καπουτσίνο",
+     cat_en: MILK_EN, cat_el: MILK_EL,
+     price: 4.00, main_category: "coffee",
+     desc_en: "Double espresso iced and cold milk froth",
+     desc_el: "Διπλός εσπρέσσο παγωμένος με κρύο αφρόγαλα",
+     allergens: DAIRY)
 
-# --- Club Sandwich ---
-create_item(name_en: "Classic Club Sandwich", name_el: "Club Sandwich", cat_en: "Club Sandwich", cat_el: "Club Sandwich", price: 6.5, main_category: "food", desc_en: "Ham, edam, crispy bacon, tomato, lettuce & mayonnaise.", desc_el: "Ζαμπόν, edam, τραγανό μπέικον, ντομάτα, μαρούλι & μαγιονέζα.")
-create_item(name_en: "Chicken Club Sandwich", name_el: "Chicken Club Sandwich", cat_en: "Club Sandwich", cat_el: "Club Sandwich", price: 7.0, main_category: "food", desc_en: "Chicken, edam, crispy bacon, tomato, lettuce & caesar's sauce.", desc_el: "Κοτόπουλο, edam, τραγανό μπέικον, ντομάτα, μαρούλι & caesar's sauce.")
+item(name_en: "Espresso Macchiato", name_el: "Εσπρέσσο Macchiato",
+     cat_en: MILK_EN, cat_el: MILK_EL,
+     price: 3.00, main_category: "coffee",
+     desc_en: "Espresso with a spoonful of hot milk froth",
+     desc_el: "Εσπρέσσο με μια κουταλιά ζεστό αφρόγαλα",
+     allergens: DAIRY)
 
-# --- Sandos ---
-create_item(name_en: "Chicken Sando", name_el: "Chicken Sando", cat_en: "Sandos", cat_el: "Sandos", price: 7.0, main_category: "food", desc_en: "Fluffy bread with breaded chicken, iceberg & homemade tonkatsu sauce.", desc_el: "Αφράτο ψωμί με κοτόπουλο πανέ, iceberg & σπιτική tonkatsu sauce.")
-create_item(name_en: "Green Sando", name_el: "Green Sando", cat_en: "Sandos", cat_el: "Sandos", price: 7.0, main_category: "food", desc_en: "Fluffy bread with avocado cream, green apple, iceberg, truffle mayo & egg.", desc_el: "Αφράτο ψωμί με κρέμα αβοκάντο, πράσινο μήλο, iceberg, truffle mayo & αυγό.")
+item(name_en: "Latte", name_el: "Latte",
+     cat_en: MILK_EN, cat_el: MILK_EL,
+     price: 4.50, main_category: "coffee",
+     desc_en: "Espresso with hot steamed milk",
+     desc_el: "Εσπρέσσο με ζεστό αφρόγαλα",
+     allergens: DAIRY)
 
-# --- Burgers ---
-create_item(name_en: "Classic Burger", name_el: "Classic Burger", cat_en: "Burgers", cat_el: "Burgers", price: 8.0, main_category: "food", desc_en: "100% beef patty, cheddar cheese, tomato, iceberg, pickled cucumber, ketchup & mayonnaise.", desc_el: "100% μοσχαρίσιο μπιφτέκι, τυρί cheddar, ντομάτα, iceberg, πίκλα αγγουριού, ketchup & μαγιονέζα.")
-create_item(name_en: "Bonοbo Burger", name_el: "Bonοbo Burger", cat_en: "Burgers", cat_el: "Burgers", price: 9.0, main_category: "food", desc_en: "100% beef patty, fried egg, cheddar cheese, bacon, caramelized onion, tomato, iceberg & mayo sauce.", desc_el: "100% μοσχαρίσιο μπιφτέκι, τηγανητό αυγό, τυρί cheddar, μπέικον, καραμελωμένο κρεμμύδι, ντομάτα, iceberg & mayo sauce.")
-create_item(name_en: "Crispy Chicken Burger", name_el: "Crispy Chicken Burger", cat_en: "Burgers", cat_el: "Burgers", price: 8.0, main_category: "food", desc_en: "Crispy breaded chicken with panko, pickled cucumber, cheddar cheese, tomato, iceberg & remoulade sauce.", desc_el: "Τραγανό πανέ κοτόπουλο με panko, πίκλα αγγουριού, τυρί cheddar, ντομάτα, iceberg & σάλτσα remoulade.")
+item(name_en: "Ice Latte", name_el: "Ice Latte",
+     cat_en: MILK_EN, cat_el: MILK_EL,
+     price: 4.50, main_category: "coffee",
+     desc_en: "Espresso with iced milk and cold milk froth",
+     desc_el: "Εσπρέσσο με παγωμένο γάλα και κρύο αφρόγαλα",
+     allergens: DAIRY)
 
-# --- Finger Food ---
-create_item(name_en: "Cheese & Cold Cuts Platter", name_el: "Ποικιλία Τυριών - Αλλαντικών", cat_en: "Finger Food", cat_el: "Finger Food", price: 14.0, main_category: "food", desc_en: "Variety of cold cuts & cheeses with dried fruits & nuts.", desc_el: "Ποικιλία αλλαντικών & τυριών με αποξηραμένα φρούτα & ξηρούς καρπούς.")
-create_item(name_en: "Beer Platter", name_el: "Ποικιλία Μπύρας", cat_en: "Finger Food", cat_el: "Finger Food", price: 15.0, main_category: "food", desc_en: "Smoked pork (Apaki), traditional sausage, chicken nuggets, cheese mix & skin-on fries", desc_el: "Απάκι, λουκάνικο, κοτομπουκιές, mix τυριών & τηγανιτές πατάτες με φλούδα")
+item(name_en: "Goth Latte Black & White", name_el: "Goth Latte Black & White",
+     cat_en: MILK_EN, cat_el: MILK_EL,
+     price: 5.00, main_category: "coffee",
+     desc_en: "Espresso with activated carbon and steamed milk",
+     desc_el: "Εσπρέσσο με ενεργό άνθρακα και αφρόγαλα",
+     allergens: DAIRY)
 
-# --- Pancakes ---
-create_item(name_en: "Bonobo Pancakes (Savory)", name_el: "Bonobo Pancakes (Αλμυρά)", cat_en: "Pancakes", cat_el: "Pancakes", price: 7.0, main_category: "food", desc_en: "Fluffy pancakes with fried egg, bacon, cheddar & mayo sauce. (Served with salad)", desc_el: "Αφράτα pancakes με τηγανητό αυγό, μπέικον, cheddar & mayo sauce. (Συνοδεύεται με σαλάτα)")
-create_item(name_en: "Sweet Pancakes", name_el: "Sweet Pancakes", cat_en: "Pancakes", cat_el: "Pancakes", price: 5.5, main_category: "food", desc_en: "Fluffy pancakes with banana, cinnamon & honey.", desc_el: "Αφράτα pancakes με μπανάνα, κανέλα & μέλι.")
-create_item(name_en: "Chocolate Pancakes", name_el: "Chocolate Pancakes", cat_en: "Pancakes", cat_el: "Pancakes", price: 6.0, main_category: "food", desc_en: "With hazelnut cream, cookie crumble & chocolate syrup.", desc_el: "Με πραλίνα φουντουκιού, crumble μπισκότου  & σιρόπι σοκολάτας")
-create_item(name_en: "Bueno Pancakes", name_el: "Bueno Pancakes", cat_en: "Pancakes", cat_el: "Pancakes", price: 7.0, main_category: "food", desc_en: "Fluffy pancakes with bueno cream, Oreo cookie crumbs & chocolate syrup.", desc_el: "Αφράτα pancakes με κρέμα bueno, τρίμμα μπισκότο Oreo & σιρόπι σοκολάτας.")
-create_item(name_en: "Strawberry Pancakes", name_el: "Strawberry Pancakes", cat_en: "Pancakes", cat_el: "Pancakes", price: 8.0, main_category: "food", desc_en: "Fluffy pancakes with strawberry cream & chocolate.", desc_el: "Αφράτα pancakes με κρέμα φράουλας & σοκολάτας.")
+item(name_en: "Flat White", name_el: "Flat White",
+     cat_en: MILK_EN, cat_el: MILK_EL,
+     price: 4.00, main_category: "coffee",
+     desc_en: "Double espresso stretto with steamed milk",
+     desc_el: "Διπλός εσπρέσσο stretto με αφρόγαλα",
+     allergens: DAIRY)
 
-# --- Waffles ---
-create_item(name_en: "Classic Waffle", name_el: "Classic", cat_en: "Waffles", cat_el: "Βάφλες", price: 6.0, main_category: "food", desc_en: "Fluffy waffle with hazelnut cream & cookie crumble.", desc_el: "Αφράτη βάφλα με κρέμα φουντουκιού & crumble μπισκότου.")
-create_item(name_en: "Bueno Waffle", name_el: "Bueno", cat_en: "Waffles", cat_el: "Βάφλες", price: 7.0, main_category: "food", desc_en: "Fluffy waffle with bueno cream, Oreo cookie crumble & chocolate syrup.", desc_el: "Αφράτη βάφλα με κρέμα bueno, crumble μπισκότο Oreo & σιρόπι σοκολάτας.")
-create_item(name_en: "Strawberry Waffle", name_el: "Strawberry", cat_en: "Waffles", cat_el: "Βάφλες", price: 6.0, main_category: "food", desc_en: "Fluffy waffle with strawberry cream & chocolate.", desc_el: "Αφράτη βάφλα με κρέμα φράουλας & σοκολάτας.")
-create_item(name_en: "Special Waffle", name_el: "Special", cat_en: "Waffles", cat_el: "Βάφλες", price: 7.0, main_category: "food", desc_en: "Hazelnut cream, cookie crumble, whipped cream, chocolate syrup & your choice of ice cream.", desc_el: "Πραλίνα φουντουκιού, crumble μπισκότου, σαντιγί, σιρόπι σοκολάτας, παγωτό της αρέσκεια σας")
+item(name_en: "Ice Flat White", name_el: "Ice Flat White",
+     cat_en: MILK_EN, cat_el: MILK_EL,
+     price: 4.50, main_category: "coffee",
+     desc_en: "Double espresso stretto with iced light milk and cold milk froth",
+     desc_el: "Διπλός εσπρέσσο stretto με παγωμένο light γάλα και κρύο αφρόγαλα",
+     allergens: DAIRY)
 
-# --- Fruit Salads ---
-create_item(name_en: "Fruit Salad", name_el: "Φρουτοσαλάτα", cat_en: "Fruit Salads", cat_el: "Φρουτοσαλάτες", price: 5.0, main_category: "food", desc_en: "Fresh seasonal fruits with yogurt and honey.", desc_el: "Φρέσκα φρούτα εποχής με γιαούρτι και μέλι.")
-create_item(name_en: "Fruit Salad with Yogurt & Honey", name_el: "Φρουτοσαλάτα με γιαούρτι & μέλι", cat_en: "Fruit Salads", cat_el: "Φρουτοσαλάτες", price: 6.0, main_category: "food", desc_en: "Fresh seasonal fruits with choice of additional toppings.", desc_el: "Φρέσκα φρούτα εποχής με επιλογή επιπλέον συνοδευτικών.")
-
-# --- Ice Cream ---
-create_item(name_en: "Ice Creams", name_el: "Παγωτά", cat_en: "Ice Cream", cat_el: "Παγωτά", price: 2.5, main_category: "food", desc_en: " Choose from our flavors: vanilla, chocolate, strawberry, banana, bueno, straciatella, biscuite.", desc_el: "Επίλεξτε από τις γεύσεις μας: βανίλια, σοκολάτα, φράουλα, μπανάνα, bueno, straciatella, μπισκότο.")
-
-# ============================================================
-# COCKTAILS (30 items)
-# ============================================================
-
-# --- Signature Cocktails ---
-create_item(name_en: "Genesis", name_el: "Genesis", cat_en: "Signature Cocktails", cat_el: "Signature Cocktails", price: 10.0, main_category: "cocktails", desc_en: "Sparkling wine, mastha, mandarin, passion fruit, elderflower & CO2", desc_el: "Αφρώδες κρασί, μαστίχα, μανταρίνι, passion fruit, elderflower & CO2")
-create_item(name_en: "Exploration", name_el: "Exploration", cat_en: "Signature Cocktails", cat_el: "Signature Cocktails", price: 11.0, main_category: "cocktails", desc_en: "Vodka, rhubarb, watermelon, tarragon & tonka", desc_el: "Vodka, ραβέντι, καρπούζι, εστραγκόν & tonka")
-create_item(name_en: "Reverence", name_el: "Reverence", cat_en: "Signature Cocktails", cat_el: "Signature Cocktails", price: 11.0, main_category: "cocktails", desc_en: "Tequila Blanco, melon, green apple, lime & lemongrass", desc_el: "Tequila λευκή, πεπόνι, πράσινο μήλο, λάιμ & λεμονόχορτο")
-create_item(name_en: "Endeavor", name_el: "Endeavor", cat_en: "Signature Cocktails", cat_el: "Signature Cocktails", price: 10.0, main_category: "cocktails", desc_en: "Vodka, Aperol, strawberry & passion fruit soda", desc_el: "Vodka, Aperol, σόδα φράουλας & passion fruit")
-create_item(name_en: "Reflection", name_el: "Reflection", cat_en: "Signature Cocktails", cat_el: "Signature Cocktails", price: 10.0, main_category: "cocktails", desc_en: "Gin, orange, lime, cucumber & ginger soda", desc_el: "Τζιν, πορτοκάλι, λάιμ, αγγούρι & σόδα τζίντζερ")
-create_item(name_en: "Heritage", name_el: "Heritage", cat_en: "Signature Cocktails", cat_el: "Signature Cocktails", price: 11.0, main_category: "cocktails", desc_en: "35N moscato, Gin, citrus, cucumber, basil, lime", desc_el: "Μοσχάτο 35Ν, Gin, εσπεριδοειδή, αγγούρι, βασιλικός, λάιμ")
-create_item(name_en: "Legacy", name_el: "Legacy", cat_en: "Signature Cocktails", cat_el: "Signature Cocktails", price: 11.0, main_category: "cocktails", desc_en: "Polynesian rum blend, apricot, lime, brown sugar", desc_el: "Μίγμα πολυνησιακών ρουμιών, βερίκοκο, λάιμ, καστανή ζάχαρη")
-create_item(name_en: "Harmony", name_el: "Harmony", cat_en: "Signature Cocktails", cat_el: "Signature Cocktails", price: 12.0, main_category: "cocktails", desc_en: "White rum, banana, coconut, lime, salted honey & bitters", desc_el: "Λευκό ρούμι, μπανάνα, καρύδα, λάιμ, αλατισμένο μέλι & bitters")
-create_item(name_en: "Serenity", name_el: "Serenity", cat_en: "Signature Cocktails", cat_el: "Signature Cocktails", price: 12.0, main_category: "cocktails", desc_en: "Tequila reposado, pineapple, mango, agave & lime", desc_el: "Tequila παλαιωμένη, ανανάς, μάνγκο, αγαύη & λάιμ")
-create_item(name_en: "Monkey's Reviver", name_el: "Monkey's Reviver", cat_en: "Signature Cocktails", cat_el: "Signature Cocktails", price: 13.0, main_category: "cocktails", desc_en: "Mezcal, Lillet Blanc, orange liquer, lime & pomegranate", desc_el: "Mezcal, Lillet Blanc, λικέρ πορτοκάλι, λάιμ, ρόδι")
-
-# --- Classic Cocktails ---
-create_item(name_en: "Mojito", name_el: "Mojito", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "White rum, lime juice, sugar, mint leaves, soda water", desc_el: "Λευκό ρούμι, χυμός λάιμ, ζάχαρη, φύλλα μέντας, σόδα")
-create_item(name_en: "Daiquiri", name_el: "Daiquiri", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "White rum, lime juice, simple syrup", desc_el: "Λευκό ρούμι, χυμός λάιμ, σιρόπι ζάχαρης")
-create_item(name_en: "Paloma", name_el: "Paloma", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Tequila, lime juice, grapefruit soda", desc_el: "Τεκίλα, χυμός λάιμ, αναψυκτικό γκρέιπφρουτ")
-create_item(name_en: "Margarita", name_el: "Margarita", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Tequila, Triple Sec, lime juice, salt rim", desc_el: "Τεκίλα, Triple Sec, χυμός λάιμ, αλάτι στο χείλος")
-create_item(name_en: "Aperol Spritz", name_el: "Aperol Spritz", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Aperol, Prosecco, soda water, orange slice", desc_el: "Aperol, Prosecco, σόδα, φέτα πορτοκαλιού")
-create_item(name_en: "Mai Tai", name_el: "Mai Tai", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 10.0, main_category: "cocktails", desc_en: "Jamaican rum, Cuban rum, Orange Curaçao, lime juice, orgeat syrup", desc_el: "Τζαμαικανό ρούμι, Κουβανέζικο ρούμι, Orange Curaçao, χυμός λάιμ, σιρόπι αμυγδάλου")
-create_item(name_en: "Caipirinha", name_el: "Caipirinha", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Cachaça, lime, sugar", desc_el: "Κασάσα, λάιμ, ζάχαρη")
-create_item(name_en: "Caipiroska", name_el: "Caipiroska", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Vodka, lime, sugar", desc_el: "Βότκα, λάιμ, ζάχαρη")
-create_item(name_en: "Old Fashioned", name_el: "Old Fashioned", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Bourbon or rye whiskey, sugar cube, Angostura bitters, orange twist", desc_el: "Μπέρμπον ή ουίσκι σίκαλης, κύβος ζάχαρης, Angostura bitters, φλούδα πορτοκαλιού")
-create_item(name_en: "Negroni", name_el: "Negroni", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Gin, Campari, sweet vermouth", desc_el: "Τζιν, Campari, γλυκό βερμούτ")
-create_item(name_en: "Americano", name_el: "Americano", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Campari, sweet vermouth, soda water", desc_el: "Campari, γλυκό βερμούτ, σόδα")
-create_item(name_en: "Moscow Mule", name_el: "Moscow Mule", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Vodka, lime juice, ginger beer", desc_el: "Βότκα, χυμός λάιμ, μπύρα τζίντζερ")
-create_item(name_en: "Espresso Martini", name_el: "Espresso Martini", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Vodka, coffee liqueur, espresso, simple syrup", desc_el: "Βότκα, λικέρ καφέ, εσπρέσο, σιρόπι ζάχαρης")
-create_item(name_en: "Porn Star", name_el: "Porn Star", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Vanilla vodka, passion fruit liqueur, passion fruit puree, lime juice, Prosecco shot on the side", desc_el: "Βότκα βανίλιας, λικέρ φρούτου του πάθους, πουρές φρούτου του πάθους, χυμός λάιμ, σφηνάκι Prosecco")
-create_item(name_en: "Dry Martini", name_el: "Dry Martini", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Gin, dry vermouth, olive or lemon twist", desc_el: "Τζιν, ξηρό βερμούτ, ελιά ή στριφτή φλούδα λεμονιού")
-create_item(name_en: "Piña Colada", name_el: "Piña Colada", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "White rum, coconut cream, pineapple juice", desc_el: "Λευκό ρούμι, κρέμα καρύδας, χυμός ανανά")
-create_item(name_en: "Dark & Stormy", name_el: "Dark & Stormy", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Dark rum, lime juice, ginger beer", desc_el: "Σκούρο ρούμι, χυμός λάιμ, μπύρα τζίντζερ")
-create_item(name_en: "Cosmopolitan", name_el: "Cosmopolitan", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Vodka, Triple Sec, cranberry juice, lime juice", desc_el: "Βότκα, Triple Sec, χυμός κράνμπερι, χυμός λάιμ")
-create_item(name_en: "Bloody Mary", name_el: "Bloody Mary", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 9.0, main_category: "cocktails", desc_en: "Vodka, tomato juice, lemon juice, Worcestershire sauce, Tabasco, salt, pepper, celery", desc_el: "Βότκα, χυμός ντομάτας, χυμός λεμονιού, σάλτσα Worcestershire, Tabasco, αλάτι, πιπέρι, σέλινο")
-create_item(name_en: "Zombie", name_el: "Zombie", cat_en: "Classic Cocktails", cat_el: "Κλασικά Cocktails", price: 13.0, main_category: "cocktails", desc_en: "Golden rum, dark rum, 151 rum, lime juice, pineapple juice, passion fruit syrup, grenadine", desc_el: "Xρυσό ρούμι, σκούρο ρούμι, ρούμι 151, χυμός λάιμ, χυμός ανανά, σιρόπι φρούτου του πάθους, γρεναδίνη")
+item(name_en: "Maroccino", name_el: "Maroccino",
+     cat_en: MILK_EN, cat_el: MILK_EL,
+     price: 6.00, main_category: "coffee",
+     desc_en: "Double espresso with steamed milk in a glass with Nutella",
+     desc_el: "Διπλός εσπρέσσο με αφρόγαλα σε ποτήρι με Nutella",
+     allergens: DAIRY + NUTS)
 
 # ============================================================
-# SPIRITS (217 items)
+# COFFEE — More Coffee
 # ============================================================
+MORE_EN = "More Coffee".freeze
+MORE_EL = "Άλλοι Καφέδες".freeze
 
-# --- Whisky ---
-create_item(name_en: "Johnie Walker Red Label", name_el: "Johnie Walker Red Label", cat_en: "Whisky", cat_el: "Ουίσκι", price: 8.0, main_category: "spirits", desc_en: "Scotland, Blended, 40%ABV", desc_el: "Σκωτία, Blended, 40%ABV")
-create_item(name_en: "Johnie Walker Black Label", name_el: "Johnie Walker Black Label", cat_en: "Whisky", cat_el: "Ουίσκι", price: 9.0, main_category: "spirits", desc_en: "Scotland, Blended, 40%ABV", desc_el: "Σκωτία, Blended, 40%ABV")
-create_item(name_en: "Famous Grouse", name_el: "Famous Grouse", cat_en: "Whisky", cat_el: "Ουίσκι", price: 8.0, main_category: "spirits", desc_en: "Scotland, Blended, 40%ABV", desc_el: "Σκωτία, Blended, 40%ABV")
-create_item(name_en: "Haig Gold Label", name_el: "Haig Gold Label", cat_en: "Whisky", cat_el: "Ουίσκι", price: 8.0, main_category: "spirits", desc_en: "Scotland, Blended, 40%ABV", desc_el: "Σκωτία, Blended, 40%ABV")
-create_item(name_en: "Dewar`s White Label", name_el: "Dewar`s White Label", cat_en: "Whisky", cat_el: "Ουίσκι", price: 8.0, main_category: "spirits", desc_en: "Scotland, Blended, 40%ABV", desc_el: "Σκωτία, Blended, 40%ABV")
-create_item(name_en: "J&B", name_el: "J&B", cat_en: "Whisky", cat_el: "Ουίσκι", price: 8.0, main_category: "spirits", desc_en: "Scotland, Blended, 40%ABV", desc_el: "Σκωτία, Blended, 40%ABV")
-create_item(name_en: "Cutty Sark", name_el: "Cutty Sark", cat_en: "Whisky", cat_el: "Ουίσκι", price: 8.0, main_category: "spirits", desc_en: "Scotland, Blended, 40%ABV", desc_el: "Σκωτία, Blended, 40%ABV")
-create_item(name_en: "Dimple Golden Selection", name_el: "Dimple Golden Selection", cat_en: "Whisky", cat_el: "Ουίσκι", price: 9.0, main_category: "spirits", desc_en: "Scotland, Blended, 40%ABV", desc_el: "Σκωτία, Blended, 40%ABV")
-create_item(name_en: "Chivas 12 years", name_el: "Chivas 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 9.0, main_category: "spirits", desc_en: "Scotland, Blended, 40%ABV", desc_el: "Σκωτία, Blended, 40%ABV")
-create_item(name_en: "Monkey Shoulder", name_el: "Monkey Shoulder", cat_en: "Whisky", cat_el: "Ουίσκι", price: 9.0, main_category: "spirits", desc_en: "Scotland, Blended, 40%ABV", desc_el: "Σκωτία, Blended, 40%ABV")
-create_item(name_en: "Compass Box Hedonism", name_el: "Compass Box Hedonism", cat_en: "Whisky", cat_el: "Ουίσκι", price: 19.0, main_category: "spirits", desc_en: "Scotland, Blended, 43%ABV", desc_el: "Σκωτία, Blended, 43%ABV")
-create_item(name_en: "Compass Box Peat Monster", name_el: "Compass Box Peat Monster", cat_en: "Whisky", cat_el: "Ουίσκι", price: 14.0, main_category: "spirits", desc_en: "Scotland, Blended, 46%ABV", desc_el: "Σκωτία, Blended, 46%ABV")
-create_item(name_en: "Auchentochan American oak", name_el: "Auchentochan American oak", cat_en: "Whisky", cat_el: "Ουίσκι", price: 10.0, main_category: "spirits", desc_en: "Scotland, Lowlands, 40%ABV", desc_el: "Σκωτία, Lowlands, 40%ABV")
-create_item(name_en: "Oban 14 years", name_el: "Oban 14 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "Scotland, Highlands, 43%ABV", desc_el: "Σκωτία, Highlands, 43%ABV")
-create_item(name_en: "Tomatin Cask Strength", name_el: "Tomatin Cask Strength", cat_en: "Whisky", cat_el: "Ουίσκι", price: 14.0, main_category: "spirits", desc_en: "Scotland, Highlands, 57,5%ABV", desc_el: "Σκωτία, Highlands, 57,5%ABV")
-create_item(name_en: "Clynelish 14 years", name_el: "Clynelish 14 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 15.0, main_category: "spirits", desc_en: "Scotland, Highlands, 46%ABV", desc_el: "Σκωτία, Highlands, 46%ABV")
-create_item(name_en: "Loch Lomond Grain", name_el: "Loch Lomond Grain", cat_en: "Whisky", cat_el: "Ουίσκι", price: 9.0, main_category: "spirits", desc_en: "Scotland, Highlands, 46%ABV", desc_el: "Σκωτία, Highlands, 46%ABV")
-create_item(name_en: "Glengoyne 10 years", name_el: "Glengoyne 10 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 14.0, main_category: "spirits", desc_en: "Scotland, Highlands, 40%ABV", desc_el: "Σκωτία, Highlands, 40%ABV")
-create_item(name_en: "Glengoyne Cask Strength", name_el: "Glengoyne Cask Strength", cat_en: "Whisky", cat_el: "Ουίσκι", price: 18.0, main_category: "spirits", desc_en: "Scotland, Highlands, 59,8%ABV", desc_el: "Σκωτία, Highlands, 59,8%ABV")
-create_item(name_en: "Glen Dronach 12 years", name_el: "Glen Dronach 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 17.0, main_category: "spirits", desc_en: "Scotland, Highlands, 43%ABV", desc_el: "Σκωτία, Highlands, 43%ABV")
-create_item(name_en: "Deveron 12 years", name_el: "Deveron 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 13.0, main_category: "spirits", desc_en: "Scotland, Highlands, 40%ABV", desc_el: "Σκωτία, Highlands, 40%ABV")
-create_item(name_en: "Single Malts Of Scotland Clynelish 8 years", name_el: "Single Malts Of Scotland Clynelish 8 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 19.0, main_category: "spirits", desc_en: "Scotland, Highlands, 48%ABV", desc_el: "Σκωτία, Highlands, 48%ABV")
-create_item(name_en: "AnCnoc 12 years", name_el: "AnCnoc 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 11.0, main_category: "spirits", desc_en: "Scotland, Speyside, 40%ABV", desc_el: "Σκωτία, Speyside, 40%ABV")
-create_item(name_en: "Glenfiddich 12 years", name_el: "Glenfiddich 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 10.0, main_category: "spirits", desc_en: "Scotland, Speyside, 40%ABV", desc_el: "Σκωτία, Speyside, 40%ABV")
-create_item(name_en: "Aberlour 12 years Double Cask Matured", name_el: "Aberlour 12 years Double Cask Matured", cat_en: "Whisky", cat_el: "Ουίσκι", price: 13.0, main_category: "spirits", desc_en: "Scotland, Speyside, 40%ABV", desc_el: "Σκωτία, Speyside, 40%ABV")
-create_item(name_en: "Mortlach 12 years", name_el: "Mortlach 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "Scotland, Speyside, 43,4%ABV", desc_el: "Σκωτία, Speyside, 43,4%ABV")
-create_item(name_en: "Cardhu 12 years", name_el: "Cardhu 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 10.0, main_category: "spirits", desc_en: "Scotland, Speyside, 40%ABV", desc_el: "Σκωτία, Speyside, 40%ABV")
-create_item(name_en: "Tamdu 12 years", name_el: "Tamdu 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 15.0, main_category: "spirits", desc_en: "Scotland, Speyside, 40%ABV", desc_el: "Σκωτία, Speyside, 40%ABV")
-create_item(name_en: "Glenfarclas 10 years", name_el: "Glenfarclas 10 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 12.0, main_category: "spirits", desc_en: "Scotland, Speyside, 40%ABV", desc_el: "Σκωτία, Speyside, 40%ABV")
-create_item(name_en: "Glenlivet Nadurra Olorooso Finish", name_el: "Glenlivet Nadurra Olorooso Finish", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "Scotland, Speyside, 60,3%ABV", desc_el: "Σκωτία, Speyside, 60,3%ABV")
-create_item(name_en: "Single Malts Of Scotland Linkwood 12 years", name_el: "Single Malts Of Scotland Linkwood 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 20.0, main_category: "spirits", desc_en: "Scotland, Speyside, 48%ABV", desc_el: "Σκωτία, Speyside, 48%ABV")
-create_item(name_en: "Glenallachie 12 Year", name_el: "Glenallachie 12 Year", cat_en: "Whisky", cat_el: "Ουίσκι", price: 15.0, main_category: "spirits", desc_en: "Scotland, Speyside, 46%ABV", desc_el: "Σκωτία, Speyside, 46%ABV")
-create_item(name_en: "Aultmore Foggie Moss 12 years", name_el: "Aultmore Foggie Moss 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 18.0, main_category: "spirits", desc_en: "Scotland, Speyside, 46%ABV", desc_el: "Σκωτία, Speyside, 46%ABV")
-create_item(name_en: "Balvenie 14 years", name_el: "Balvenie 14 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 21.0, main_category: "spirits", desc_en: "Scotland, Speyside, 48,3%ABV", desc_el: "Σκωτία, Speyside, 48,3%ABV")
-create_item(name_en: "Glen Scotia Double Cask", name_el: "Glen Scotia Double Cask", cat_en: "Whisky", cat_el: "Ουίσκι", price: 14.0, main_category: "spirits", desc_en: "Scotland, Campbeltown, 46%ABV", desc_el: "Σκωτία, Campbeltown, 46%ABV")
-create_item(name_en: "Laphroaig 10 years", name_el: "Laphroaig 10 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 14.0, main_category: "spirits", desc_en: "Scotland, Islay, 40%ABV", desc_el: "Σκωτία, Islay, 40%ABV")
-create_item(name_en: "Ardberg 10 years", name_el: "Ardberg 10 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "Scotland, Islay, 46%ABV", desc_el: "Σκωτία, Islay, 46%ABV")
-create_item(name_en: "Lagavulin 16 years", name_el: "Lagavulin 16 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 19.0, main_category: "spirits", desc_en: "Scotland, Islay, 43%ABV", desc_el: "Σκωτία, Islay, 43%ABV")
-create_item(name_en: "Bruichladdich Classic Laddie", name_el: "Bruichladdich Classic Laddie", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "Scotland, Islay, 50%ABV", desc_el: "Σκωτία, Islay, 50%ABV")
-create_item(name_en: "Bruichladdich Port Charlotte 10 y.o. heavily peated", name_el: "Bruichladdich Port Charlotte 10 y.o. heavily peated", cat_en: "Whisky", cat_el: "Ουίσκι", price: 17.0, main_category: "spirits", desc_en: "Scotland, Islay, 50%ABV", desc_el: "Σκωτία, Islay, 50%ABV")
-create_item(name_en: "Bunnahabhain Toiteach", name_el: "Bunnahabhain Toiteach", cat_en: "Whisky", cat_el: "Ουίσκι", price: 17.0, main_category: "spirits", desc_en: "Scotland, Islay, 46,3%ABV", desc_el: "Σκωτία, Islay, 46,3%ABV")
-create_item(name_en: "Bowmore 15 Sherry Cask 43%", name_el: "Bowmore 15 Sherry Cask 43%", cat_en: "Whisky", cat_el: "Ουίσκι", price: 19.0, main_category: "spirits", desc_en: "Scotland, Islay, 43%ABV", desc_el: "Σκωτία, Islay, 43%ABV")
-create_item(name_en: "Caol ila 12 years", name_el: "Caol ila 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 14.0, main_category: "spirits", desc_en: "Scotland, Islay, 43%ABV", desc_el: "Σκωτία, Islay, 43%ABV")
-create_item(name_en: "Smokehead Sherry Cask Blast", name_el: "Smokehead Sherry Cask Blast", cat_en: "Whisky", cat_el: "Ουίσκι", price: 18.0, main_category: "spirits", desc_en: "Scotland, Islay, 48%ABV", desc_el: "Σκωτία, Islay, 48%ABV")
-create_item(name_en: "Port Askaig 100% Proof", name_el: "Port Askaig 100% Proof", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "Scotland, Islay, 57,1%ABV", desc_el: "Σκωτία, Islay, 57,1%ABV")
-create_item(name_en: "Kilchoman Machir Bay", name_el: "Kilchoman Machir Bay", cat_en: "Whisky", cat_el: "Ουίσκι", price: 14.0, main_category: "spirits", desc_en: "Scotland, Islay, 46%ABV", desc_el: "Σκωτία, Islay, 46%ABV")
-create_item(name_en: "Mac-Talla Classic", name_el: "Mac-Talla Classic", cat_en: "Whisky", cat_el: "Ουίσκι", price: 15.0, main_category: "spirits", desc_en: "Scotland, Islay, 46%ABV", desc_el: "Σκωτία, Islay, 46%ABV")
-create_item(name_en: "Elements of Isla Peat Pure", name_el: "Elements of Isla Peat Pure", cat_en: "Whisky", cat_el: "Ουίσκι", price: 12.0, main_category: "spirits", desc_en: "Scotland, Islay, 45%ABV", desc_el: "Σκωτία, Islay, 45%ABV")
-create_item(name_en: "Elements Peat Full Proof", name_el: "Elements Peat Full Proof", cat_en: "Whisky", cat_el: "Ουίσκι", price: 15.0, main_category: "spirits", desc_en: "Scotland, Islay, 59,3%ABV", desc_el: "Σκωτία, Islay, 59,3%ABV")
-create_item(name_en: "Elements CI 8", name_el: "Elements CI 8", cat_en: "Whisky", cat_el: "Ουίσκι", price: 22.0, main_category: "spirits", desc_en: "Scotland, Islay, 55,2%ABV", desc_el: "Σκωτία, Islay, 55,2%ABV")
-create_item(name_en: "Talisker Single Malt 10 y.o.", name_el: "Talisker Single Malt 10 y.o.", cat_en: "Whisky", cat_el: "Ουίσκι", price: 11.0, main_category: "spirits", desc_en: "Scotland, Islands, 45,8%ABV", desc_el: "Σκωτία, Islands, 45,8%ABV")
-create_item(name_en: "Arran Barrel Reserve", name_el: "Arran Barrel Reserve", cat_en: "Whisky", cat_el: "Ουίσκι", price: 10.0, main_category: "spirits", desc_en: "Scotland, Islands, 43%ABV", desc_el: "Σκωτία, Islands, 43%ABV")
-create_item(name_en: "Arran Sherry Cask", name_el: "Arran Sherry Cask", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "Scotland, Islands, 55,8%ABV", desc_el: "Σκωτία, Islands, 55,8%ABV")
-create_item(name_en: "Arran Amarone Finish", name_el: "Arran Amarone Finish", cat_en: "Whisky", cat_el: "Ουίσκι", price: 15.0, main_category: "spirits", desc_en: "Scotland, Islands, 50%ABV", desc_el: "Σκωτία, Islands, 50%ABV")
-create_item(name_en: "Arran Port Finish", name_el: "Arran Port Finish", cat_en: "Whisky", cat_el: "Ουίσκι", price: 15.0, main_category: "spirits", desc_en: "Scotland, Islands, 50%ABV", desc_el: "Σκωτία, Islands, 50%ABV")
-create_item(name_en: "Torabhaig Legacy 2017", name_el: "Torabhaig Legacy 2017", cat_en: "Whisky", cat_el: "Ουίσκι", price: 15.0, main_category: "spirits", desc_en: "Scotland, Islands, 46%ABV", desc_el: "Σκωτία, Islands, 46%ABV")
-create_item(name_en: "Single Malts Of Scotland Orkney 13 years", name_el: "Single Malts Of Scotland Orkney 13 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 20.0, main_category: "spirits", desc_en: "Scotland, Islands, 48%ABV", desc_el: "Σκωτία, Islands, 48%ABV")
-create_item(name_en: "Jameson", name_el: "Jameson", cat_en: "Whisky", cat_el: "Ουίσκι", price: 8.0, main_category: "spirits", desc_en: "Ireland, Irish Blend, 40%ABV", desc_el: "Ιρλανδία, Irish Blend, 40%ABV")
-create_item(name_en: "Jameson Black Barrel", name_el: "Jameson Black Barrel", cat_en: "Whisky", cat_el: "Ουίσκι", price: 9.0, main_category: "spirits", desc_en: "Ireland, Irish Blend, 40%ABV", desc_el: "Ιρλανδία, Irish Blend, 40%ABV")
-create_item(name_en: "Bushmills Original", name_el: "Bushmills Original", cat_en: "Whisky", cat_el: "Ουίσκι", price: 8.0, main_category: "spirits", desc_en: "Ireland, Irish Blend, 40%ABV", desc_el: "Ιρλανδία, Irish Blend, 40%ABV")
-create_item(name_en: "Tullamore Dew", name_el: "Tullamore Dew", cat_en: "Whisky", cat_el: "Ουίσκι", price: 8.0, main_category: "spirits", desc_en: "Ireland, Irish Blend, 40%ABV", desc_el: "Ιρλανδία, Irish Blend, 40%ABV")
-create_item(name_en: "Redbreast 12 years", name_el: "Redbreast 12 years", cat_en: "Whisky", cat_el: "Ουίσκι", price: 14.0, main_category: "spirits", desc_en: "Ireland, Single Pot Still, 40%ABV", desc_el: "Ιρλανδία, Single Pot Still, 40%ABV")
-create_item(name_en: "Connemara Original Peated", name_el: "Connemara Original Peated", cat_en: "Whisky", cat_el: "Ουίσκι", price: 10.0, main_category: "spirits", desc_en: "Ireland, Peated Malt, 40%ABV", desc_el: "Ιρλανδία, Peated Malt, 40%ABV")
-create_item(name_en: "Teeling Single Grain", name_el: "Teeling Single Grain", cat_en: "Whisky", cat_el: "Ουίσκι", price: 12.0, main_category: "spirits", desc_en: "Ireland, Single Grain, 46%ABV", desc_el: "Ιρλανδία, Single Grain, 46%ABV")
-create_item(name_en: "Teeling Small Batch Whiskey", name_el: "Teeling Small Batch Whiskey", cat_en: "Whisky", cat_el: "Ουίσκι", price: 9.0, main_category: "spirits", desc_en: "Ireland, Small Batch, 46%ABV", desc_el: "Ιρλανδία, Small Batch, 46%ABV")
-create_item(name_en: "Green Spot Chateau Montelena ex-Zinfandel Casks", name_el: "Green Spot Chateau Montelena ex-Zinfandel Casks", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "Ireland, Single Pot Still, 46%ABV", desc_el: "Ιρλανδία, Single Pot Still, 46%ABV")
-create_item(name_en: "Green Spot Chateau Leoville Bartong", name_el: "Green Spot Chateau Leoville Bartong", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "Ireland, Single Pot Still, 46%ABV", desc_el: "Ιρλανδία, Single Pot Still, 46%ABV")
-create_item(name_en: "Yellow Spot 12 Year Single Pot Still", name_el: "Yellow Spot 12 Year Single Pot Still", cat_en: "Whisky", cat_el: "Ουίσκι", price: 19.0, main_category: "spirits", desc_en: "Ireland, Single Pot Still, 46%ABV", desc_el: "Ιρλανδία, Single Pot Still, 46%ABV")
-create_item(name_en: "Waterford Organic Gaia 1.1", name_el: "Waterford Organic Gaia 1.1", cat_en: "Whisky", cat_el: "Ουίσκι", price: 18.0, main_category: "spirits", desc_en: "Ireland, Single Malt, 50%ABV", desc_el: "Ιρλανδία, Single Malt, 50%ABV")
-create_item(name_en: "Four Roses Bourbon", name_el: "Four Roses Bourbon", cat_en: "Whisky", cat_el: "Ουίσκι", price: 8.0, main_category: "spirits", desc_en: "USA, Kentucky, 40%ABV", desc_el: "ΗΠΑ, Kentucky, 40%ABV")
-create_item(name_en: "Bulleit Bourbon", name_el: "Bulleit Bourbon", cat_en: "Whisky", cat_el: "Ουίσκι", price: 9.0, main_category: "spirits", desc_en: "USA, Kentucky, 45%ABV", desc_el: "ΗΠΑ, Kentucky, 45%ABV")
-create_item(name_en: "Bulleit Rye", name_el: "Bulleit Rye", cat_en: "Whisky", cat_el: "Ουίσκι", price: 10.0, main_category: "spirits", desc_en: "USA, Indiana, 45%ABV", desc_el: "ΗΠΑ, Indiana, 45%ABV")
-create_item(name_en: "Canadian Club", name_el: "Canadian Club", cat_en: "Whisky", cat_el: "Ουίσκι", price: 9.0, main_category: "spirits", desc_en: "Canada, Blended, 40%ABV", desc_el: "Καναδάς, Blended, 40%ABV")
-create_item(name_en: "Jack Daniel`s", name_el: "Jack Daniel`s", cat_en: "Whisky", cat_el: "Ουίσκι", price: 9.0, main_category: "spirits", desc_en: "USA, Tennessee, 40%ABV", desc_el: "ΗΠΑ, Tennessee, 40%ABV")
-create_item(name_en: "Jack Daniel`s Single Barrel", name_el: "Jack Daniel`s Single Barrel", cat_en: "Whisky", cat_el: "Ουίσκι", price: 12.0, main_category: "spirits", desc_en: "USA, Tennessee, 45%ABV", desc_el: "ΗΠΑ, Tennessee, 45%ABV")
-create_item(name_en: "Eagle Rare Single Barrel Bourbon", name_el: "Eagle Rare Single Barrel Bourbon", cat_en: "Whisky", cat_el: "Ουίσκι", price: 14.0, main_category: "spirits", desc_en: "USA, Kentucky, 45%ABV", desc_el: "ΗΠΑ, Kentucky, 45%ABV")
-create_item(name_en: "Few Bourbon Whisky", name_el: "Few Bourbon Whisky", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "USA, Illinois, 46,5%ABV", desc_el: "ΗΠΑ, Illinois, 46,5%ABV")
-create_item(name_en: "Maker`s Mark Bourbon", name_el: "Maker`s Mark Bourbon", cat_en: "Whisky", cat_el: "Ουίσκι", price: 10.0, main_category: "spirits", desc_en: "USA, Kentucky, 45%ABV", desc_el: "ΗΠΑ, Kentucky, 45%ABV")
-create_item(name_en: "Michter`s Small Batch Bourbon", name_el: "Michter`s Small Batch Bourbon", cat_en: "Whisky", cat_el: "Ουίσκι", price: 18.0, main_category: "spirits", desc_en: "USA, Kentucky, 45,7%ABV", desc_el: "ΗΠΑ, Kentucky, 45,7%ABV")
-create_item(name_en: "Michter`s Small Batch Sour Mash", name_el: "Michter`s Small Batch Sour Mash", cat_en: "Whisky", cat_el: "Ουίσκι", price: 18.0, main_category: "spirits", desc_en: "USA, Kentucky, 43%ABV", desc_el: "ΗΠΑ, Kentucky, 43%ABV")
-create_item(name_en: "Millstone 100 Rye", name_el: "Millstone 100 Rye", cat_en: "Whisky", cat_el: "Ουίσκι", price: 18.0, main_category: "spirits", desc_en: "Netherlands, Rye, 50%ABV", desc_el: "Ολλανδία, Rye, 50%ABV")
-create_item(name_en: "Sazerac Rye 6 year", name_el: "Sazerac Rye 6 year", cat_en: "Whisky", cat_el: "Ουίσκι", price: 14.0, main_category: "spirits", desc_en: "USA, Kentucky, 45%ABV", desc_el: "ΗΠΑ, Kentucky, 45%ABV")
-create_item(name_en: "Koval Millet", name_el: "Koval Millet", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "USA, Illinois, 40%ABV", desc_el: "ΗΠΑ, Illinois, 40%ABV")
-create_item(name_en: "Nikka Coffey Malt", name_el: "Nikka Coffey Malt", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "Japan, Coffey Still, 45%ABV", desc_el: "Ιαπωνία, Coffey Still, 45%ABV")
-create_item(name_en: "Nikka Coffey Grain", name_el: "Nikka Coffey Grain", cat_en: "Whisky", cat_el: "Ουίσκι", price: 15.0, main_category: "spirits", desc_en: "Japan, Coffey Still, 45%ABV", desc_el: "Ιαπωνία, Coffey Still, 45%ABV")
-create_item(name_en: "Nikka From The Barrel", name_el: "Nikka From The Barrel", cat_en: "Whisky", cat_el: "Ουίσκι", price: 16.0, main_category: "spirits", desc_en: "Japan, Blended, 51,4%ABV", desc_el: "Ιαπωνία, Blended, 51,4%ABV")
-create_item(name_en: "Nikka Yoichi Single Malt", name_el: "Nikka Yoichi Single Malt", cat_en: "Whisky", cat_el: "Ουίσκι", price: 20.0, main_category: "spirits", desc_en: "Japan, Yoichi, 45%ABV", desc_el: "Ιαπωνία, Yoichi, 45%ABV")
-create_item(name_en: "Kavalan Single Malt", name_el: "Kavalan Single Malt", cat_en: "Whisky", cat_el: "Ουίσκι", price: 17.0, main_category: "spirits", desc_en: "Taiwan, Single Malt, 40%ABV", desc_el: "Ταϊβάν, Single Malt, 40%ABV")
-create_item(name_en: "Amrut Fusion", name_el: "Amrut Fusion", cat_en: "Whisky", cat_el: "Ουίσκι", price: 18.0, main_category: "spirits", desc_en: "India, Single Malt, 50%ABV", desc_el: "Ινδία, Single Malt, 50%ABV")
+item(name_en: "Greek Coffee", name_el: "Ελληνικός Καφές",
+     cat_en: MORE_EN, cat_el: MORE_EL,
+     price: 3.50, main_category: "coffee",
+     pricing_type: "single_double", price_secondary: 4.00,
+     desc_en: "Single or double", desc_el: "Μονός ή διπλός")
 
-# --- Rum ---
-create_item(name_en: "Havana Club 3 years", name_el: "Havana Club 3 years", cat_en: "Rum", cat_el: "Ρούμι", price: 8.0, main_category: "spirits", desc_en: "Cuba, White, 37,5%ABV", desc_el: "Κούβα, Λευκό, 37,5%ABV")
-create_item(name_en: "Havana Club 7 years", name_el: "Havana Club 7 years", cat_en: "Rum", cat_el: "Ρούμι", price: 9.0, main_category: "spirits", desc_en: "Cuba, Aged, 40%ABV", desc_el: "Κούβα, Παλαιωμένο, 40%ABV")
-create_item(name_en: "Bacardi Carta Blanca", name_el: "Bacardi Carta Blanca", cat_en: "Rum", cat_el: "Ρούμι", price: 8.0, main_category: "spirits", desc_en: "Puerto Rico, White, 37,5%ABV", desc_el: "Πουέρτο Ρίκο, Λευκό, 37,5%ABV")
-create_item(name_en: "Appleton Estate Signature Blend", name_el: "Appleton Estate Signature Blend", cat_en: "Rum", cat_el: "Ρούμι", price: 9.0, main_category: "spirits", desc_en: "Jamaica, Blend, 40%ABV", desc_el: "Τζαμάικα, Blend, 40%ABV")
-create_item(name_en: "Canerock Spiced", name_el: "Canerock Spiced", cat_en: "Rum", cat_el: "Ρούμι", price: 10.0, main_category: "spirits", desc_en: "Jamaica, Spiced, 40%ABV", desc_el: "Τζαμάικα, Spiced, 40%ABV")
-create_item(name_en: "Compagnie Des Indes Blend Jamaica", name_el: "Compagnie Des Indes Blend Jamaica", cat_en: "Rum", cat_el: "Ρούμι", price: 11.0, main_category: "spirits", desc_en: "Jamaica, Blend, 43%ABV", desc_el: "Τζαμάικα, Blend, 43%ABV")
-create_item(name_en: "Rum Bar Overproof", name_el: "Rum Bar Overproof", cat_en: "Rum", cat_el: "Ρούμι", price: 8.0, main_category: "spirits", desc_en: "Jamaica, Overproof, 63%ABV", desc_el: "Τζαμάικα, Overproof, 63%ABV")
-create_item(name_en: "Worthy Park Reserve", name_el: "Worthy Park Reserve", cat_en: "Rum", cat_el: "Ρούμι", price: 14.0, main_category: "spirits", desc_en: "Jamaica, Aged, 45%ABV", desc_el: "Τζαμάικα, Παλαιωμένο, 45%ABV")
-create_item(name_en: "Coruba Cigar 12 y.o.", name_el: "Coruba Cigar 12 y.o.", cat_en: "Rum", cat_el: "Ρούμι", price: 13.0, main_category: "spirits", desc_en: "Jamaica, 12 years, 40%ABV", desc_el: "Τζαμάικα, 12 ετών, 40%ABV")
-create_item(name_en: "Hampden Estate 8 Year", name_el: "Hampden Estate 8 Year", cat_en: "Rum", cat_el: "Ρούμι", price: 19.0, main_category: "spirits", desc_en: "Jamaica, 8 years, 46%ABV", desc_el: "Τζαμάικα, 8 ετών, 46%ABV")
-create_item(name_en: "Habitation Velier Long Pond Stc@e White", name_el: "Habitation Velier Long Pond Stc@e White", cat_en: "Rum", cat_el: "Ρούμι", price: 16.0, main_category: "spirits", desc_en: "Jamaica, White, 62,5%ABV", desc_el: "Τζαμάικα, Λευκό, 62,5%ABV")
-create_item(name_en: "Habitation Velier LROK White", name_el: "Habitation Velier LROK White", cat_en: "Rum", cat_el: "Ρούμι", price: 16.0, main_category: "spirits", desc_en: "Jamaica, White, 62,5%ABV", desc_el: "Τζαμάικα, Λευκό, 62,5%ABV")
-create_item(name_en: "Habitation Velier 2011 LFCH", name_el: "Habitation Velier 2011 LFCH", cat_en: "Rum", cat_el: "Ρούμι", price: 25.0, main_category: "spirits", desc_en: "Jamaica, 2011, 60,5%ABV", desc_el: "Τζαμάικα, 2011, 60,5%ABV")
-create_item(name_en: "Habitation Velier Worthy Park 2007", name_el: "Habitation Velier Worthy Park 2007", cat_en: "Rum", cat_el: "Ρούμι", price: 32.0, main_category: "spirits", desc_en: "Jamaica, 2007, 59%ABV", desc_el: "Τζαμάικα, 2007, 59%ABV")
-create_item(name_en: "Doorly`s 5 years", name_el: "Doorly`s 5 years", cat_en: "Rum", cat_el: "Ρούμι", price: 9.0, main_category: "spirits", desc_en: "Barbados, 5 years, 40%ABV", desc_el: "Μπαρμπέιντος, 5 ετών, 40%ABV")
-create_item(name_en: "Doorly`s X.O.", name_el: "Doorly`s X.O.", cat_en: "Rum", cat_el: "Ρούμι", price: 11.0, main_category: "spirits", desc_en: "Barbados, X.O., 40%ABV", desc_el: "Μπαρμπέιντος, X.O., 40%ABV")
-create_item(name_en: "Mount Gay X.O.", name_el: "Mount Gay X.O.", cat_en: "Rum", cat_el: "Ρούμι", price: 14.0, main_category: "spirits", desc_en: "Barbados, X.O., 43%ABV", desc_el: "Μπαρμπέιντος, X.O., 43%ABV")
-create_item(name_en: "R.L. Seale`s", name_el: "R.L. Seale`s", cat_en: "Rum", cat_el: "Ρούμι", price: 13.0, main_category: "spirits", desc_en: "Barbados, Blend, 46%ABV", desc_el: "Μπαρμπέιντος, Blend, 46%ABV")
-create_item(name_en: "The Real McCoy Limited Edition 10 y.o.", name_el: "The Real McCoy Limited Edition 10 y.o.", cat_en: "Rum", cat_el: "Ρούμι", price: 21.0, main_category: "spirits", desc_en: "Barbados, 10 years, 46%ABV", desc_el: "Μπαρμπέιντος, 10 ετών, 46%ABV")
-create_item(name_en: "English Harbour 5 y.o.", name_el: "English Harbour 5 y.o.", cat_en: "Rum", cat_el: "Ρούμι", price: 9.0, main_category: "spirits", desc_en: "Antigua, 5 years, 40%ABV", desc_el: "Αντίγκουα, 5 ετών, 40%ABV")
-create_item(name_en: "Chairman`s Reserve Spiced", name_el: "Chairman`s Reserve Spiced", cat_en: "Rum", cat_el: "Ρούμι", price: 9.0, main_category: "spirits", desc_en: "St. Lucia, Spiced, 40%ABV", desc_el: "Αγία Λουκία, Spiced, 40%ABV")
-create_item(name_en: "Admiral Rodney HMS Princessa", name_el: "Admiral Rodney HMS Princessa", cat_en: "Rum", cat_el: "Ρούμι", price: 12.0, main_category: "spirits", desc_en: "St. Lucia, Premium, 40%ABV", desc_el: "Αγία Λουκία, Premium, 40%ABV")
-create_item(name_en: "Black Tot Rum Blend", name_el: "Black Tot Rum Blend", cat_en: "Rum", cat_el: "Ρούμι", price: 12.0, main_category: "spirits", desc_en: "Caribbean, Blend, 46,2%ABV", desc_el: "Καραϊβική, Blend, 46,2%ABV")
-create_item(name_en: "Sailor Jerry Spiced", name_el: "Sailor Jerry Spiced", cat_en: "Rum", cat_el: "Ρούμι", price: 8.0, main_category: "spirits", desc_en: "Virgin Islands, Spiced, 40%ABV", desc_el: "Παρθένοι Νήσοι, Spiced, 40%ABV")
-create_item(name_en: "Pusser`s Gunpowder Proof", name_el: "Pusser`s Gunpowder Proof", cat_en: "Rum", cat_el: "Ρούμι", price: 10.0, main_category: "spirits", desc_en: "Virgin Islands, Overproof, 54,5%ABV", desc_el: "Παρθένοι Νήσοι, Overproof, 54,5%ABV")
-create_item(name_en: "El Dorado 12 years", name_el: "El Dorado 12 years", cat_en: "Rum", cat_el: "Ρούμι", price: 12.0, main_category: "spirits", desc_en: "Guyana, 12 years, 40%ABV", desc_el: "Γουιάνα, 12 ετών, 40%ABV")
-create_item(name_en: "Diplomatico Reserva Exclusiva", name_el: "Diplomatico Reserva Exclusiva", cat_en: "Rum", cat_el: "Ρούμι", price: 11.0, main_category: "spirits", desc_en: "Venezuela, Premium, 40%ABV", desc_el: "Βενεζουέλα, Premium, 40%ABV")
-create_item(name_en: "Santa Teresa 1796 Antiguo de Solera", name_el: "Santa Teresa 1796 Antiguo de Solera", cat_en: "Rum", cat_el: "Ρούμι", price: 14.0, main_category: "spirits", desc_en: "Venezuela, Solera, 40%ABV", desc_el: "Βενεζουέλα, Solera, 40%ABV")
-create_item(name_en: "La Maison Du Rhum Colombia", name_el: "La Maison Du Rhum Colombia", cat_en: "Rum", cat_el: "Ρούμι", price: 16.0, main_category: "spirits", desc_en: "Colombia, Premium, 46%ABV", desc_el: "Κολομβία, Premium, 46%ABV")
-create_item(name_en: "Zacapa 23 years", name_el: "Zacapa 23 years", cat_en: "Rum", cat_el: "Ρούμι", price: 16.0, main_category: "spirits", desc_en: "Guatemala, 23 years, 40%ABV", desc_el: "Γουατεμάλα, 23 ετών, 40%ABV")
-create_item(name_en: "Flor De Cana 12 years", name_el: "Flor De Cana 12 years", cat_en: "Rum", cat_el: "Ρούμι", price: 11.0, main_category: "spirits", desc_en: "Nicaragua, 12 years, 40%ABV", desc_el: "Νικαράγουα, 12 ετών, 40%ABV")
-create_item(name_en: "Abuelo 12 years", name_el: "Abuelo 12 years", cat_en: "Rum", cat_el: "Ρούμι", price: 10.0, main_category: "spirits", desc_en: "Panama, 12 years, 40%ABV", desc_el: "Παναμάς, 12 ετών, 40%ABV")
-create_item(name_en: "Transcontinental Panamas 2011", name_el: "Transcontinental Panamas 2011", cat_en: "Rum", cat_el: "Ρούμι", price: 16.0, main_category: "spirits", desc_en: "Panama, 2011, 43%ABV", desc_el: "Παναμάς, 2011, 43%ABV")
-create_item(name_en: "La Maison Du Rhum Panama", name_el: "La Maison Du Rhum Panama", cat_en: "Rum", cat_el: "Ρούμι", price: 16.0, main_category: "spirits", desc_en: "Panama, Premium, 48%ABV", desc_el: "Παναμάς, Premium, 48%ABV")
-create_item(name_en: "Angostura Tamboo Spiced", name_el: "Angostura Tamboo Spiced", cat_en: "Rum", cat_el: "Ρούμι", price: 9.0, main_category: "spirits", desc_en: "Trinidad & Tobago, Spiced, 40%ABV", desc_el: "Τρινιδάδ & Τομπάγκο, Spiced, 40%ABV")
-create_item(name_en: "Angostura 1919", name_el: "Angostura 1919", cat_en: "Rum", cat_el: "Ρούμι", price: 13.0, main_category: "spirits", desc_en: "Trinidad & Tobago, Premium, 40%ABV", desc_el: "Τρινιδάδ & Τομπάγκο, Premium, 40%ABV")
-create_item(name_en: "Ron Barcelo Imperial", name_el: "Ron Barcelo Imperial", cat_en: "Rum", cat_el: "Ρούμι", price: 10.0, main_category: "spirits", desc_en: "Dominican Republic, Premium, 38%ABV", desc_el: "Δομινικανή Δημοκρατία, Premium, 38%ABV")
-create_item(name_en: "Clement Blanc", name_el: "Clement Blanc", cat_en: "Rum", cat_el: "Ρούμι", price: 8.0, main_category: "spirits", desc_en: "Martinique, White, 40%ABV", desc_el: "Μαρτινίκα, Λευκό, 40%ABV")
-create_item(name_en: "Clairin Vaval", name_el: "Clairin Vaval", cat_en: "Rum", cat_el: "Ρούμι", price: 11.0, main_category: "spirits", desc_en: "Haiti, Traditional, 46%ABV", desc_el: "Αϊτή, Traditional, 46%ABV")
-create_item(name_en: "Veritas", name_el: "Veritas", cat_en: "Rum", cat_el: "Ρούμι", price: 9.0, main_category: "spirits", desc_en: "Haiti, Blend, 47%ABV", desc_el: "Αϊτή, Blend, 47%ABV")
+item(name_en: "Nescafé / Frappé", name_el: "Νεσκαφέ / Φραπέ",
+     cat_en: MORE_EN, cat_el: MORE_EL,
+     price: 4.00, main_category: "coffee",
+     allergens: DAIRY)
 
-# --- Gin ---
-create_item(name_en: "Beefeater London Dry", name_el: "Beefeater London Dry", cat_en: "Gin", cat_el: "Τζιν", price: 8.0, main_category: "spirits", desc_en: "England, London Dry, 40%ABV", desc_el: "Αγγλία, London Dry, 40%ABV")
-create_item(name_en: "Bombay Sapphire", name_el: "Bombay Sapphire", cat_en: "Gin", cat_el: "Τζιν", price: 9.0, main_category: "spirits", desc_en: "England, London Dry, 40%ABV", desc_el: "Αγγλία, London Dry, 40%ABV")
-create_item(name_en: "Oxley Cold Distilled Dry", name_el: "Oxley Cold Distilled Dry", cat_en: "Gin", cat_el: "Τζιν", price: 11.0, main_category: "spirits", desc_en: "England, Cold Distilled, 47%ABV", desc_el: "Αγγλία, Cold Distilled, 47%ABV")
-create_item(name_en: "Hayman`s Old Tom", name_el: "Hayman`s Old Tom", cat_en: "Gin", cat_el: "Τζιν", price: 10.0, main_category: "spirits", desc_en: "England, Old Tom, 41,4%ABV", desc_el: "Αγγλία, Old Tom, 41,4%ABV")
-create_item(name_en: "Hayman`s Royal Dock", name_el: "Hayman`s Royal Dock", cat_en: "Gin", cat_el: "Τζιν", price: 10.0, main_category: "spirits", desc_en: "England, Navy Strength, 57%ABV", desc_el: "Αγγλία, Navy Strength, 57%ABV")
-create_item(name_en: "Opihr Oriental Spiced", name_el: "Opihr Oriental Spiced", cat_en: "Gin", cat_el: "Τζιν", price: 9.0, main_category: "spirits", desc_en: "England, Spiced, 42,5%ABV", desc_el: "Αγγλία, Spiced, 42,5%ABV")
-create_item(name_en: "Plymouth", name_el: "Plymouth", cat_en: "Gin", cat_el: "Τζιν", price: 10.0, main_category: "spirits", desc_en: "England, Plymouth, 41,2%ABV", desc_el: "Αγγλία, Plymouth, 41,2%ABV")
-create_item(name_en: "Silent Pool Gin", name_el: "Silent Pool Gin", cat_en: "Gin", cat_el: "Τζιν", price: 12.0, main_category: "spirits", desc_en: "England, Premium, 43%ABV", desc_el: "Αγγλία, Premium, 43%ABV")
-create_item(name_en: "Sipsmith London Dry Gin", name_el: "Sipsmith London Dry Gin", cat_en: "Gin", cat_el: "Τζιν", price: 11.0, main_category: "spirits", desc_en: "England, London Dry, 41,6%ABV", desc_el: "Αγγλία, London Dry, 41,6%ABV")
-create_item(name_en: "Tanqueray London Dry", name_el: "Tanqueray London Dry", cat_en: "Gin", cat_el: "Τζιν", price: 9.0, main_category: "spirits", desc_en: "Scotland, London Dry, 43,1%ABV", desc_el: "Σκωτία, London Dry, 43,1%ABV")
-create_item(name_en: "Hendrick`s", name_el: "Hendrick`s", cat_en: "Gin", cat_el: "Τζιν", price: 10.0, main_category: "spirits", desc_en: "Scotland, Contemporary, 41,4%ABV", desc_el: "Σκωτία, Contemporary, 41,4%ABV")
-create_item(name_en: "The Botanist", name_el: "The Botanist", cat_en: "Gin", cat_el: "Τζιν", price: 11.0, main_category: "spirits", desc_en: "Scotland, Islay Dry, 46%ABV", desc_el: "Σκωτία, Islay Dry, 46%ABV")
-create_item(name_en: "Lind & Lime Gin", name_el: "Lind & Lime Gin", cat_en: "Gin", cat_el: "Τζιν", price: 13.0, main_category: "spirits", desc_en: "Scotland, Dry, 44%ABV", desc_el: "Σκωτία, Dry, 44%ABV")
-create_item(name_en: "Jinzu Premium Gin", name_el: "Jinzu Premium Gin", cat_en: "Gin", cat_el: "Τζιν", price: 12.0, main_category: "spirits", desc_en: "Scotland, Premium, 41,3%ABV", desc_el: "Σκωτία, Premium, 41,3%ABV")
-create_item(name_en: "Gunpowder Gin", name_el: "Gunpowder Gin", cat_en: "Gin", cat_el: "Τζιν", price: 14.0, main_category: "spirits", desc_en: "Ireland, Contemporary, 43%ABV", desc_el: "Ιρλανδία, Contemporary, 43%ABV")
-create_item(name_en: "Dingle Pot Still", name_el: "Dingle Pot Still", cat_en: "Gin", cat_el: "Τζιν", price: 10.0, main_category: "spirits", desc_en: "Ireland, Pot Still, 42%ABV", desc_el: "Ιρλανδία, Pot Still, 42%ABV")
-create_item(name_en: "Boatyard Double", name_el: "Boatyard Double", cat_en: "Gin", cat_el: "Τζιν", price: 10.0, main_category: "spirits", desc_en: "Ireland, Double Infused, 46,0%ABV", desc_el: "Ιρλανδία, Double Infused, 46,0%ABV")
-create_item(name_en: "Citadelle Dry", name_el: "Citadelle Dry", cat_en: "Gin", cat_el: "Τζιν", price: 9.0, main_category: "spirits", desc_en: "France, Dry, 44%ABV", desc_el: "Γαλλία, Dry, 44%ABV")
-create_item(name_en: "Citadelle No Mistake Old Tom", name_el: "Citadelle No Mistake Old Tom", cat_en: "Gin", cat_el: "Τζιν", price: 13.0, main_category: "spirits", desc_en: "France, Old Tom, 46%ABV", desc_el: "Γαλλία, Old Tom, 46%ABV")
-create_item(name_en: "Citadelle Reserve", name_el: "Citadelle Reserve", cat_en: "Gin", cat_el: "Τζιν", price: 10.0, main_category: "spirits", desc_en: "France, Barrel Aged, 45,2%ABV", desc_el: "Γαλλία, Barrel Aged, 45,2%ABV")
-create_item(name_en: "G`Vine Floraison", name_el: "G`Vine Floraison", cat_en: "Gin", cat_el: "Τζιν", price: 11.0, main_category: "spirits", desc_en: "France, Grape Based, 40%ABV", desc_el: "Γαλλία, Grape Based, 40%ABV")
-create_item(name_en: "Monkey 47 Dry", name_el: "Monkey 47 Dry", cat_en: "Gin", cat_el: "Τζιν", price: 16.0, main_category: "spirits", desc_en: "Germany, Dry, 47%ABV", desc_el: "Γερμανία, Dry, 47%ABV")
-create_item(name_en: "Elephant Dry", name_el: "Elephant Dry", cat_en: "Gin", cat_el: "Τζιν", price: 15.0, main_category: "spirits", desc_en: "Germany, Dry, 45%ABV", desc_el: "Γερμανία, Dry, 45%ABV")
-create_item(name_en: "Gin MG", name_el: "Gin MG", cat_en: "Gin", cat_el: "Τζιν", price: 9.0, main_category: "spirits", desc_en: "Spain, Classic, 40%ABV", desc_el: "Ισπανία, Classic, 40%ABV")
-create_item(name_en: "Gin Mare Mediterranean", name_el: "Gin Mare Mediterranean", cat_en: "Gin", cat_el: "Τζιν", price: 13.0, main_category: "spirits", desc_en: "Spain, Mediterranean, 43%ABV", desc_el: "Ισπανία, Mediterranean, 43%ABV")
-create_item(name_en: "Le Tribute", name_el: "Le Tribute", cat_en: "Gin", cat_el: "Τζιν", price: 10.0, main_category: "spirits", desc_en: "Spain, Contemporary, 43,0%ABV", desc_el: "Ισπανία, Contemporary, 43,0%ABV")
-create_item(name_en: "GinRaw Barcelona Botanical", name_el: "GinRaw Barcelona Botanical", cat_en: "Gin", cat_el: "Τζιν", price: 13.0, main_category: "spirits", desc_en: "Spain, Botanical, 42%ABV", desc_el: "Ισπανία, Botanical, 42%ABV")
-create_item(name_en: "Jerry Thomas Del Pofessore Monsieur", name_el: "Jerry Thomas Del Pofessore Monsieur", cat_en: "Gin", cat_el: "Τζιν", price: 11.0, main_category: "spirits", desc_en: "Italy, Classic, 44%ABV", desc_el: "Ιταλία, Classic, 44%ABV")
-create_item(name_en: "Jerry Thomas Del Professore Madame Gin", name_el: "Jerry Thomas Del Professore Madame Gin", cat_en: "Gin", cat_el: "Τζιν", price: 11.0, main_category: "spirits", desc_en: "Italy, Floral, 43%ABV", desc_el: "Ιταλία, Floral, 43%ABV")
-create_item(name_en: "Jerry Thomas Del Professore Crocodile Gin", name_el: "Jerry Thomas Del Professore Crocodile Gin", cat_en: "Gin", cat_el: "Τζιν", price: 11.0, main_category: "spirits", desc_en: "Italy, Botanical, 45%ABV", desc_el: "Ιταλία, Botanical, 45%ABV")
-create_item(name_en: "Jerry Thomas Del Professore The Fighting Bear Gin", name_el: "Jerry Thomas Del Professore The Fighting Bear Gin", cat_en: "Gin", cat_el: "Τζιν", price: 11.0, main_category: "spirits", desc_en: "Italy, Wild, 43%ABV", desc_el: "Ιταλία, Wild, 43%ABV")
-create_item(name_en: "Harahorn", name_el: "Harahorn", cat_en: "Gin", cat_el: "Τζιν", price: 11.0, main_category: "spirits", desc_en: "Norway, Nordic, 46%ABV", desc_el: "Νορβηγία, Nordic, 46%ABV")
-create_item(name_en: "Olafsson", name_el: "Olafsson", cat_en: "Gin", cat_el: "Τζιν", price: 10.0, main_category: "spirits", desc_en: "Iceland, Nordic, 45,2%ABV", desc_el: "Ισλανδία, Nordic, 45,2%ABV")
-create_item(name_en: "Amazoni", name_el: "Amazoni", cat_en: "Gin", cat_el: "Τζιν", price: 12.0, main_category: "spirits", desc_en: "Brazil, Botanical, 42%ABV", desc_el: "Βραζιλία, Botanical, 42%ABV")
-create_item(name_en: "Votanikon", name_el: "Votanikon", cat_en: "Gin", cat_el: "Τζιν", price: 9.0, main_category: "spirits", desc_en: "Greece, Botanical, 40%ABV", desc_el: "Ελλάδα, Botanical, 40%ABV")
-create_item(name_en: "Mataroa", name_el: "Mataroa", cat_en: "Gin", cat_el: "Τζιν", price: 10.0, main_category: "spirits", desc_en: "Greece, Mediterranean, 41,5%ABV", desc_el: "Ελλάδα, Mediterranean, 41,5%ABV")
-create_item(name_en: "Truce Gin Organic Botanicals", name_el: "Truce Gin Organic Botanicals", cat_en: "Gin", cat_el: "Τζιν", price: 11.0, main_category: "spirits", desc_en: "Greece, Organic, 42%ABV", desc_el: "Ελλάδα, Organic, 42%ABV")
-create_item(name_en: "Grace Gin", name_el: "Grace Gin", cat_en: "Gin", cat_el: "Τζιν", price: 10.0, main_category: "spirits", desc_en: "Greece, Contemporary, 45,7%ABV", desc_el: "Ελλάδα, Contemporary, 45,7%ABV")
-create_item(name_en: "Nikka Coffey Gin", name_el: "Nikka Coffey Gin", cat_en: "Gin", cat_el: "Τζιν", price: 12.0, main_category: "spirits", desc_en: "Japan, Coffey Still, 47%ABV", desc_el: "Ιαπωνία, Coffey Still, 47%ABV")
-create_item(name_en: "Roku Craft Gin", name_el: "Roku Craft Gin", cat_en: "Gin", cat_el: "Τζιν", price: 9.0, main_category: "spirits", desc_en: "Japan, Craft, 43%ABV", desc_el: "Ιαπωνία, Craft, 43%ABV")
+item(name_en: "Frappé Affogato", name_el: "Φραπέ Affogato",
+     cat_en: MORE_EN, cat_el: MORE_EL,
+     price: 5.50, main_category: "coffee",
+     allergens: DAIRY)
 
-# --- Tequila ---
-create_item(name_en: "Jose Cuervo blanco", name_el: "Jose Cuervo blanco", cat_en: "Tequila", cat_el: "Τεκίλα", price: 8.0, main_category: "spirits", desc_en: "Mexico, Tequila Blanco, 38%ABV", desc_el: "Μεξικό, Tequila Blanco, 38%ABV")
-create_item(name_en: "Jose Cuervo reposado", name_el: "Jose Cuervo reposado", cat_en: "Tequila", cat_el: "Τεκίλα", price: 8.0, main_category: "spirits", desc_en: "Mexico, Tequila Reposado, 38%ABV", desc_el: "Μεξικό, Tequila Reposado, 38%ABV")
-create_item(name_en: "Jose Cuervo traditional blanco", name_el: "Jose Cuervo traditional blanco", cat_en: "Tequila", cat_el: "Τεκίλα", price: 9.0, main_category: "spirits", desc_en: "Mexico, Tequila Blanco, 38%ABV", desc_el: "Μεξικό, Tequila Blanco, 38%ABV")
-create_item(name_en: "Jose Cuervo traditional reposado", name_el: "Jose Cuervo traditional reposado", cat_en: "Tequila", cat_el: "Τεκίλα", price: 9.0, main_category: "spirits", desc_en: "Mexico, Tequila Reposado, 38%ABV", desc_el: "Μεξικό, Tequila Reposado, 38%ABV")
-create_item(name_en: "Don Julio blanco", name_el: "Don Julio blanco", cat_en: "Tequila", cat_el: "Τεκίλα", price: 12.0, main_category: "spirits", desc_en: "Mexico, Tequila Blanco, 38%ABV", desc_el: "Μεξικό, Tequila Blanco, 38%ABV")
-create_item(name_en: "Don Julio reposado", name_el: "Don Julio reposado", cat_en: "Tequila", cat_el: "Τεκίλα", price: 14.0, main_category: "spirits", desc_en: "Mexico, Tequila Reposado, 38%ABV", desc_el: "Μεξικό, Tequila Reposado, 38%ABV")
-create_item(name_en: "Don Julio anejo", name_el: "Don Julio anejo", cat_en: "Tequila", cat_el: "Τεκίλα", price: 15.0, main_category: "spirits", desc_en: "Mexico, Tequila Añejo, 38%ABV", desc_el: "Μεξικό, Tequila Añejo, 38%ABV")
-create_item(name_en: "Calle 23 blanco", name_el: "Calle 23 blanco", cat_en: "Tequila", cat_el: "Τεκίλα", price: 13.0, main_category: "spirits", desc_en: "Mexico, Tequila Blanco, 40%ABV", desc_el: "Μεξικό, Tequila Blanco, 40%ABV")
-create_item(name_en: "Calle 23 reposado", name_el: "Calle 23 reposado", cat_en: "Tequila", cat_el: "Τεκίλα", price: 16.0, main_category: "spirits", desc_en: "Mexico, Tequila Reposado, 40%ABV", desc_el: "Μεξικό, Tequila Reposado, 40%ABV")
-create_item(name_en: "Fortaleza blanco", name_el: "Fortaleza blanco", cat_en: "Tequila", cat_el: "Τεκίλα", price: 21.0, main_category: "spirits", desc_en: "Mexico, Tequila Blanco Premium, 40%ABV", desc_el: "Μεξικό, Tequila Blanco Premium, 40%ABV")
+item(name_en: "Irish Coffee", name_el: "Irish Coffee",
+     cat_en: MORE_EN, cat_el: MORE_EL,
+     price: 6.00, main_category: "coffee",
+     allergens: DAIRY + ALCOHOL)
 
-# --- Mezcal ---
-create_item(name_en: "Bruxo X Espadin", name_el: "Bruxo X Espadin", cat_en: "Mezcal", cat_el: "Μεζκάλ", price: 10.0, main_category: "spirits", desc_en: "Mexico, Mezcal Espadin, 40%ABV", desc_el: "Μεξικό, Mezcal Espadin, 40%ABV")
-create_item(name_en: "Montelobos Joven", name_el: "Montelobos Joven", cat_en: "Mezcal", cat_el: "Μεζκάλ", price: 15.0, main_category: "spirits", desc_en: "Mexico, Mezcal Joven, 43,2%ABV", desc_el: "Μεξικό, Mezcal Joven, 43,2%ABV")
-create_item(name_en: "Amores Cupreata", name_el: "Amores Cupreata", cat_en: "Mezcal", cat_el: "Μεζκάλ", price: 14.0, main_category: "spirits", desc_en: "Mexico, Mezcal Cupreata, 41%ABV", desc_el: "Μεξικό, Mezcal Cupreata, 41%ABV")
-create_item(name_en: "Ilegal Joven Espadin", name_el: "Ilegal Joven Espadin", cat_en: "Mezcal", cat_el: "Μεζκάλ", price: 14.0, main_category: "spirits", desc_en: "Mexico, Mezcal Espadin, 40%ABV", desc_el: "Μεξικό, Mezcal Espadin, 40%ABV")
-create_item(name_en: "Verde Momendo", name_el: "Verde Momendo", cat_en: "Mezcal", cat_el: "Μεζκάλ", price: 10.0, main_category: "spirits", desc_en: "Mexico, Mezcal Artisanal, 42%ABV", desc_el: "Μεξικό, Mezcal Artisanal, 42%ABV")
-create_item(name_en: "Derrumbes No. 1 Oaxaca", name_el: "Derrumbes No. 1 Oaxaca", cat_en: "Mezcal", cat_el: "Μεζκάλ", price: 18.0, main_category: "spirits", desc_en: "Mexico, Mezcal Oaxaca, 46,6%ABV", desc_el: "Μεξικό, Mezcal Oaxaca, 46,6%ABV")
-create_item(name_en: "Derrumbes No. 3 San Luis", name_el: "Derrumbes No. 3 San Luis", cat_en: "Mezcal", cat_el: "Μεζκάλ", price: 12.0, main_category: "spirits", desc_en: "Mexico, Mezcal San Luis, 44,4%ABV", desc_el: "Μεξικό, Mezcal San Luis, 44,4%ABV")
-create_item(name_en: "Nuestra Soledad Ejutla", name_el: "Nuestra Soledad Ejutla", cat_en: "Mezcal", cat_el: "Μεζκάλ", price: 13.0, main_category: "spirits", desc_en: "Mexico, Mezcal Ejutla, 41%ABV", desc_el: "Μεξικό, Mezcal Ejutla, 41%ABV")
-create_item(name_en: "Los Siete Misterios Doba-Yej", name_el: "Los Siete Misterios Doba-Yej", cat_en: "Mezcal", cat_el: "Μεζκάλ", price: 15.0, main_category: "spirits", desc_en: "Mexico, Mezcal Doba-Yej, 44%ABV", desc_el: "Μεξικό, Mezcal Doba-Yej, 44%ABV")
+# ============================================================
+# COFFEE — Drinks & Tea
+# ============================================================
+TEA_EN = "Drinks & Tea".freeze
+TEA_EL = "Ροφήματα & Τσάι".freeze
 
-# --- Vodka ---
-create_item(name_en: "Absolut", name_el: "Absolut", cat_en: "Vodka", cat_el: "Βότκα", price: 8.0, main_category: "spirits", desc_en: "Sweden, 40%ABV", desc_el: "Σουηδία, 40%ABV")
-create_item(name_en: "Finlandia", name_el: "Finlandia", cat_en: "Vodka", cat_el: "Βότκα", price: 8.0, main_category: "spirits", desc_en: "Finland, 40%ABV", desc_el: "Φινλανδία, 40%ABV")
-create_item(name_en: "Belvedere", name_el: "Belvedere", cat_en: "Vodka", cat_el: "Βότκα", price: 11.0, main_category: "spirits", desc_en: "Poland, 40%ABV", desc_el: "Πολωνία, 40%ABV")
-create_item(name_en: "Grey Goose", name_el: "Grey Goose", cat_en: "Vodka", cat_el: "Βότκα", price: 12.0, main_category: "spirits", desc_en: "France, 40%ABV", desc_el: "Γαλλία, 40%ABV")
+item(name_en: "Hot Chocolate", name_el: "Ζεστή Σοκολάτα",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.50, main_category: "coffee",
+     desc_en: "White, bitter & cacao",
+     desc_el: "Λευκή, πικρή & κακάο",
+     allergens: DAIRY)
 
-# --- Others ---
-create_item(name_en: "Martel V.S. Cognac", name_el: "Martel V.S. Cognac", cat_en: "Others", cat_el: "Άλλα", price: 11.0, main_category: "spirits", desc_en: "France, V.S. Cognac, 40%ABV", desc_el: "Γαλλία, V.S. Cognac, 40%ABV")
-create_item(name_en: "Hennessy V.S. Cognac", name_el: "Hennessy V.S. Cognac", cat_en: "Others", cat_el: "Άλλα", price: 12.0, main_category: "spirits", desc_en: "France, V.S. Cognac, 40%ABV", desc_el: "Γαλλία, V.S. Cognac, 40%ABV")
-create_item(name_en: "35 Tsikoudia Blended", name_el: "35 Τσικουδιά Blended", cat_en: "Others", cat_el: "Άλλα", price: 8.0, main_category: "spirits", desc_en: "Greece, Tsikoudia, 38%ABV", desc_el: "Ελλάδα, Τσικουδιά, 38%ABV")
-create_item(name_en: "35 Tsikoudia Moshato Single Variety", name_el: "35 Τσικουδιά Moshato Single Variety", cat_en: "Others", cat_el: "Άλλα", price: 8.0, main_category: "spirits", desc_en: "Greece, Tsikoudia Moshato, 38%ABV", desc_el: "Ελλάδα, Τσικουδιά Μοσχάτο, 38%ABV")
-create_item(name_en: "35 Tsikoudia Syrah Single Variety", name_el: "35 Τσικουδιά Syrah Single Variety", cat_en: "Others", cat_el: "Άλλα", price: 8.0, main_category: "spirits", desc_en: "Greece, Tsikoudia Syrah, 38%ABV", desc_el: "Ελλάδα, Τσικουδιά Syrah, 38%ABV")
-create_item(name_en: "Puro Aged Tsipouro", name_el: "Puro Aged Tsipouro", cat_en: "Others", cat_el: "Άλλα", price: 13.0, main_category: "spirits", desc_en: "Greece, Aged Tsipouro, 40%ABV", desc_el: "Ελλάδα, Παλαιωμένο Τσίπουρο, 40%ABV")
-create_item(name_en: "Metaxa 5*", name_el: "Metaxa 5*", cat_en: "Others", cat_el: "Άλλα", price: 8.0, main_category: "spirits", desc_en: "Greece, Brandy, 38%ABV", desc_el: "Ελλάδα, Μπράντι, 38%ABV")
-create_item(name_en: "Metaxa 7*", name_el: "Metaxa 7*", cat_en: "Others", cat_el: "Άλλα", price: 9.0, main_category: "spirits", desc_en: "Greece, Brandy, 40%ABV", desc_el: "Ελλάδα, Μπράντι, 40%ABV")
-create_item(name_en: "Metaxa Private Reserve", name_el: "Metaxa Private Reserve", cat_en: "Others", cat_el: "Άλλα", price: 17.0, main_category: "spirits", desc_en: "Greece, Premium Brandy, 40%ABV", desc_el: "Ελλάδα, Μπράντι Premium, 40%ABV")
-create_item(name_en: "Skinos Mastiha Spirit", name_el: "Skinos Mastiha Spirit", cat_en: "Others", cat_el: "Άλλα", price: 8.0, main_category: "spirits", desc_en: "Greece, Mastiha Liqueur, 30%ABV", desc_el: "Ελλάδα, Λικέρ Μαστίχας, 30%ABV")
-create_item(name_en: "Ouzo", name_el: "Ούζο", cat_en: "Others", cat_el: "Άλλα", price: 5.0, main_category: "spirits", desc_en: "Greece, Ouzo, 37,5%ABV", desc_el: "Ελλάδα, Ούζο, 37,5%ABV")
-create_item(name_en: "Rocks' n' Grapes Τsipouro", name_el: "Rocks' n' Grapes Τsipouro", cat_en: "Others", cat_el: "Άλλα", price: 8.0, main_category: "spirits", desc_en: "Greece, Tsipouro, 40%ABV", desc_el: "Ελλάδα, Τσίπουρο, 40%ABV")
-create_item(name_en: "Dolin dry", name_el: "Dolin dry", cat_en: "Others", cat_el: "Άλλα", price: 7.0, main_category: "spirits", desc_en: "France, Dry Vermouth, 17,5%ABV", desc_el: "Γαλλία, Βερμούτ Dry, 17,5%ABV")
-create_item(name_en: "Dolin blanc", name_el: "Dolin blanc", cat_en: "Others", cat_el: "Άλλα", price: 7.0, main_category: "spirits", desc_en: "France, White Vermouth, 16%ABV", desc_el: "Γαλλία, Βερμούτ Blanc, 16%ABV")
-create_item(name_en: "Antica Formula", name_el: "Antica Formula", cat_en: "Others", cat_el: "Άλλα", price: 9.0, main_category: "spirits", desc_en: "Italy, Vermouth, 16,5%ABV", desc_el: "Ιταλία, Βερμούτ, 16,5%ABV")
+item(name_en: "Cold Chocolate", name_el: "Κρύα Σοκολάτα",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.50, main_category: "coffee",
+     desc_en: "Add syrup: coconut, vanilla, caramel, strawberry or hazelnut +0.50€",
+     desc_el: "Προσθήκη σιροπιού: καρύδα, βανίλια, καραμέλα, φράουλα ή φουντούκι +0.50€",
+     allergens: DAIRY)
 
-# --- Liqueur ---
-create_item(name_en: "Campari", name_el: "Campari", cat_en: "Liqueur", cat_el: "Λικέρ", price: 8.0, main_category: "spirits", desc_en: "Italy, Aperitif, 25%ABV", desc_el: "Ιταλία, Απεριτίφ, 25%ABV")
-create_item(name_en: "Aperol", name_el: "Aperol", cat_en: "Liqueur", cat_el: "Λικέρ", price: 8.0, main_category: "spirits", desc_en: "Italy, Aperitif, 11%ABV", desc_el: "Ιταλία, Απεριτίφ, 11%ABV")
-create_item(name_en: "Amaro Montenegro", name_el: "Amaro Montenegro", cat_en: "Liqueur", cat_el: "Λικέρ", price: 8.0, main_category: "spirits", desc_en: "Italy, Amaro, 23%ABV", desc_el: "Ιταλία, Αμάρο, 23%ABV")
-create_item(name_en: "Suze", name_el: "Suze", cat_en: "Liqueur", cat_el: "Λικέρ", price: 8.0, main_category: "spirits", desc_en: "France, Aperitif, 15%ABV", desc_el: "Γαλλία, Απεριτίφ, 15%ABV")
-create_item(name_en: "Disaronno", name_el: "Disaronno", cat_en: "Liqueur", cat_el: "Λικέρ", price: 8.0, main_category: "spirits", desc_en: "Italy, Almond Liqueur, 28%ABV", desc_el: "Ιταλία, Λικέρ Αμυγδάλου, 28%ABV")
-create_item(name_en: "Italicus Rosolio di Bergamotto", name_el: "Italicus Rosolio di Bergamotto", cat_en: "Liqueur", cat_el: "Λικέρ", price: 9.0, main_category: "spirits", desc_en: "Italy, Bergamot Liqueur, 20%ABV", desc_el: "Ιταλία, Λικέρ Περγαμόντο, 20%ABV")
-create_item(name_en: "Chartreause Green", name_el: "Chartreause Green", cat_en: "Liqueur", cat_el: "Λικέρ", price: 11.0, main_category: "spirits", desc_en: "France, Herbal Liqueur, 55%ABV", desc_el: "Γαλλία, Λικέρ Βοτάνων, 55%ABV")
-create_item(name_en: "St.Germainn elderflower", name_el: "St.Germainn elderflower", cat_en: "Liqueur", cat_el: "Λικέρ", price: 9.0, main_category: "spirits", desc_en: "France, Elderflower Liqueur, 20%ABV", desc_el: "Γαλλία, Λικέρ Κουφοξυλιάς, 20%ABV")
-create_item(name_en: "Cointreau", name_el: "Cointreau", cat_en: "Liqueur", cat_el: "Λικέρ", price: 8.0, main_category: "spirits", desc_en: "France, Citrus Liqueur, 40%ABV", desc_el: "Γαλλία, Λικέρ Εσπεριδοειδών, 40%ABV")
-create_item(name_en: "Jagermeister", name_el: "Jagermeister", cat_en: "Liqueur", cat_el: "Λικέρ", price: 8.0, main_category: "spirits", desc_en: "Germany, Herbal Liqueur, 35%ABV", desc_el: "Γερμανία, Λικέρ Βοτάνων, 35%ABV")
+item(name_en: "Organic Women's Tea", name_el: "Οργανικό Women's Tea",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.00, main_category: "coffee",
+     desc_en: "Ginger, orange peel & camomile flowers",
+     desc_el: "Τζίντζερ, φλούδα πορτοκαλιού & άνθη χαμομηλιού")
 
-puts "Seeded #{MenuItem.count} bilingual items."
+item(name_en: "Organic Men's Tea", name_el: "Οργανικό Men's Tea",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.00, main_category: "coffee",
+     desc_en: "Ayurvedic blend with ginger, ginseng & chili",
+     desc_el: "Αγιουρβεδικό μείγμα με τζίντζερ, τζίνσενγκ & τσίλι")
+
+item(name_en: "Organic Green Chai", name_el: "Οργανικό Green Chai",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.00, main_category: "coffee",
+     desc_en: "Green tea, cinnamon & ginger",
+     desc_el: "Πράσινο τσάι, κανέλα & τζίντζερ")
+
+item(name_en: "Organic Stomach Ease", name_el: "Οργανικό Stomach Ease",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.00, main_category: "coffee",
+     desc_en: "Cardamom, fennel and ginger",
+     desc_el: "Κάρδαμο, μάραθος και τζίντζερ")
+
+item(name_en: "Organic Matcha Lemon", name_el: "Οργανικό Matcha Lemon",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.00, main_category: "coffee",
+     desc_en: "Green tea, matcha, lemongrass & lime",
+     desc_el: "Πράσινο τσάι, matcha, λεμονόχορτο & lime")
+
+item(name_en: "Organic Feel Pure", name_el: "Οργανικό Feel Pure",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.00, main_category: "coffee",
+     desc_en: "Liquorice, dandelion & cinnamon",
+     desc_el: "Γλυκόριζα, ταραξάκο & κανέλα")
+
+item(name_en: "Organic Himalayan", name_el: "Οργανικό Himalayan",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.00, main_category: "coffee",
+     desc_en: "Ginger, fennel & cinnamon",
+     desc_el: "Τζίντζερ, μάραθος & κανέλα")
+
+item(name_en: "Black Tea", name_el: "Μαύρο Τσάι",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.00, main_category: "coffee")
+
+item(name_en: "Cretan Herbs", name_el: "Κρητικά Βότανα",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.00, main_category: "coffee")
+
+item(name_en: "Iced Tea", name_el: "Iced Tea",
+     cat_en: TEA_EN, cat_el: TEA_EL,
+     price: 4.00, main_category: "coffee",
+     desc_en: "Green, peach or lemon",
+     desc_el: "Πράσινο, ροδάκινο ή λεμόνι")
+
+# ============================================================
+# COFFEE — Homemade
+# ============================================================
+HOME_EN = "Homemade".freeze
+HOME_EL = "Σπιτικά".freeze
+
+item(name_en: "Homemade Lemonade", name_el: "Σπιτική Λεμονάδα",
+     cat_en: HOME_EN, cat_el: HOME_EL,
+     price: 4.50, main_category: "coffee",
+     desc_en: "From local lemons", desc_el: "Από ντόπια λεμόνια")
+
+item(name_en: "Homemade Strawberry Drink", name_el: "Σπιτικό Ρόφημα Φράουλας",
+     cat_en: HOME_EN, cat_el: HOME_EL,
+     price: 4.50, main_category: "coffee",
+     desc_en: "From local strawberries", desc_el: "Από ντόπιες φράουλες")
+
+item(name_en: "Homemade Strawberry-Lemonade", name_el: "Σπιτική Φραουλο-Λεμονάδα",
+     cat_en: HOME_EN, cat_el: HOME_EL,
+     price: 5.00, main_category: "coffee")
+
+# ============================================================
+# COFFEE — Fresh Juice
+# ============================================================
+JUICE_EN = "Fresh Juice".freeze
+JUICE_EL = "Φρέσκοι Χυμοί".freeze
+
+item(name_en: "Fresh Orange Juice", name_el: "Φρέσκος Χυμός Πορτοκάλι",
+     cat_en: JUICE_EN, cat_el: JUICE_EL,
+     price: 4.00, main_category: "coffee")
+
+item(name_en: "Fresh Juice — 2 Fruits", name_el: "Φρέσκος Χυμός — 2 Φρούτα",
+     cat_en: JUICE_EN, cat_el: JUICE_EL,
+     price: 4.50, main_category: "coffee")
+
+item(name_en: "Fresh Mixed Juice", name_el: "Φρέσκος Μικτός Χυμός",
+     cat_en: JUICE_EN, cat_el: JUICE_EL,
+     price: 5.00, main_category: "coffee",
+     desc_en: "With orange, apple, banana & pear",
+     desc_el: "Με πορτοκάλι, μήλο, μπανάνα & αχλάδι")
+
+# ============================================================
+# COFFEE — Soft Drinks
+# ============================================================
+SOFT_EN = "Soft Drinks".freeze
+SOFT_EL = "Αναψυκτικά".freeze
+
+item(name_en: "Sparkling Water", name_el: "Ανθρακούχο Νερό",
+     cat_en: SOFT_EN, cat_el: SOFT_EL,
+     price: 4.00, main_category: "coffee")
+
+item(name_en: "Coca Cola / Coca Cola Zero", name_el: "Coca Cola / Coca Cola Zero",
+     cat_en: SOFT_EN, cat_el: SOFT_EL,
+     price: 3.50, main_category: "coffee")
+
+item(name_en: "Fanta Lemon / Orange", name_el: "Fanta Λεμόνι / Πορτοκάλι",
+     cat_en: SOFT_EN, cat_el: SOFT_EL,
+     price: 3.50, main_category: "coffee")
+
+item(name_en: "Schweppes Soda / Tonic", name_el: "Schweppes Soda / Tonic",
+     cat_en: SOFT_EN, cat_el: SOFT_EL,
+     price: 3.50, main_category: "coffee")
+
+item(name_en: "Three Cents Pink Grapefruit & Ginger Beer",
+     name_el: "Three Cents Pink Grapefruit & Ginger Beer",
+     cat_en: SOFT_EN, cat_el: SOFT_EL,
+     price: 5.00, main_category: "coffee")
+
+item(name_en: "Red Bull", name_el: "Red Bull",
+     cat_en: SOFT_EN, cat_el: SOFT_EL,
+     price: 6.00, main_category: "coffee")
+
+# ============================================================
+# BEER & WINE — Beers
+# ============================================================
+BEER_EN = "Beers".freeze
+BEER_EL = "Μπύρες".freeze
+
+item(name_en: "Seaside", name_el: "Seaside",
+     cat_en: BEER_EN, cat_el: BEER_EL,
+     price: 6.00, main_category: "beer&wine",
+     desc_en: "Homemade pilsner with citron & Cretan honey",
+     desc_el: "Σπιτική pilsner με κίτρο & κρητικό μέλι",
+     allergens: ALCOHOL + GLUTEN)
+
+item(name_en: "Peroni Draught 300ml", name_el: "Peroni Βαρελίσια 300ml",
+     cat_en: BEER_EN, cat_el: BEER_EL,
+     price: 5.00, main_category: "beer&wine",
+     allergens: ALCOHOL + GLUTEN)
+
+item(name_en: "Peroni 0.0% Alcohol", name_el: "Peroni 0.0% Αλκοόλ",
+     cat_en: BEER_EN, cat_el: BEER_EL,
+     price: 5.00, main_category: "beer&wine",
+     allergens: GLUTEN)
+
+item(name_en: "Hofbräu München Original", name_el: "Hofbräu München Original",
+     cat_en: BEER_EN, cat_el: BEER_EL,
+     price: 6.00, main_category: "beer&wine",
+     allergens: ALCOHOL + GLUTEN)
+
+item(name_en: "Hofbräu München Weisse", name_el: "Hofbräu München Weisse",
+     cat_en: BEER_EN, cat_el: BEER_EL,
+     price: 6.00, main_category: "beer&wine",
+     allergens: ALCOHOL + GLUTEN)
+
+item(name_en: "Flaros", name_el: "Φλάρος",
+     cat_en: BEER_EN, cat_el: BEER_EL,
+     price: 6.00, main_category: "beer&wine",
+     allergens: ALCOHOL + GLUTEN)
+
+item(name_en: "Fix", name_el: "Fix",
+     cat_en: BEER_EN, cat_el: BEER_EL,
+     price: 4.50, main_category: "beer&wine",
+     allergens: ALCOHOL + GLUTEN)
+
+item(name_en: "Fix Dark", name_el: "Fix Dark",
+     cat_en: BEER_EN, cat_el: BEER_EL,
+     price: 5.00, main_category: "beer&wine",
+     allergens: ALCOHOL + GLUTEN)
+
+# ============================================================
+# BEER & WINE — Wines
+# ============================================================
+WINE_EN = "Wine".freeze
+WINE_EL = "Κρασιά".freeze
+
+item(name_en: "His Queen — Sauvignon Blanc", name_el: "His Queen — Sauvignon Blanc",
+     cat_en: WINE_EN, cat_el: WINE_EL,
+     price: 6.00, main_category: "beer&wine",
+     pricing_type: "glass_bottle", price_secondary: 25.00,
+     desc_en: "Klados Winery — white", desc_el: "Klados Winery — λευκό",
+     allergens: ALCOHOL)
+
+item(name_en: "Her King — Cabernet Sauvignon",
+     name_el: "Her King — Cabernet Sauvignon",
+     cat_en: WINE_EN, cat_el: WINE_EL,
+     price: 6.00, main_category: "beer&wine",
+     pricing_type: "glass_bottle", price_secondary: 25.00,
+     desc_en: "Klados Winery — red", desc_el: "Klados Winery — κόκκινο",
+     allergens: ALCOHOL)
+
+item(name_en: "Dione — Demi-sec Red or White",
+     name_el: "Δίωνη — Ημίξηρο Κόκκινο ή Λευκό",
+     cat_en: WINE_EN, cat_el: WINE_EL,
+     price: 6.00, main_category: "beer&wine",
+     pricing_type: "glass_bottle", price_secondary: 25.00,
+     desc_en: "Dourakis Winery", desc_el: "Οινοποιείο Δουράκη",
+     allergens: ALCOHOL)
+
+item(name_en: "Sangria", name_el: "Sangria",
+     cat_en: WINE_EN, cat_el: WINE_EL,
+     price: 6.00, main_category: "beer&wine",
+     allergens: ALCOHOL)
+
+item(name_en: "Bianconero White Moschato", name_el: "Bianconero White Moschato",
+     cat_en: WINE_EN, cat_el: WINE_EL,
+     price: 7.00, main_category: "beer&wine",
+     allergens: ALCOHOL)
+
+item(name_en: "Bianconero Pink Moschato", name_el: "Bianconero Pink Moschato",
+     cat_en: WINE_EN, cat_el: WINE_EL,
+     price: 7.00, main_category: "beer&wine",
+     allergens: ALCOHOL)
+
+# ============================================================
+# COCKTAILS — Home Classic
+# ============================================================
+CLASSIC_EN = "Home Classic".freeze
+CLASSIC_EL = "Home Classic".freeze
+
+item(name_en: "Tiki Rum Punch", name_el: "Tiki Rum Punch",
+     cat_en: CLASSIC_EN, cat_el: CLASSIC_EL,
+     price: 10.00, main_category: "cocktails",
+     desc_en: "Blend of rum, lime, pineapple, passion, falernum, peach bitter",
+     desc_el: "Μείγμα ρουμιού, lime, ανανά, passion, falernum, peach bitter",
+     allergens: ALCOHOL)
+
+item(name_en: "Letter of Maroque (aka \"Zombie\")",
+     name_el: "Letter of Maroque (aka \"Zombie\")",
+     cat_en: CLASSIC_EN, cat_el: CLASSIC_EL,
+     price: 12.00, main_category: "cocktails",
+     desc_en: "Blend of rum, orange curaçao, lime, orange, grenadine, maraschino LQR, aromatic lavender bitter",
+     desc_el: "Μείγμα ρουμιού, orange curaçao, lime, πορτοκάλι, γρεναδίνη, maraschino LQR, αρωματικό lavender bitter",
+     allergens: ALCOHOL)
+
+item(name_en: "Creole Piña Colada", name_el: "Creole Piña Colada",
+     cat_en: CLASSIC_EN, cat_el: CLASSIC_EL,
+     price: 11.00, main_category: "cocktails",
+     desc_en: "Finalist of Bacardi Piña Colada Challenge 2023. Rum, lime, pineapple, salty caramelised coconut, aromatic & spice bitter",
+     desc_el: "Φιναλίστ του Bacardi Piña Colada Challenge 2023. Ρούμι, lime, ανανάς, αλατισμένη καραμελωμένη καρύδα, aromatic & spice bitter",
+     allergens: ALCOHOL)
+
+item(name_en: "Voyager", name_el: "Voyager",
+     cat_en: CLASSIC_EN, cat_el: CLASSIC_EL,
+     price: 10.00, main_category: "cocktails",
+     desc_en: "Rum, lemonade, strawberry, aromatic bitter",
+     desc_el: "Ρούμι, λεμονάδα, φράουλα, aromatic bitter",
+     allergens: ALCOHOL)
+
+# ============================================================
+# COCKTAILS — Home Signature
+# ============================================================
+SIG_EN = "Home Signature".freeze
+SIG_EL = "Home Signature".freeze
+
+item(name_en: "Rock On", name_el: "Rock On",
+     cat_en: SIG_EN, cat_el: SIG_EL,
+     price: 10.00, main_category: "cocktails",
+     desc_en: "Argiole, Cuban-style rum, black cardamom, aromatic bitter",
+     desc_el: "Argiole, Cuban-style ρούμι, μαύρο κάρδαμο, aromatic bitter",
+     allergens: ALCOHOL)
+
+item(name_en: "Hitching", name_el: "Hitching",
+     cat_en: SIG_EN, cat_el: SIG_EL,
+     price: 11.00, main_category: "cocktails",
+     desc_en: "Blend of rum, orange LQR, lime, macadamia, aromatic bitter",
+     desc_el: "Μείγμα ρουμιού, orange LQR, lime, macadamia, aromatic bitter",
+     allergens: ALCOHOL + NUTS)
+
+item(name_en: "Bang Bang", name_el: "Bang Bang",
+     cat_en: SIG_EN, cat_el: SIG_EL,
+     price: 10.00, main_category: "cocktails",
+     desc_en: "Reserve rum, spiced Poplandia LQR, lime, strawberry, black cardamom, aromatic bitter",
+     desc_el: "Reserve ρούμι, spiced Poplandia LQR, lime, φράουλα, μαύρο κάρδαμο, aromatic bitter",
+     allergens: ALCOHOL)
+
+item(name_en: "Okey Donkey", name_el: "Okey Donkey",
+     cat_en: SIG_EN, cat_el: SIG_EL,
+     price: 10.00, main_category: "cocktails",
+     desc_en: "Gin, cucumber, lemongrass",
+     desc_el: "Gin, αγγούρι, λεμονόχορτο",
+     allergens: ALCOHOL)
+
+item(name_en: "High Five", name_el: "High Five",
+     cat_en: SIG_EN, cat_el: SIG_EL,
+     price: 10.00, main_category: "cocktails",
+     desc_en: "Blend of gin, red bitter LQR, sweet vermouth, beetroot",
+     desc_el: "Μείγμα από gin, red bitter LQR, sweet vermouth, παντζάρι",
+     allergens: ALCOHOL)
+
+item(name_en: "Pinky Promise", name_el: "Pinky Promise",
+     cat_en: SIG_EN, cat_el: SIG_EL,
+     price: 10.00, main_category: "cocktails",
+     desc_en: "Vodka, mastiha LQR, lime, blueberry, aromatic bitter",
+     desc_el: "Vodka, μαστίχα LQR, lime, blueberry, aromatic bitter",
+     allergens: ALCOHOL)
+
+item(name_en: "Shaka", name_el: "Shaka",
+     cat_en: SIG_EN, cat_el: SIG_EL,
+     price: 10.00, main_category: "cocktails",
+     desc_en: "Blend of rum, orange LQR, blueberry, pineapple, lime, aromatic bitter",
+     desc_el: "Μείγμα ρουμιού, orange LQR, blueberry, ανανάς, lime, aromatic bitter",
+     allergens: ALCOHOL)
+
+# ============================================================
+# FOOD — Snack & Brunch
+# ============================================================
+SNACK_EN = "Snack & Brunch".freeze
+SNACK_EL = "Snack & Brunch".freeze
+
+item(name_en: "Panini Salami", name_el: "Panini Σαλάμι",
+     cat_en: SNACK_EN, cat_el: SNACK_EL,
+     price: 6.00, main_category: "food",
+     desc_en: "Smoked salami, light Cretan graviera, handmade cream from local cheese with dill, cherry tomato, fresh salad, mustard and toasted bread",
+     desc_el: "Καπνιστό σαλάμι αέρος, γραβιέρα Κρήτης light, χειροποίητη κρέμα γαλομυζήθρας με άνηθο, τοματίνια, νεαρή σαλάτα και μουστάρδα σε τραγανό χωριάτικο ψωμάκι",
+     allergens: GLUTEN + DAIRY)
+
+item(name_en: "Bomba Pinsa Toast", name_el: "Bomba Pinsa Toast",
+     cat_en: SNACK_EN, cat_el: SNACK_EL,
+     price: 7.50, main_category: "food",
+     desc_en: "Smoked pork shoulder, smoked salami, light Cretan graviera, tomato, cucumber pappardella, fresh salad with aromatic lemon-olive oil and honey dressing, and tropical sauce",
+     desc_el: "Καπνιστή χοιρινή ωμοπλάτη, καπνιστό σαλάμι αέρος, γραβιέρα Κρήτης light, τομάτα, αγγούρι παπαρδέλα, νεαρή σαλάτα και tropical sauce",
+     allergens: GLUTEN + DAIRY)
+
+item(name_en: "Toast", name_el: "Τοστ",
+     cat_en: SNACK_EN, cat_el: SNACK_EL,
+     price: 4.00, main_category: "food",
+     desc_en: "Ham or turkey, light Cretan graviera",
+     desc_el: "Ζαμπόν ή γαλοπούλα, γραβιέρα Κρήτης light",
+     allergens: GLUTEN + DAIRY)
+
+item(name_en: "Toast Home", name_el: "Τοστ Home",
+     cat_en: SNACK_EN, cat_el: SNACK_EL,
+     price: 7.00, main_category: "food",
+     desc_en: "Ham or turkey, light Cretan graviera, tomato, lola, mayonnaise and handmade potato chips",
+     desc_el: "Ζαμπόν ή γαλοπούλα, γραβιέρα Κρήτης light, τομάτα, μαρούλι, μαγιονέζα και χειροποίητα chips πατάτας",
+     allergens: GLUTEN + DAIRY + EGGS)
+
+item(name_en: "Toast Home Chicken", name_el: "Τοστ Home Chicken",
+     cat_en: SNACK_EN, cat_el: SNACK_EL,
+     price: 9.00, main_category: "food",
+     desc_en: "Chicken, light Cretan graviera, tomato, lola, mayonnaise and handmade potato chips",
+     desc_el: "Κοτόπουλο, γραβιέρα Κρήτης light, τομάτα, μαρούλι, μαγιονέζα και χειροποίητα chips πατάτας",
+     allergens: GLUTEN + DAIRY + EGGS)
+
+item(name_en: "Open Smash Avocado Toast", name_el: "Open Smash Avocado Toast",
+     cat_en: SNACK_EN, cat_el: SNACK_EL,
+     price: 8.50, main_category: "food",
+     desc_en: "Sourdough bread with avocado, hard-boiled egg, cherry tomato, olive oil and black-white sesame",
+     desc_el: "Φέτες προζυμένιου ψωμιού αργής ωρίμανσης με αβοκάντο, αυγό βραστό, τοματίνια, παρθένο ελαιόλαδο και ασπρόμαυρο σουσάμι",
+     allergens: GLUTEN + EGGS)
+
+item(name_en: "Chicken Lobsterroll", name_el: "Chicken Lobsterroll",
+     cat_en: SNACK_EN, cat_el: SNACK_EL,
+     price: 8.00, main_category: "food",
+     desc_en: "Chicken fillet, cherry tomato, iceberg, parmesan, tropical sauce, relish mango pineapple and handmade chips potato",
+     desc_el: "Φιλέτο κοτόπουλο, τοματίνια, iceberg, παρμεζάνα, tropical sauce, ρελίς μάνγκο ανανά και χειροποίητα chips πατάτας",
+     allergens: GLUTEN + DAIRY)
+
+item(name_en: "Cretan Tacos", name_el: "Cretan Tacos",
+     cat_en: SNACK_EN, cat_el: SNACK_EL,
+     price: 10.00, main_category: "food",
+     desc_en: "Chicken, Greek salad tartare, yogurt sauce with cumin-lime and handmade potato chips",
+     desc_el: "Κοτόπουλο, ταρτάρ χωριάτικης, σως γιαουρτιού με κύμινο-lime και χειροποίητα chips πατάτας",
+     allergens: GLUTEN + DAIRY)
+
+item(name_en: "Chicken Nuggets — 6 / 10 pieces",
+     name_el: "Chicken Nuggets — 6 / 10 τεμάχια",
+     cat_en: SNACK_EN, cat_el: SNACK_EL,
+     price: 7.00, main_category: "food",
+     pricing_type: "single_double", price_secondary: 10.00,
+     desc_en: "Handmade chicken nuggets from chicken fillet with panko and tropical sauce. With potato fries or salad",
+     desc_el: "Χειροποίητες κοτομπουκιές από φιλέτο κοτόπουλο με panko και tropical sauce. Συνοδεύεται από πατάτες ή σαλάτα",
+     allergens: GLUTEN + EGGS)
+
+item(name_en: "Eggs with Staka", name_el: "Αυγά με Στάκα",
+     cat_en: SNACK_EN, cat_el: SNACK_EL,
+     price: 8.00, main_category: "food",
+     desc_en: "Fried egg with staka, sesame and toasted sourdough bread with olive oil and sea salt",
+     desc_el: "Αυγά μάτια τηγανισμένα με στάκα, σουσάμι και φρυγανισμένο ψωμί αργής ωρίμανσης με ελαιόλαδο και ανθό αλατιού",
+     allergens: GLUTEN + EGGS + DAIRY)
+
+# ============================================================
+# FOOD — Omelets
+# ============================================================
+OMELET_EN = "Omelets".freeze
+OMELET_EL = "Ομελέτες".freeze
+
+item(name_en: "Salmon Avocado Omelet", name_el: "Ομελέτα Σολωμός Αβοκάντο",
+     cat_en: OMELET_EN, cat_el: OMELET_EL,
+     price: 11.00, main_category: "food",
+     desc_en: "Smoked salmon, avocado, fresh salad with aromatic lemon-olive oil and honey dressing, cherry tomato, cucumber pappardella, parmesan and toasted sourdough bread",
+     desc_el: "Καπνιστός σολωμός, αβοκάντο, νεαρή σαλάτα με αρωματικό λαδολέμονο και μέλι, τοματίνια, αγγούρι παπαρδέλα, παρμεζάνα και φρυγανισμένο ψωμί αργής ωρίμανσης",
+     allergens: EGGS + SEAFOOD + GLUTEN + DAIRY)
+
+item(name_en: "Chicken Omelet", name_el: "Ομελέτα Κοτόπουλο",
+     cat_en: OMELET_EN, cat_el: OMELET_EL,
+     price: 9.00, main_category: "food",
+     desc_en: "Chicken fillet, fresh salad with aromatic lemon-olive oil and honey dressing, cucumber pappardella, parmesan and sourdough bread",
+     desc_el: "Φιλέτο κοτόπουλο, νεαρή σαλάτα με αρωματικό λαδολέμονο και μέλι, αγγούρι παπαρδέλα, παρμεζάνα και φρυγανισμένο ψωμί αργής ωρίμανσης",
+     allergens: EGGS + GLUTEN + DAIRY)
+
+item(name_en: "Prosciutto Omelet", name_el: "Ομελέτα Prosciutto",
+     cat_en: OMELET_EN, cat_el: OMELET_EL,
+     price: 9.00, main_category: "food",
+     desc_en: "Prosciutto, fresh salad with aromatic lemon-olive oil and honey dressing, cherry tomato, cucumber pappardella, parmesan and toasted sourdough bread",
+     desc_el: "Prosciutto, νεαρή σαλάτα με αρωματικό λαδολέμονο και μέλι, τοματίνια, αγγούρι παπαρδέλα, παρμεζάνα και φρυγανισμένο ψωμί αργής ωρίμανσης",
+     allergens: EGGS + GLUTEN + DAIRY)
+
+# ============================================================
+# FOOD — Healthy
+# ============================================================
+HEALTHY_EN = "Healthy".freeze
+HEALTHY_EL = "Healthy".freeze
+
+item(name_en: "Hazelnut Butter Toast", name_el: "Toast με Φουντουκοβούτυρο",
+     cat_en: HEALTHY_EN, cat_el: HEALTHY_EL,
+     price: 7.50, main_category: "food",
+     desc_en: "Toasted sourdough bread with handmade hazelnut butter, honey, tahini, linseed, almond, walnut, hazelnut, honeycomb and pollen",
+     desc_el: "Φρυγανισμένο ψωμί αργής ωρίμανσης με χειροποίητο φουντουκοβούτυρο, μέλι, ταχίνι, λιναρόσπορο, αμύγδαλα, καρύδια, φουντούκια, κηρήθρα και γύρη",
+     allergens: GLUTEN + NUTS)
+
+item(name_en: "Chia Porridge", name_el: "Chia Porridge",
+     cat_en: HEALTHY_EN, cat_el: HEALTHY_EL,
+     price: 7.50, main_category: "food",
+     desc_en: "Chia seeds in oat milk with banana, linseed, almond, walnut, hazelnut, tahini and agave syrup",
+     desc_el: "Σπόροι Chia σε ρόφημα βρώμης με μπανάνα, λιναρόσπορο, αμύγδαλα, καρύδια, φουντούκια, ταχίνι και σιρόπι αγαύης",
+     allergens: NUTS)
+
+item(name_en: "Yogurt with Honey", name_el: "Γιαούρτι με Μέλι",
+     cat_en: HEALTHY_EN, cat_el: HEALTHY_EL,
+     price: 5.50, main_category: "food",
+     desc_en: "Yogurt with thyme honey and roasted almonds",
+     desc_el: "Γιαούρτι με θυμαρίσιο μέλι και καβουρντισμένα αμύγδαλα",
+     allergens: DAIRY + NUTS)
+
+# ============================================================
+# FOOD — Salads
+# ============================================================
+SALAD_EN = "Salads".freeze
+SALAD_EL = "Σαλάτες".freeze
+
+item(name_en: "Chicken Salad", name_el: "Σαλάτα Κοτόπουλο",
+     cat_en: SALAD_EN, cat_el: SALAD_EL,
+     price: 8.50, main_category: "food",
+     desc_en: "Chicken fillet, fresh salad with aromatic lemon-olive oil and honey dressing, cherry tomato, cucumber pappardella, relish mango pineapple with sweet chilli and flakes parmesan",
+     desc_el: "Φιλέτο κοτόπουλο, νεαρή σαλάτα με αρωματικό λαδολέμονο και μέλι, τοματίνια, αγγούρι παπαρδέλα, ρελίς μάνγκο ανανά με sweet chilli και flakes παρμεζάνα",
+     allergens: DAIRY)
+
+item(name_en: "Salmon Salad", name_el: "Σαλάτα Σολωμός",
+     cat_en: SALAD_EN, cat_el: SALAD_EL,
+     price: 9.50, main_category: "food",
+     desc_en: "Smoked salmon, fresh salad with aromatic lemon-olive oil and honey dressing, green apple, zucchini pappardella, pickles sauce and flakes parmesan",
+     desc_el: "Καπνιστός σολωμός, νεαρή σαλάτα με αρωματικό λαδολέμονο και μέλι, τοματίνια, αγγούρι παπαρδέλα, πράσινο μήλο, κολοκύθι παπαρδέλα, pickle sauce και flakes παρμεζάνας",
+     allergens: SEAFOOD + DAIRY)
+
+item(name_en: "Cretan Ntakos", name_el: "Κρητικός Ντάκος",
+     cat_en: SALAD_EN, cat_el: SALAD_EL,
+     price: 9.00, main_category: "food",
+     desc_en: "Olive rusks with fresh grated tomato, cherry tomato, roasted eggplant, olive oil, homemade cream from local cheese and caper flower",
+     desc_el: "Παξιμάδι ελιάς με φρέσκια τριμμένη τομάτα, τοματίνια, ψητή μελιτζάνα, παρθένο ελαιόλαδο, κρέμα γαλομυζήθρας και καπαρόφυλλα",
+     allergens: GLUTEN + DAIRY)
+
+item(name_en: "Tabbouleh", name_el: "Tabbouleh",
+     cat_en: SALAD_EN, cat_el: SALAD_EL,
+     price: 8.50, main_category: "food",
+     desc_en: "Soaked uncooked bulgur with tricolore peppers, tomato, cucumber, fresh onion, olive oil and handmade cream from local cheese",
+     desc_el: "Πλιγούρι με πολύχρωμες πιπεριές, τομάτα, αγγούρι, φρέσκο κρεμμύδι, ελαιόλαδο και κρέμα γαλομυζήθρας",
+     allergens: GLUTEN + DAIRY)
+
+# ============================================================
+# FOOD — Burgers
+# ============================================================
+BURGER_EN = "Burgers".freeze
+BURGER_EL = "Burgers".freeze
+
+item(name_en: "Classic Cheeseburger", name_el: "Classic Cheeseburger",
+     cat_en: BURGER_EN, cat_el: BURGER_EL,
+     price: 10.00, main_category: "food",
+     desc_en: "Fresh brioche bun with 200g of fresh 100% ground beef, cheddar, iceberg, tomato, burger sauce, ketchup, mustard, onions and pickled cucumbers",
+     desc_el: "Μοσχαρίσιο μπιφτέκι 200gr, cheddar, τομάτα, iceberg, πίκλα κρεμμύδι, πίκλες, burger sauce, κέτσαπ και μουστάρδα σε φρέσκο brioche bun",
+     allergens: GLUTEN + DAIRY + EGGS)
+
+item(name_en: "Bacon Cheeseburger", name_el: "Bacon Cheeseburger",
+     cat_en: BURGER_EN, cat_el: BURGER_EL,
+     price: 11.00, main_category: "food",
+     desc_en: "Fresh brioche bun with 200g of fresh 100% ground beef, cheddar, bacon, iceberg, tomato, burger sauce, ketchup, mustard, onions and pickled cucumbers",
+     desc_el: "Μοσχαρίσιο μπιφτέκι 200gr, τραγανό μπέικον, cheddar, τομάτα, iceberg, πίκλες κρεμμύδι, πίκλες, burger sauce, κέτσαπ και μουστάρδα σε φρέσκο brioche bun",
+     allergens: GLUTEN + DAIRY + EGGS)
+
+item(name_en: "Jack Daniel's Burger", name_el: "Jack Daniel's Burger",
+     cat_en: BURGER_EN, cat_el: BURGER_EL,
+     price: 12.00, main_category: "food",
+     desc_en: "Fresh brioche bun with 200g of fresh 100% ground beef, cheddar, mushrooms, homemade caramelised onions, BBQ sauce and homemade Jack Daniel's sauce",
+     desc_el: "Μοσχαρίσιο μπιφτέκι 200gr, cheddar, μανιτάρια, καραμελωμένο κρεμμύδι, BBQ sauce και χειροποίητη Jack Daniel's sauce σε φρέσκο brioche bun",
+     allergens: GLUTEN + DAIRY + EGGS + ALCOHOL)
+
+item(name_en: "Chicken Burger", name_el: "Chicken Burger",
+     cat_en: BURGER_EN, cat_el: BURGER_EL,
+     price: 10.00, main_category: "food",
+     desc_en: "Fresh brioche bun with chicken breast fillet, cheddar, iceberg, tomato, tropical sauce and pickled cucumbers",
+     desc_el: "Ψητό φιλέτο κοτόπουλο, cheddar, τομάτα, iceberg, πίκλες κρεμμύδι, πίκλες και tropical sauce σε φρέσκο brioche bun",
+     allergens: GLUTEN + DAIRY + EGGS)
+
+# ============================================================
+# FOOD — Pinsa
+# ============================================================
+PINSA_EN = "Pinsa".freeze
+PINSA_EL = "Πίντσα".freeze
+
+item(name_en: "Pomodori", name_el: "Pomodori",
+     cat_en: PINSA_EN, cat_el: PINSA_EL,
+     price: 9.00, main_category: "food",
+     desc_en: "Pomodori sauce, mozzarella, baby rocket, cherry tomato and parmesan",
+     desc_el: "Σάλτσα pomodori, mozzarella, ρόκα, τοματίνι, ημίλιαστα κόκκινα και κίτρινα τοματίνια και παρμεζάνα",
+     allergens: GLUTEN + DAIRY)
+
+item(name_en: "Bianca", name_el: "Bianca",
+     cat_en: PINSA_EN, cat_el: PINSA_EL,
+     price: 10.00, main_category: "food",
+     desc_en: "Porcini mushrooms, black truffle, camembert, pistachio and parmesan",
+     desc_el: "Μανιτάρια porcini, μαύρη τρούφα, τυρί camembert, φιστίκια Αιγίνης και παρμεζάνα",
+     allergens: GLUTEN + DAIRY + NUTS)
+
+item(name_en: "Prosciutto Pesto", name_el: "Prosciutto Pesto",
+     cat_en: PINSA_EN, cat_el: PINSA_EL,
+     price: 9.50, main_category: "food",
+     desc_en: "Pomodori sauce, prosciutto, basil pesto, fresh zucchini pappardella and parmesan",
+     desc_el: "Σάλτσα pomodori, prosciutto, pesto βασιλικού, φρέσκο κολοκύθι παπαρδέλα και παρμεζάνα",
+     allergens: GLUTEN + DAIRY + NUTS)
+
+# ============================================================
+# FOOD — Sweet
+# ============================================================
+SWEET_EN = "Sweet".freeze
+SWEET_EL = "Γλυκά".freeze
+
+item(name_en: "Sweet Dog", name_el: "Sweet Dog",
+     cat_en: SWEET_EN, cat_el: SWEET_EL,
+     price: 6.50, main_category: "food",
+     desc_en: "Butter bread lobsterroll, banana, chocolate praline, handmade vanilla cream, chocolate wafer, feuilletine, almond, walnut, hazelnut and fermented red fruits",
+     desc_el: "Ψωμάκι βουτύρου lobsterroll, μπανάνα, πραλίνα σοκολάτας, χειροποίητη κρέμα βανίλιας, σοκοφρέτα, φεγεντίν, αμύγδαλα, καρύδια, φουντούκια και κόκκινα φρούτα σε όσμωση",
+     allergens: GLUTEN + DAIRY + EGGS + NUTS)
+
+item(name_en: "Chocolate Lava Cake", name_el: "Chocolate Lava Cake",
+     cat_en: SWEET_EN, cat_el: SWEET_EL,
+     price: 6.50, main_category: "food",
+     desc_en: "Chocolate cake with red fruits, grated white chocolate and vanilla ice cream with feuilletine and chocolate syrup",
+     desc_el: "Ζουμερό κέικ σοκολάτας με κόκκινα φρούτα σε όσμωση και τριμμένη λευκή σοκολάτα. Συνοδεύεται από παγωτό βανίλια, φεγεντίν και σιρόπι σοκολάτας",
+     allergens: GLUTEN + DAIRY + EGGS)
+
+item(name_en: "Tortilla Mpougatsa", name_el: "Tortilla Μπουγάτσα",
+     cat_en: SWEET_EN, cat_el: SWEET_EL,
+     price: 6.00, main_category: "food",
+     desc_en: "Handmade vanilla cream, vanilla ice cream, fried tortilla with sugar and cinnamon",
+     desc_el: "Χειροποίητη κρέμα βανίλιας, παγωτό βανίλια με τηγανητές tortilla και άχνη κανέλα",
+     allergens: GLUTEN + DAIRY + EGGS)
+
+item(name_en: "Cheesecake", name_el: "Cheesecake",
+     cat_en: SWEET_EN, cat_el: SWEET_EL,
+     price: 6.00, main_category: "food",
+     desc_en: "Handmade cream cheese with white chocolate and yogurt, crispy biscuit base and fermented red fruits",
+     desc_el: "Χειροποίητη κρέμα τυρί με λευκή σοκολάτα και γιαούρτι, τραγανή βάση μπισκότου και κόκκινα φρούτα σε όσμωση",
+     allergens: GLUTEN + DAIRY + EGGS)
+
+item(name_en: "Sfakiani Pita", name_el: "Σφακιανή Πίτα",
+     cat_en: SWEET_EN, cat_el: SWEET_EL,
+     price: 7.00, main_category: "food",
+     desc_en: "Local sfakiani cheese pie with thyme honey, nuts, fermented red fruits and honeycomb",
+     desc_el: "Σφακιανή πίτα με θυμαρίσιο μέλι, ξηρούς καρπούς, κόκκινα φρούτα σε όσμωση και κηρήθρα",
+     allergens: GLUTEN + DAIRY + NUTS)
+
+# ============================================================
+# FOOD — Charcuterie
+# ============================================================
+CHARC_EN = "Charcuterie".freeze
+CHARC_EL = "Πιατέλες".freeze
+
+item(name_en: "Charcuterie Board — Small", name_el: "Πιατέλα Αλλαντικών — Μικρή",
+     cat_en: CHARC_EN, cat_el: CHARC_EL,
+     price: 12.00, main_category: "food",
+     desc_en: "Selection of cold cuts and cheeses",
+     desc_el: "Ποικιλία αλλαντικών και τυριών",
+     allergens: DAIRY)
+
+item(name_en: "Charcuterie Board — Big", name_el: "Πιατέλα Αλλαντικών — Μεγάλη",
+     cat_en: CHARC_EN, cat_el: CHARC_EL,
+     price: 20.00, main_category: "food",
+     desc_en: "Selection of cold cuts and cheeses",
+     desc_el: "Ποικιλία αλλαντικών και τυριών",
+     allergens: DAIRY)
+
+# ============================================================
+# Summary
+# ============================================================
+total = MenuItem.count
+puts "Seeded #{total} menu items"
+puts "  Coffee:    #{MenuItem.where(main_category: 'coffee').count}"
+puts "  Cocktails: #{MenuItem.where(main_category: 'cocktails').count}"
+puts "  Beer&Wine: #{MenuItem.where(main_category: 'beer&wine').count}"
+puts "  Food:      #{MenuItem.where(main_category: 'food').count}"
