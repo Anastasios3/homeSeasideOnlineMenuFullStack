@@ -1,0 +1,195 @@
+/* ============================================================
+   /about — photo-led storytelling. Hero landscape sets the
+   place; alternating photo+text chapters carry the visitor
+   through the day. Stack vertically on narrow screens.
+   ============================================================ */
+.about {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-5);
+}
+
+.about__header {
+  max-width: 760px;
+  margin: 0 auto var(--sp-8);
+  text-align: left;
+}
+
+.about__eyebrow {
+  font-family: var(--font-sans, inherit);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary, var(--text-secondary));
+  margin: 0 0 var(--sp-3);
+}
+
+.about__title {
+  font-family: var(--font-display);
+  font-size: var(--text-5xl);
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  margin: 0 0 var(--sp-5);
+  line-height: var(--lh-tight);
+}
+
+.about__lede {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
+  margin: 0;
+  max-width: 60ch;
+}
+
+/* ── Hero ───────────────────────────────────────────────── */
+.about__hero {
+  margin: 0 calc(-1 * var(--sp-5)) var(--sp-9);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.about__hero .hs-picture {
+  aspect-ratio: 16 / 9;
+}
+
+@media (min-width: 768px) {
+  .about__hero {
+    margin: 0 0 var(--sp-10);
+    border-radius: var(--radius-xl);
+  }
+}
+
+/* ── Story (alternating photo + text chapters) ──────────── */
+.about__story {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-9);
+  margin-bottom: var(--sp-10);
+}
+
+.about__chapter {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-5);
+  align-items: center;
+}
+
+.about__chapter-photo {
+  margin: 0;
+  border-radius: var(--radius-lg, var(--radius-xl));
+  overflow: hidden;
+}
+
+.about__chapter-photo .hs-picture {
+  aspect-ratio: 4 / 3;
+}
+
+.about__chapter-text {
+  max-width: 52ch;
+}
+
+.about__chapter-text h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0 0 var(--sp-4);
+  line-height: var(--lh-tight);
+}
+
+.about__chapter-text p {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
+  margin: 0 0 var(--sp-4);
+}
+
+.about__chapter-text p:last-child {
+  margin-bottom: 0;
+}
+
+.about__chapter-text strong {
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.about__chapter-text a {
+  color: var(--accent-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: opacity var(--duration-fast) var(--ease-in-out);
+}
+
+.about__chapter-text a:hover {
+  opacity: 0.7;
+}
+
+/* Side-by-side from tablet/desktop up. Right variant flips the
+   photo to the opposite column using explicit grid placement so
+   reading order stays photo-then-text in the DOM. */
+@media (min-width: 1024px) {
+  .about__story {
+    gap: var(--sp-10);
+  }
+
+  .about__chapter {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-8);
+  }
+
+  .about__chapter--right .about__chapter-photo {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .about__chapter--right .about__chapter-text {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .about__chapter-photo .hs-picture {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* ── Related nav ────────────────────────────────────────── */
+.about__related {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-10);
+  padding-top: var(--sp-7);
+  border-top: 1px solid var(--border-secondary);
+}
+
+.about__related a {
+  display: block;
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: border-color var(--duration-fast) var(--ease-in-out),
+              background var(--duration-fast) var(--ease-in-out);
+}
+
+.about__related a:hover {
+  border-color: var(--accent-primary);
+  background: var(--accent-soft);
+}
+
+@media (max-width: 540px) {
+  .about__title {
+    font-size: var(--text-4xl);
+  }
+  .about__lede {
+    font-size: var(--text-base);
+  }
+  .about__chapter-text h2 {
+    font-size: var(--text-2xl);
+  }
+}

@@ -4,45 +4,66 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Primary Meta Tags -->
-    <title>Home Seaside Bar & More — Menu</title>
-    <meta name="title" content="Home Seaside Bar & More — Menu" />
-    <meta name="description" content="Explore the menu at Home Seaside Bar & More. Freshly brewed coffee, handcrafted cocktails, fine spirits, cold beers, quality wines, and delicious food by the sea." />
-    <meta name="keywords" content="Home Seaside, bar, restaurant, menu, coffee, cocktails, spirits, beer, wine, food, seaside bar, online menu" />
-    <meta name="author" content="LogiQo Labs" />
-    <meta name="robots" content="index, follow" />
+    <!-- Primary Meta Tags — homepage defaults. useDocumentMeta() rewrites per route. -->
+    <title>Home Seaside — Seaside Bar, Specialty Coffee & Rum in Rethymno</title>
+    <meta name="title" content="Home Seaside — Seaside Bar, Specialty Coffee & Rum in Rethymno" />
+    <meta name="description" content="Home Seaside Bar & More — a seafront café and cocktail bar in Rethymno, Crete. Specialty coffee, an extensive rum selection, advanced cocktails, and comfort food from morning to late night." />
+    <meta name="author" content="Home Seaside Bar & More" />
+    <meta name="robots" content="index,follow" />
+
+    <!-- Canonical (homepage default; per-route hook overrides) -->
+    <link rel="canonical" href="https://home-seaside.gr/" />
+
+    <!-- Hreflang alternates (homepage default; per-route hook overrides) -->
+    <link rel="alternate" hreflang="en" href="https://home-seaside.gr/?lang=en" />
+    <link rel="alternate" hreflang="el" href="https://home-seaside.gr/?lang=el" />
+    <link rel="alternate" hreflang="x-default" href="https://home-seaside.gr/" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/Logo_Dark.svg" />
     <link rel="apple-touch-icon" href="/Logo_Dark.svg" />
 
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Home Seaside Bar & More — Menu" />
-    <meta property="og:description" content="Explore the menu at Home Seaside Bar & More. Freshly brewed coffee, handcrafted cocktails, fine spirits, cold beers, quality wines, and delicious food by the sea." />
-    <meta property="og:image" content="/Logo_Dark.svg" />
+    <meta property="og:type" content="restaurant.restaurant" />
+    <meta property="og:title" content="Home Seaside — Seaside Bar, Specialty Coffee & Rum in Rethymno" />
+    <meta property="og:description" content="A seafront café and cocktail bar in Rethymno, Crete. Specialty coffee, rum selection, advanced cocktails, comfort food." />
+    <meta property="og:image" content="https://home-seaside.gr/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Home Seaside — golden hour by the sea in Rethymno, Crete" />
+    <meta property="og:url" content="https://home-seaside.gr/" />
     <meta property="og:site_name" content="Home Seaside Bar & More" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="el_GR" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Home Seaside Bar & More — Menu" />
-    <meta name="twitter:description" content="Explore the menu at Home Seaside Bar & More. Freshly brewed coffee, handcrafted cocktails, fine spirits, cold beers, quality wines, and delicious food by the sea." />
-    <meta name="twitter:image" content="/Logo_Dark.svg" />
+    <meta name="twitter:title" content="Home Seaside — Seaside Bar, Specialty Coffee & Rum in Rethymno" />
+    <meta name="twitter:description" content="A seafront café and cocktail bar in Rethymno, Crete. Specialty coffee, rum selection, advanced cocktails, comfort food." />
+    <meta name="twitter:image" content="https://home-seaside.gr/og.jpg" />
 
     <!-- Theme Color (for mobile browser chrome) -->
     <meta name="theme-color" content="#111317" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
 
-    <!-- Structured Data (JSON-LD) -->
+    <!-- Structured Data (JSON-LD) — Restaurant entity, used by Google + LLM search. -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Restaurant",
+      "@type": ["Restaurant", "BarOrPub", "CafeOrCoffeeShop"],
+      "@id": "https://home-seaside.gr/#restaurant",
       "name": "Home Seaside Bar & More",
-      "description": "Seaside bar and restaurant in Rethymno, Crete — specialty coffee, handcrafted cocktails, fine spirits, cold beers, quality wines, and fresh food.",
-      "servesCuisine": ["Coffee", "Cocktails", "Mediterranean"],
+      "alternateName": ["Home Seaside", "Home Seaside Rethymno"],
+      "slogan": "Bar & More",
+      "url": "https://home-seaside.gr/",
+      "description": "Seafront café, cocktail bar and restaurant on the Rethymno promenade in Crete. Specialty coffee, an extensive rum selection, advanced cocktail techniques, quality wines, cold beers and comfort food — open from morning espresso to late-night drinks.",
+      "servesCuisine": ["Mediterranean", "Coffee", "Cocktails", "Comfort Food"],
+      "image": [
+        "https://home-seaside.gr/og.jpg",
+        "https://home-seaside.gr/illustration-centaur.webp",
+        "https://home-seaside.gr/illustration-vase.webp"
+      ],
+      "logo": "https://home-seaside.gr/Logo_Dark.svg",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "Leof. Emmanouil Kefalogianni 18",
@@ -50,6 +71,11 @@
         "postalCode": "741 31",
         "addressRegion": "Crete",
         "addressCountry": "GR"
+      },
+      "areaServed": {
+        "@type": "City",
+        "name": "Rethymno",
+        "containedInPlace": { "@type": "AdministrativeArea", "name": "Crete, Greece" }
       },
       "telephone": "+30 2831 022782",
       "email": "home_seaside_rethimno@hotmail.com",
@@ -65,15 +91,28 @@
       ],
       "openingHoursSpecification": [
         { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday"], "opens": "09:00", "closes": "00:00" },
-        { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Friday","Saturday"],                            "opens": "09:00", "closes": "02:00" },
-        { "@type": "OpeningHoursSpecification", "dayOfWeek": "Sunday",                                          "opens": "10:00", "closes": "00:00" }
+        { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Friday","Saturday"],                       "opens": "09:00", "closes": "02:00" },
+        { "@type": "OpeningHoursSpecification", "dayOfWeek": "Sunday",                                     "opens": "10:00", "closes": "00:00" }
       ],
       "hasMenu": {
         "@type": "Menu",
         "name": "Main Menu",
-        "description": "Full menu with coffee, drinks, cocktails, spirits, beer, wine, and food"
+        "url": "https://home-seaside.gr/menu",
+        "description": "Specialty coffee, handcrafted cocktails, an extensive rum selection, fine spirits, cold beers, quality wines, and comfort food.",
+        "hasMenuSection": [
+          { "@type": "MenuSection", "name": "Coffee",     "url": "https://home-seaside.gr/menu/coffee" },
+          { "@type": "MenuSection", "name": "Cocktails",  "url": "https://home-seaside.gr/menu/cocktails" },
+          { "@type": "MenuSection", "name": "Spirits",    "url": "https://home-seaside.gr/menu/spirits" },
+          { "@type": "MenuSection", "name": "Food",       "url": "https://home-seaside.gr/menu/food" }
+        ]
       },
-      "priceRange": "€€"
+      "priceRange": "€€",
+      "currenciesAccepted": "EUR",
+      "paymentAccepted": "Cash, Credit Card, Debit Card",
+      "acceptsReservations": "True",
+      "smokingAllowed": false,
+      "publicAccess": true,
+      "isAccessibleForFree": true
     }
     </script>
 
@@ -82,7 +121,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
     />
 
     <!-- Pre-hydration theme — avoids FOUC. Reads localStorage override or

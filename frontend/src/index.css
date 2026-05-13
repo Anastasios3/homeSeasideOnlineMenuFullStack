@@ -42,7 +42,7 @@
 
   /* ---- Font families ---- */
   --font-body: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: "Fraunces", "Times New Roman", Georgia, serif;
+  --font-display: "Spectral", "Times New Roman", Georgia, serif;
 
   /* ---- Font weights ---- */
   --fw-normal: 400;
@@ -281,7 +281,6 @@ body {
 h1, h2, h3, .display, .home-hero__title, .home-section__heading {
   font-family: var(--font-display);
   font-weight: 500;
-  font-variation-settings: "opsz" 96, "SOFT" 50, "WONK" 0;
   letter-spacing: -0.01em;
   line-height: var(--lh-tight);
 }
@@ -289,7 +288,6 @@ h1, h2, h3, .display, .home-hero__title, .home-section__heading {
 h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 500;
-  font-variation-settings: "opsz" 48, "SOFT" 30, "WONK" 0;
   letter-spacing: -0.005em;
 }
 

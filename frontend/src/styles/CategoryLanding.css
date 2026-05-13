@@ -1,0 +1,76 @@
+/* ============================================================
+   /menu/:category — keyword-targeted landing pages. Prose copy
+   above the menu list; related-category links below.
+   ============================================================ */
+.category-landing {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.category-landing__header {
+  max-width: 720px;
+  margin: 0 auto var(--sp-9);
+}
+
+.category-landing__title {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  margin: 0 0 var(--sp-5);
+  line-height: var(--lh-tight);
+}
+
+.category-landing__prose p {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
+  margin: 0 0 var(--sp-4);
+  max-width: 65ch;
+}
+
+.category-landing__prose p:last-child {
+  margin-bottom: 0;
+}
+
+.category-landing__prose strong {
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.category-landing__menu {
+  margin: var(--sp-8) 0;
+}
+
+.category-landing__related {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-10);
+  padding-top: var(--sp-7);
+  border-top: 1px solid var(--border-secondary);
+}
+
+.category-landing__related a {
+  display: block;
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: border-color var(--duration-fast) var(--ease-in-out),
+              background var(--duration-fast) var(--ease-in-out);
+}
+
+.category-landing__related a:hover {
+  border-color: var(--accent-primary);
+  background: var(--accent-soft);
+}
+
+@media (max-width: 540px) {
+  .category-landing__title {
+    font-size: var(--text-3xl);
+  }
+}

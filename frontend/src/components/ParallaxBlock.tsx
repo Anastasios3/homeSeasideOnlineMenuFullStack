@@ -13,6 +13,8 @@ interface ParallaxBlockProps {
   children: ReactNode;
   /** Subtle background tint that the section sits on. */
   tint?: "cream" | "ocean" | "pink" | "none";
+  /** Optional extra className applied to the section (e.g. textured bg). */
+  className?: string;
 }
 
 /**
@@ -33,6 +35,7 @@ const ParallaxBlock: FC<ParallaxBlockProps> = ({
   parallaxRange = 80,
   children,
   tint = "none",
+  className = "",
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
@@ -96,7 +99,7 @@ const ParallaxBlock: FC<ParallaxBlockProps> = ({
   return (
     <section
       ref={ref}
-      className={`parallax-block parallax-block--${side} parallax-block--tint-${tint} ${inView ? "is-in-view" : ""}`}
+      className={`parallax-block parallax-block--${side} parallax-block--tint-${tint} ${inView ? "is-in-view" : ""} ${className}`.trim()}
     >
       <div className="parallax-block__illustration-wrap">
         <img

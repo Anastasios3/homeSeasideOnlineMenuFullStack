@@ -1,0 +1,254 @@
+/* ============================================================
+   /visit — review-funnel landing page. Reached via QR code on
+   tables/receipts. Compliant non-gating pattern.
+   ============================================================ */
+.visit {
+  min-height: calc(100vh - var(--header-h) - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-10) var(--sp-5);
+}
+
+.visit__inner {
+  width: 100%;
+  max-width: 960px;
+  text-align: center;
+}
+
+.visit__header {
+  margin-bottom: var(--sp-7);
+}
+
+.visit__eyebrow {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin: 0 0 var(--sp-3);
+}
+
+.visit__title {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  margin: 0 0 var(--sp-4);
+  line-height: var(--lh-tight);
+}
+
+.visit__lede {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
+  margin: 0 auto;
+  max-width: 42ch;
+}
+
+/* ---------- Instagram CTA (primary social channel) ---------- */
+.visit__instagram-cta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto var(--sp-8);
+  padding: var(--sp-5) var(--sp-6);
+  background: linear-gradient(135deg, var(--accent-soft), rgba(255, 255, 255, 0));
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--text-primary);
+  text-align: left;
+  transition: border-color var(--duration-fast) var(--ease-in-out),
+              background var(--duration-fast) var(--ease-in-out),
+              transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-in-out);
+}
+
+.visit__instagram-cta:hover,
+.visit__instagram-cta:focus-visible {
+  border-color: var(--accent-primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.visit__instagram-cta-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: var(--accent-primary);
+}
+
+.visit__instagram-cta-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.visit__instagram-cta-title {
+  font-size: var(--text-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+}
+
+.visit__instagram-cta-subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--lh-normal);
+}
+
+.visit__instagram-cta-arrow {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-in-out);
+}
+
+.visit__instagram-cta:hover .visit__instagram-cta-arrow {
+  transform: translateX(2px);
+  color: var(--accent-primary);
+}
+
+/* ---------- Review choice cards ---------- */
+.visit__choices {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+@media (min-width: 720px) {
+  .visit__choices {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1000px) {
+  .visit__choices {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.visit__choice {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  padding: var(--sp-5) var(--sp-6);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--text-primary);
+  text-align: left;
+  transition: border-color var(--duration-fast) var(--ease-in-out),
+              background var(--duration-fast) var(--ease-in-out),
+              transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-in-out);
+}
+
+.visit__choice:hover,
+.visit__choice:focus-visible {
+  border-color: var(--accent-primary);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.visit__choice--public .visit__choice-icon {
+  background: #ffffff;
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+}
+
+.visit__choice--tripadvisor .visit__choice-icon {
+  background: #e6f4ea;
+  color: #00766c;
+}
+
+.visit__choice--private .visit__choice-icon {
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+}
+
+.visit__choice-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+}
+
+.visit__choice-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.visit__choice-title {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  line-height: var(--lh-tight);
+}
+
+.visit__choice-desc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--lh-normal);
+}
+
+.visit__choice-arrow {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-in-out);
+}
+
+.visit__choice:hover .visit__choice-arrow {
+  transform: translateX(2px);
+  color: var(--accent-primary);
+}
+
+@media (max-width: 540px) {
+  .visit__title {
+    font-size: var(--text-3xl);
+  }
+  .visit__instagram-cta {
+    padding: var(--sp-4) var(--sp-5);
+    gap: var(--sp-4);
+  }
+  .visit__instagram-cta-icon {
+    width: 48px;
+    height: 48px;
+  }
+  .visit__instagram-cta-title {
+    font-size: var(--text-lg);
+  }
+  .visit__choice {
+    padding: var(--sp-4) var(--sp-5);
+    gap: var(--sp-4);
+  }
+  .visit__choice-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .visit__choice-title {
+    font-size: var(--text-base);
+  }
+}

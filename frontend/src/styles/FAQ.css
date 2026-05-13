@@ -1,0 +1,125 @@
+/* ============================================================
+   FAQ — plain-text accordion on the homepage. Helps AI Overviews
+   and adds topical authority. No FAQPage schema (Google
+   restricted it Aug 2023 for commercial sites).
+   ============================================================ */
+.home-faq {
+  padding: var(--sp-12) var(--sp-7);
+  background-color: var(--bg-primary);
+}
+
+/* When wrapped with .home-textured-bg, let the gradient/grain show through. */
+.home-faq.home-textured-bg {
+  background-color: transparent;
+}
+
+/* Inside the textured surface, make the cards a touch warmer than pure white
+   so they don't punch holes through the gradient. */
+.home-faq.home-textured-bg .home-faq__item {
+  background-color: hsla(0, 0%, 100%, 0.72);
+  border-color: hsla(28, 30%, 60%, 0.25);
+  backdrop-filter: blur(2px);
+}
+
+[data-theme="dark"] .home-faq.home-textured-bg .home-faq__item {
+  background-color: hsla(24, 15%, 12%, 0.7);
+  border-color: hsla(28, 30%, 30%, 0.35);
+}
+
+.home-faq__inner {
+  max-width: var(--content-max-w);
+  margin: 0 auto;
+}
+
+.home-faq__heading {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0 0 var(--sp-8);
+  text-align: center;
+}
+
+.home-faq__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: 0;
+  margin: 0;
+}
+
+.home-faq__item {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-secondary);
+  overflow: hidden;
+  transition: border-color var(--duration-fast) var(--ease-in-out);
+}
+
+.home-faq__item--open {
+  border-color: var(--border-focus);
+}
+
+.home-faq__question {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-6);
+  font-size: var(--text-base);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: var(--lh-tight);
+}
+
+.home-faq__question:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+}
+
+.home-faq__chevron {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.home-faq__item--open .home-faq__chevron {
+  transform: rotate(180deg);
+  color: var(--text-primary);
+}
+
+.home-faq__answer {
+  padding: 0 var(--sp-6) var(--sp-5);
+}
+
+.home-faq__answer p {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
+  margin: 0;
+  max-width: 65ch;
+}
+
+@media (max-width: 768px) {
+  .home-faq {
+    padding: var(--sp-10) var(--sp-5);
+  }
+  .home-faq__heading {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--sp-6);
+  }
+  .home-faq__question {
+    padding: var(--sp-4) var(--sp-5);
+    font-size: var(--text-base);
+  }
+  .home-faq__answer {
+    padding: 0 var(--sp-5) var(--sp-4);
+  }
+}

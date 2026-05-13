@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import type { FC } from "react";
+import { Link } from "react-router-dom";
 import { Sun, Moon, Clock } from "lucide-react";
 import { useTimeOfDay } from "../hooks/useTimeOfDay";
 import "../styles/TopBar.css";
@@ -71,12 +72,14 @@ const TopBar: FC<TopBarProps> = ({ onLanguageChange }) => {
 
         {/* Logo */}
         <div className="header-logo-wrap">
-          <img
-            src={theme === "light" ? "/Logo_light.svg" : "/Logo_Dark.svg"}
-            alt="Home Seaside Bar & More"
-            className="header-logo"
-            loading="eager"
-          />
+          <Link to="/" style={{ display: "inline-flex", textDecoration: "none" }}>
+            <img
+              src={theme === "light" ? "/Logo_light.svg" : "/Logo_Dark.svg"}
+              alt="Home Seaside Bar & More"
+              className="header-logo"
+              loading="eager"
+            />
+          </Link>
         </div>
 
         {/* Language selector */}
