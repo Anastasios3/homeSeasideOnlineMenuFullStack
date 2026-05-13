@@ -10,17 +10,18 @@ class SiteSetting
   include Mongoid::Timestamps
 
   # ----- Schedule -----
-  # Cutoffs are minutes-since-midnight (0..1440). When local time crosses
-  # a cutoff, the active phase changes. The phase whose cutoff *exceeds*
-  # the current minute is the active one; otherwise we wrap to morning.
+  # Cutoffs are hours-of-day integers in [0, 23] — the START of each
+  # phase. Strictly ascending. Matches the existing
+  # frontend/src/config/schedule.ts contract, so the frontend can swap
+  # localStorage for the API without changing its validation logic.
   #
   # categoryOrder is a 5-element list per phase — the order in which the
   # 5 main categories appear in CategoryNav for that time of day.
   #
   # Shape:
   # {
-  #   "cutoffs": { "morning": 660, "afternoon": 1020, "golden": 1200,
-  #                "evening": 1320, "night": 1440 },
+  #   "cutoffs": { "morning": 6, "afternoon": 11, "golden": 16,
+  #                "evening": 19, "night": 23 },
   #   "categoryOrder": {
   #     "morning":   ["coffee","food","beer&wine","cocktails","spirits"],
   #     "afternoon": [...], "golden": [...], "evening": [...], "night": [...]
@@ -70,16 +71,16 @@ class SiteSetting
   def self.default_schedule
     {
       "cutoffs" => {
-        "morning"   => 11 * 60,  # 11:00
-        "afternoon" => 17 * 60,  # 17:00
-        "golden"    => 20 * 60,  # 20:00
-        "evening"   => 22 * 60,  # 22:00
-        "night"     => 24 * 60   # 24:00 (wraps)
+        "morning"   => 6,
+        "afternoon" => 11,
+        "golden"    => 16,
+        "evening"   => 19,
+        "night"     => 23
       },
       "categoryOrder" => {
         "morning"   => %w[coffee food beer&wine cocktails spirits],
-        "afternoon" => %w[food coffee beer&wine cocktails spirits],
-        "golden"    => %w[cocktails beer&wine food spirits coffee],
+        "afternoon" => %w[food coffee beer&wine spirits cocktails],
+        "golden"    => %w[cocktails beer&wine food coffee spirits],
         "evening"   => %w[cocktails spirits beer&wine food coffee],
         "night"     => %w[spirits cocktails beer&wine food coffee]
       }

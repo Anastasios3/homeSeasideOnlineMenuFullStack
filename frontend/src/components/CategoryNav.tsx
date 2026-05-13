@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useTimeOfDay } from "../hooks/useTimeOfDay";
-import { PHASE_CATEGORY_ORDER } from "../config/schedule";
+import { getCategoryOrder, SCHEDULE_STORAGE_KEY } from "../config/schedule";
 import {
   CoffeeIcon,
   CocktailIcon,
@@ -57,9 +57,19 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
   onCategoryChange,
 }) => {
   const { phase } = useTimeOfDay();
+  // Bump version on every schedule storage event so admins can reorder
+  // categories per phase and customers see it on the next paint.
+  const [scheduleVersion, setScheduleVersion] = useState(0);
+  useEffect(() => {
+    const onChange = (e: StorageEvent) => {
+      if (e.key === SCHEDULE_STORAGE_KEY) setScheduleVersion((v) => v + 1);
+    };
+    window.addEventListener("storage", onChange);
+    return () => window.removeEventListener("storage", onChange);
+  }, []);
   const orderedKeys = useMemo<CategoryType[]>(
-    () => PHASE_CATEGORY_ORDER[phase] as CategoryType[],
-    [phase]
+    () => getCategoryOrder(phase) as CategoryType[],
+    [phase, scheduleVersion]
   );
   const [activeCategory, setActiveCategory] = useState<CategoryType>(
     orderedKeys[0]

@@ -4,16 +4,17 @@ import axios from "axios";
 import {
   Plus, Pencil, Trash2, X, FolderPlus, Search,
   Upload, Image as ImageIcon, Crop, Clock, RotateCcw,
+  ChevronUp, ChevronDown,
 } from "lucide-react";
 import { getAdminToken } from "../auth";
 import {
-  DEFAULT_PHASE_CUTOFFS,
+  DEFAULT_SCHEDULE,
   PHASE_ORDER,
-  getCutoffs,
-  setCutoffs,
-  resetCutoffs,
+  getSchedule,
+  saveSchedule,
+  resetSchedule,
   type DayPhase,
-  type PhaseCutoffs,
+  type DaySchedule,
 } from "../config/schedule";
 import "../styles/AdminPanel.css";
 
@@ -709,16 +710,47 @@ const PHASE_LABELS: Record<DayPhase, { label: string; hint: string }> = {
   night:     { label: "Night",     hint: "Late, spirits, low-key" },
 };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  coffee:     "Coffee & More",
+  cocktails:  "Cocktails",
+  "beer&wine": "Beer & Wine",
+  food:       "Food",
+  spirits:    "Spirits",
+};
+
 const fmtHour = (h: number): string => `${String(h).padStart(2, "0")}:00`;
 
-const SchedulePanel: FC<SchedulePanelProps> = ({ onClose, onSaved }) => {
-  const [draft, setDraft] = useState<PhaseCutoffs>(() => getCutoffs());
-  const [error, setError] = useState<string | null>(null);
+function reorderArray<T>(arr: T[], from: number, to: number): T[] {
+  if (to < 0 || to >= arr.length) return arr;
+  const next = [...arr];
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next;
+}
 
-  const validate = useCallback((d: PhaseCutoffs): string | null => {
+function schedulesEqual(a: DaySchedule, b: DaySchedule): boolean {
+  for (const p of PHASE_ORDER) {
+    if (a.cutoffs[p] !== b.cutoffs[p]) return false;
+    const aOrder = a.categoryOrder[p];
+    const bOrder = b.categoryOrder[p];
+    if (aOrder.length !== bOrder.length) return false;
+    for (let i = 0; i < aOrder.length; i++) {
+      if (aOrder[i] !== bOrder[i]) return false;
+    }
+  }
+  return true;
+}
+
+const SchedulePanel: FC<SchedulePanelProps> = ({ onClose, onSaved }) => {
+  const [initial] = useState<DaySchedule>(() => getSchedule());
+  const [draft, setDraft] = useState<DaySchedule>(() => getSchedule());
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const validate = useCallback((d: DaySchedule): string | null => {
     let prev = -1;
     for (const phase of PHASE_ORDER) {
-      const v = d[phase];
+      const v = d.cutoffs[phase];
       if (!Number.isInteger(v) || v < 0 || v > 23) {
         return `${PHASE_LABELS[phase].label} must be an hour between 0 and 23.`;
       }
@@ -726,32 +758,64 @@ const SchedulePanel: FC<SchedulePanelProps> = ({ onClose, onSaved }) => {
         return `${PHASE_LABELS[phase].label} must come after the previous phase.`;
       }
       prev = v;
+      if (!Array.isArray(d.categoryOrder[phase]) || d.categoryOrder[phase].length === 0) {
+        return `${PHASE_LABELS[phase].label} must have at least one category.`;
+      }
     }
     return null;
   }, []);
 
-  const handleChange = (phase: DayPhase, value: number) => {
-    const next = { ...draft, [phase]: value };
+  const handleCutoffChange = (phase: DayPhase, value: number) => {
+    const next: DaySchedule = {
+      ...draft,
+      cutoffs: { ...draft.cutoffs, [phase]: value },
+    };
     setDraft(next);
     setError(validate(next));
   };
 
-  const handleSave = () => {
+  const handleMove = (phase: DayPhase, from: number, direction: -1 | 1) => {
+    const next: DaySchedule = {
+      ...draft,
+      categoryOrder: {
+        ...draft.categoryOrder,
+        [phase]: reorderArray(draft.categoryOrder[phase], from, from + direction),
+      },
+    };
+    setDraft(next);
+    setError(validate(next));
+  };
+
+  const handleSave = async () => {
     const err = validate(draft);
     if (err) { setError(err); return; }
-    setCutoffs(draft);
-    onSaved();
-    onClose();
+    setSaving(true);
+    try {
+      await saveSchedule(draft);
+      onSaved();
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save schedule");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleReset = () => {
-    setDraft(DEFAULT_PHASE_CUTOFFS);
-    resetCutoffs();
-    setError(null);
-    onSaved();
+  const handleReset = async () => {
+    setSaving(true);
+    try {
+      await resetSchedule();
+      setDraft(DEFAULT_SCHEDULE);
+      setError(null);
+      onSaved();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to reset schedule");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const isDirty = PHASE_ORDER.some((p) => draft[p] !== getCutoffs()[p]);
+  const isDirty = !schedulesEqual(draft, initial);
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="schedule-title">
@@ -764,31 +828,63 @@ const SchedulePanel: FC<SchedulePanelProps> = ({ onClose, onSaved }) => {
         </div>
         <div className="modal-body">
           <p className="schedule__intro">
-            When does each phase begin? These hours change the theme, the
-            featured photo on the home page, and the order of menu categories.
+            When does each phase begin, and which categories should show first?
+            The cutoff hour changes the theme and the order of menu categories.
+            Use the arrows to reorder categories for each phase.
           </p>
 
-          <div className="schedule__grid" role="group" aria-label="Phase start times">
+          <div className="schedule__phase-cards" role="group" aria-label="Phases">
             {PHASE_ORDER.map((phase) => (
-              <label key={phase} className="schedule__row">
-                <span className="schedule__phase">
-                  <span className="schedule__phase-name">{PHASE_LABELS[phase].label}</span>
-                  <span className="schedule__phase-hint">{PHASE_LABELS[phase].hint}</span>
-                </span>
-                <span className="schedule__input-wrap">
-                  <input
-                    type="number"
-                    min={0}
-                    max={23}
-                    step={1}
-                    value={draft[phase]}
-                    onChange={(e) => handleChange(phase, parseInt(e.target.value, 10))}
-                    className="schedule__input"
-                    aria-label={`${PHASE_LABELS[phase].label} start hour`}
-                  />
-                  <span className="schedule__input-suffix">{fmtHour(draft[phase])}</span>
-                </span>
-              </label>
+              <div key={phase} className="schedule__phase-card">
+                <div className="schedule__phase-header">
+                  <div>
+                    <div className="schedule__phase-name">{PHASE_LABELS[phase].label}</div>
+                    <div className="schedule__phase-hint">{PHASE_LABELS[phase].hint}</div>
+                  </div>
+                  <label className="schedule__input-wrap">
+                    <span className="schedule__input-label">Starts at</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={23}
+                      step={1}
+                      value={draft.cutoffs[phase]}
+                      onChange={(e) => handleCutoffChange(phase, parseInt(e.target.value, 10))}
+                      className="schedule__input"
+                      aria-label={`${PHASE_LABELS[phase].label} start hour`}
+                    />
+                    <span className="schedule__input-suffix">{fmtHour(draft.cutoffs[phase])}</span>
+                  </label>
+                </div>
+                <ul className="schedule__order-list" aria-label={`Category order for ${PHASE_LABELS[phase].label}`}>
+                  {draft.categoryOrder[phase].map((cat, idx) => (
+                    <li key={cat} className="schedule__order-row">
+                      <span className="schedule__order-rank">{idx + 1}</span>
+                      <span className="schedule__order-name">{CATEGORY_LABELS[cat] ?? cat}</span>
+                      <span className="schedule__order-controls">
+                        <button
+                          type="button"
+                          className="schedule__order-btn"
+                          aria-label={`Move ${CATEGORY_LABELS[cat] ?? cat} up`}
+                          disabled={idx === 0}
+                          onClick={() => handleMove(phase, idx, -1)}
+                        >
+                          <ChevronUp size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          className="schedule__order-btn"
+                          aria-label={`Move ${CATEGORY_LABELS[cat] ?? cat} down`}
+                          disabled={idx === draft.categoryOrder[phase].length - 1}
+                          onClick={() => handleMove(phase, idx, 1)}
+                        >
+                          <ChevronDown size={14} />
+                        </button>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
           </div>
 
@@ -797,13 +893,13 @@ const SchedulePanel: FC<SchedulePanelProps> = ({ onClose, onSaved }) => {
           )}
         </div>
         <div className="modal-footer">
-          <button className="btn btn--secondary" onClick={handleReset}>
+          <button className="btn btn--secondary" onClick={handleReset} disabled={saving}>
             <RotateCcw size={14} /> Reset to defaults
           </button>
           <div className="modal-footer__right">
-            <button className="btn btn--secondary" onClick={onClose}>Cancel</button>
-            <button className="btn btn--primary" onClick={handleSave} disabled={!!error || !isDirty}>
-              Save schedule
+            <button className="btn btn--secondary" onClick={onClose} disabled={saving}>Cancel</button>
+            <button className="btn btn--primary" onClick={handleSave} disabled={!!error || !isDirty || saving}>
+              {saving ? "Saving…" : "Save schedule"}
             </button>
           </div>
         </div>

@@ -13,6 +13,7 @@ import "./App.css";
 type CategoryType = "coffee" | "spirits" | "cocktails" | "beer&wine" | "food";
 
 import { getAdminToken, setAdminToken, clearAdminToken } from "./auth";
+import { loadScheduleFromServer } from "./config/schedule";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -240,6 +241,12 @@ function ScrollToTop() {
 }
 
 function App() {
+  // Hydrate the cached schedule from the server once on app boot. Subsequent
+  // changes flow through StorageEvent and the in-memory cache.
+  useEffect(() => {
+    loadScheduleFromServer();
+  }, []);
+
   return (
     <BrowserRouter>
       <ScrollToTop />
