@@ -31,7 +31,7 @@ import {
   type HomepagePhotosOverrides,
 } from "../config/homepagePhotos";
 import { uploadResponsivePhoto } from "../lib/imageUpload";
-import type { PhotoSlot, JourneySlot, GallerySlot } from "../api/siteSetting";
+import type { JourneySlot, GallerySlot } from "../api/siteSetting";
 import "../styles/AdminPanel.css";
 
 /** Build Authorization header from stored JWT */
@@ -298,6 +298,7 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"hero" | "journey" | "gallery">("hero");
 
   // ---------- HERO ----------
   const handleHeroUpload = async (file: File) => {
@@ -512,229 +513,268 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
           <h2 id="photos-title" className="modal-title">Homepage Photos</h2>
           <button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
         </div>
+
+        {/* Section tabs */}
+        <div className="modal-tabs" role="tablist" aria-label="Photo sections">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "hero"}
+            className={`modal-tab ${activeTab === "hero" ? "modal-tab--active" : ""}`}
+            onClick={() => setActiveTab("hero")}
+          >
+            Hero
+            <span className="modal-tab__time">{draft.hero ? "custom" : "default"}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "journey"}
+            className={`modal-tab ${activeTab === "journey" ? "modal-tab--active" : ""}`}
+            onClick={() => setActiveTab("journey")}
+          >
+            Journey
+            <span className="modal-tab__time">{draft.journey.length} photos</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "gallery"}
+            className={`modal-tab ${activeTab === "gallery" ? "modal-tab--active" : ""}`}
+            onClick={() => setActiveTab("gallery")}
+          >
+            Gallery
+            <span className="modal-tab__time">{draft.gallery.length} photos</span>
+          </button>
+        </div>
+
         <div className="modal-body">
           <p className="schedule__intro">
-            Upload photos here and they're resized to three sizes (640w / 1280w /
-            1920w) automatically before upload — phones get the small one,
-            laptops get the big one, so visitors don't waste data.
+            Photos are auto-resized to 640 / 1280 / 1920 px before upload —
+            phones download the small size, laptops get the big one.
           </p>
 
           {/* HERO */}
-          <section className="photo-section">
-            <h3 className="photo-section__title">Hero photo</h3>
-            <p className="photo-section__hint">
-              The big photo at the top of the homepage. If you leave this blank,
-              the site picks a time-of-day photo from the built-in set.
-            </p>
-            <div className="photo-hero-card">
-              <div className="photo-hero-card__preview">
-                {draft.hero?.url ? (
-                  <img src={resolvePreviewUrl(draft.hero.url)} alt="" />
-                ) : (
-                  <div className="photo-hero-card__placeholder">
-                    <ImageIcon size={32} strokeWidth={1.4} />
-                    <span>Using built-in default</span>
-                  </div>
-                )}
+          {activeTab === "hero" && (
+            <section className="photo-section" style={{ borderBottom: "none", paddingTop: 0 }}>
+              <h3 className="photo-section__title">Hero photo</h3>
+              <p className="photo-section__hint">
+                Full-bleed photo at the top of the homepage. Leave blank and the
+                site auto-picks a time-of-day photo from the built-in set.
+              </p>
+              <div className="photo-hero-card">
+                <div className="photo-hero-card__preview">
+                  {draft.hero?.url ? (
+                    <img src={resolvePreviewUrl(draft.hero.url)} alt="" />
+                  ) : (
+                    <div className="photo-hero-card__placeholder">
+                      <ImageIcon size={32} strokeWidth={1.4} />
+                      <span>Using built-in default</span>
+                    </div>
+                  )}
+                </div>
+                <div className="photo-hero-card__controls">
+                  <label className="btn btn--secondary">
+                    <Upload size={14} />
+                    {uploadingFor === "hero" ? "Uploading…" : draft.hero?.url ? "Replace" : "Upload photo"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) void handleHeroUpload(f);
+                        e.target.value = "";
+                      }}
+                      disabled={uploadingFor !== null}
+                    />
+                  </label>
+                  {draft.hero && (
+                    <>
+                      <label className="subcat-edit-field">
+                        <span className="subcat-edit-field__label">Alt text (English)</span>
+                        <input
+                          type="text"
+                          className="form-input form-input--sm"
+                          value={draft.hero.alt_en}
+                          onChange={(e) => handleHeroAlt("alt_en", e.target.value)}
+                          placeholder="e.g. The sea at golden hour outside Home Seaside"
+                        />
+                      </label>
+                      <label className="subcat-edit-field">
+                        <span className="subcat-edit-field__label">Alt text (Ελληνικά)</span>
+                        <input
+                          type="text"
+                          className="form-input form-input--sm"
+                          value={draft.hero.alt_el}
+                          onChange={(e) => handleHeroAlt("alt_el", e.target.value)}
+                          placeholder="π.χ. Η θάλασσα στη χρυσή ώρα έξω από το Home Seaside"
+                        />
+                      </label>
+                      <button type="button" className="btn btn--danger btn--sm" onClick={handleHeroClear}>
+                        <Trash2 size={14} /> Use built-in default again
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="photo-hero-card__controls">
-                <label className="btn btn--secondary">
-                  <Upload size={14} />
-                  {uploadingFor === "hero" ? "Uploading…" : draft.hero?.url ? "Replace" : "Upload photo"}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) void handleHeroUpload(f);
-                      e.target.value = "";
-                    }}
-                    disabled={uploadingFor !== null}
-                  />
-                </label>
-                {draft.hero && (
-                  <>
-                    <label className="subcat-edit-field">
-                      <span className="subcat-edit-field__label">Alt text (English)</span>
-                      <input
-                        type="text"
-                        className="form-input form-input--sm"
-                        value={draft.hero.alt_en}
-                        onChange={(e) => handleHeroAlt("alt_en", e.target.value)}
-                        placeholder="e.g. The sea at golden hour outside Home Seaside"
-                      />
-                    </label>
-                    <label className="subcat-edit-field">
-                      <span className="subcat-edit-field__label">Alt text (Ελληνικά)</span>
-                      <input
-                        type="text"
-                        className="form-input form-input--sm"
-                        value={draft.hero.alt_el}
-                        onChange={(e) => handleHeroAlt("alt_el", e.target.value)}
-                        placeholder="π.χ. Η θάλασσα στη χρυσή ώρα έξω από το Home Seaside"
-                      />
-                    </label>
-                    <button type="button" className="btn btn--danger btn--sm" onClick={handleHeroClear}>
-                      <Trash2 size={14} /> Use built-in default again
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           {/* JOURNEY */}
-          <section className="photo-section">
-            <h3 className="photo-section__title">Journey photos</h3>
-            <p className="photo-section__hint">
-              Photos that scroll through morning → night on the homepage.
-              Order them however you like — they appear in this order.
-            </p>
-            <ul className="photo-slot-list">
-              {draft.journey.map((slot, idx) => (
-                <li key={slot.id} className="photo-slot">
-                  <div className="photo-slot__thumb">
-                    {slot.url
-                      ? <img src={resolvePreviewUrl(slot.url)} alt="" />
-                      : <div className="photo-slot__placeholder"><ImageIcon size={24} /></div>}
-                  </div>
-                  <div className="photo-slot__fields">
-                    <label className="btn btn--secondary btn--sm">
-                      <Upload size={12} />
-                      {uploadingFor === `journey-${slot.id}` ? "Uploading…" : slot.url ? "Replace" : "Upload"}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) void handleJourneyUpload(slot.id, f);
-                          e.target.value = "";
-                        }}
-                        disabled={uploadingFor !== null}
-                      />
-                    </label>
-                    <div className="subcat-edit-fields">
-                      <label className="subcat-edit-field">
-                        <span className="subcat-edit-field__label">Caption (EN)</span>
-                        <input type="text" className="form-input form-input--sm"
-                          value={slot.caption_en}
-                          onChange={(e) => handleJourneyChange(slot.id, { caption_en: e.target.value })} />
-                      </label>
-                      <label className="subcat-edit-field">
-                        <span className="subcat-edit-field__label">Caption (EL)</span>
-                        <input type="text" className="form-input form-input--sm"
-                          value={slot.caption_el}
-                          onChange={(e) => handleJourneyChange(slot.id, { caption_el: e.target.value })} />
-                      </label>
+          {activeTab === "journey" && (
+            <section className="photo-section" style={{ borderBottom: "none", paddingTop: 0 }}>
+              <h3 className="photo-section__title">Journey photos</h3>
+              <p className="photo-section__hint">
+                Photos that scroll through morning → night on the homepage.
+                Order them with the arrows — they appear in this exact order.
+              </p>
+              <ul className="photo-slot-list">
+                {draft.journey.map((slot, idx) => (
+                  <li key={slot.id} className="photo-slot">
+                    <div className="photo-slot__thumb">
+                      {slot.url
+                        ? <img src={resolvePreviewUrl(slot.url)} alt="" />
+                        : <div className="photo-slot__placeholder"><ImageIcon size={24} /></div>}
                     </div>
-                  </div>
-                  <div className="photo-slot__controls">
-                    <button type="button" className="schedule__order-btn"
-                      aria-label="Move up" disabled={idx === 0}
-                      onClick={() => handleJourneyMove(slot.id, -1)}>
-                      <ChevronUp size={14} />
-                    </button>
-                    <button type="button" className="schedule__order-btn"
-                      aria-label="Move down" disabled={idx === draft.journey.length - 1}
-                      onClick={() => handleJourneyMove(slot.id, 1)}>
-                      <ChevronDown size={14} />
-                    </button>
-                    <button type="button" className="schedule__order-btn"
-                      aria-label="Remove photo"
-                      onClick={() => handleJourneyRemove(slot.id)}>
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="btn btn--secondary btn--sm" onClick={handleJourneyAdd}>
-              <Plus size={14} /> Add journey photo
-            </button>
-            <p className="photo-section__deferred">
-              Saved data flows to the server. Customer-side display of the journey
-              strip is wired up only for the bundled photos right now — uploaded
-              journey photos appear in the admin but not yet on the homepage.
-              That last bit is on the punch list.
-            </p>
-          </section>
+                    <div className="photo-slot__fields">
+                      <label className="btn btn--secondary btn--sm">
+                        <Upload size={12} />
+                        {uploadingFor === `journey-${slot.id}` ? "Uploading…" : slot.url ? "Replace" : "Upload"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: "none" }}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) void handleJourneyUpload(slot.id, f);
+                            e.target.value = "";
+                          }}
+                          disabled={uploadingFor !== null}
+                        />
+                      </label>
+                      <div className="subcat-edit-fields">
+                        <label className="subcat-edit-field">
+                          <span className="subcat-edit-field__label">Caption (EN)</span>
+                          <input type="text" className="form-input form-input--sm"
+                            value={slot.caption_en}
+                            onChange={(e) => handleJourneyChange(slot.id, { caption_en: e.target.value })} />
+                        </label>
+                        <label className="subcat-edit-field">
+                          <span className="subcat-edit-field__label">Caption (EL)</span>
+                          <input type="text" className="form-input form-input--sm"
+                            value={slot.caption_el}
+                            onChange={(e) => handleJourneyChange(slot.id, { caption_el: e.target.value })} />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="photo-slot__controls">
+                      <button type="button" className="schedule__order-btn"
+                        aria-label="Move up" disabled={idx === 0}
+                        onClick={() => handleJourneyMove(slot.id, -1)}>
+                        <ChevronUp size={14} />
+                      </button>
+                      <button type="button" className="schedule__order-btn"
+                        aria-label="Move down" disabled={idx === draft.journey.length - 1}
+                        onClick={() => handleJourneyMove(slot.id, 1)}>
+                        <ChevronDown size={14} />
+                      </button>
+                      <button type="button" className="schedule__order-btn"
+                        aria-label="Remove photo"
+                        onClick={() => handleJourneyRemove(slot.id)}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button type="button" className="btn btn--secondary btn--sm" onClick={handleJourneyAdd}>
+                <Plus size={14} /> Add journey photo
+              </button>
+              <p className="photo-section__deferred">
+                Journey photos save to the server. Customer-side display currently
+                shows bundled photos — uploaded ones will appear on the homepage
+                once the homepage strip is wired up (on the punch list).
+              </p>
+            </section>
+          )}
 
           {/* GALLERY */}
-          <section className="photo-section">
-            <h3 className="photo-section__title">Gallery photos</h3>
-            <p className="photo-section__hint">
-              Supporting photos for the homepage gallery strip. Add as many as you want.
-            </p>
-            <ul className="photo-slot-list">
-              {draft.gallery.map((slot, idx) => (
-                <li key={slot.id} className="photo-slot">
-                  <div className="photo-slot__thumb">
-                    {slot.url
-                      ? <img src={resolvePreviewUrl(slot.url)} alt="" />
-                      : <div className="photo-slot__placeholder"><ImageIcon size={24} /></div>}
-                  </div>
-                  <div className="photo-slot__fields">
-                    <label className="btn btn--secondary btn--sm">
-                      <Upload size={12} />
-                      {uploadingFor === `gallery-${slot.id}` ? "Uploading…" : slot.url ? "Replace" : "Upload"}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) void handleGalleryUpload(slot.id, f);
-                          e.target.value = "";
-                        }}
-                        disabled={uploadingFor !== null}
-                      />
-                    </label>
-                    <div className="subcat-edit-fields">
-                      <label className="subcat-edit-field">
-                        <span className="subcat-edit-field__label">Alt (EN)</span>
-                        <input type="text" className="form-input form-input--sm"
-                          value={slot.alt_en}
-                          onChange={(e) => handleGalleryChange(slot.id, { alt_en: e.target.value })} />
-                      </label>
-                      <label className="subcat-edit-field">
-                        <span className="subcat-edit-field__label">Alt (EL)</span>
-                        <input type="text" className="form-input form-input--sm"
-                          value={slot.alt_el}
-                          onChange={(e) => handleGalleryChange(slot.id, { alt_el: e.target.value })} />
-                      </label>
+          {activeTab === "gallery" && (
+            <section className="photo-section" style={{ borderBottom: "none", paddingTop: 0 }}>
+              <h3 className="photo-section__title">Gallery photos</h3>
+              <p className="photo-section__hint">
+                Supporting photos for the homepage gallery strip. Add as many as you want.
+              </p>
+              <ul className="photo-slot-list">
+                {draft.gallery.map((slot, idx) => (
+                  <li key={slot.id} className="photo-slot">
+                    <div className="photo-slot__thumb">
+                      {slot.url
+                        ? <img src={resolvePreviewUrl(slot.url)} alt="" />
+                        : <div className="photo-slot__placeholder"><ImageIcon size={24} /></div>}
                     </div>
-                  </div>
-                  <div className="photo-slot__controls">
-                    <button type="button" className="schedule__order-btn"
-                      aria-label="Move up" disabled={idx === 0}
-                      onClick={() => handleGalleryMove(slot.id, -1)}>
-                      <ChevronUp size={14} />
-                    </button>
-                    <button type="button" className="schedule__order-btn"
-                      aria-label="Move down" disabled={idx === draft.gallery.length - 1}
-                      onClick={() => handleGalleryMove(slot.id, 1)}>
-                      <ChevronDown size={14} />
-                    </button>
-                    <button type="button" className="schedule__order-btn"
-                      aria-label="Remove photo"
-                      onClick={() => handleGalleryRemove(slot.id)}>
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="btn btn--secondary btn--sm" onClick={handleGalleryAdd}>
-              <Plus size={14} /> Add gallery photo
-            </button>
-            <p className="photo-section__deferred">
-              Gallery customer-side display wiring is also on the punch list —
-              uploads save to the server but the homepage gallery strip still
-              shows the bundled photos for now.
-            </p>
-          </section>
+                    <div className="photo-slot__fields">
+                      <label className="btn btn--secondary btn--sm">
+                        <Upload size={12} />
+                        {uploadingFor === `gallery-${slot.id}` ? "Uploading…" : slot.url ? "Replace" : "Upload"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: "none" }}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) void handleGalleryUpload(slot.id, f);
+                            e.target.value = "";
+                          }}
+                          disabled={uploadingFor !== null}
+                        />
+                      </label>
+                      <div className="subcat-edit-fields">
+                        <label className="subcat-edit-field">
+                          <span className="subcat-edit-field__label">Alt (EN)</span>
+                          <input type="text" className="form-input form-input--sm"
+                            value={slot.alt_en}
+                            onChange={(e) => handleGalleryChange(slot.id, { alt_en: e.target.value })} />
+                        </label>
+                        <label className="subcat-edit-field">
+                          <span className="subcat-edit-field__label">Alt (EL)</span>
+                          <input type="text" className="form-input form-input--sm"
+                            value={slot.alt_el}
+                            onChange={(e) => handleGalleryChange(slot.id, { alt_el: e.target.value })} />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="photo-slot__controls">
+                      <button type="button" className="schedule__order-btn"
+                        aria-label="Move up" disabled={idx === 0}
+                        onClick={() => handleGalleryMove(slot.id, -1)}>
+                        <ChevronUp size={14} />
+                      </button>
+                      <button type="button" className="schedule__order-btn"
+                        aria-label="Move down" disabled={idx === draft.gallery.length - 1}
+                        onClick={() => handleGalleryMove(slot.id, 1)}>
+                        <ChevronDown size={14} />
+                      </button>
+                      <button type="button" className="schedule__order-btn"
+                        aria-label="Remove photo"
+                        onClick={() => handleGalleryRemove(slot.id)}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button type="button" className="btn btn--secondary btn--sm" onClick={handleGalleryAdd}>
+                <Plus size={14} /> Add gallery photo
+              </button>
+              <p className="photo-section__deferred">
+                Gallery customer-side display wiring is on the punch list —
+                uploads save to the server but the homepage still shows the
+                bundled photos for now.
+              </p>
+            </section>
+          )}
 
           {error && <div className="schedule__error" role="alert">{error}</div>}
         </div>
@@ -806,6 +846,7 @@ const SubcategoryEditor: FC<SubcategoryEditorProps> = ({ items, onClose, onSaved
   const [draft, setDraft] = useState<SubcategoryOverrides>(initial);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [openGroup, setOpenGroup] = useState<SubMainCategoryId | null>(() => SUB_MAIN_CATEGORIES[0]);
 
   // Refresh draft whenever the derived list shifts (e.g., an item was added).
   useEffect(() => { setDraft(initial); }, [initial]);
@@ -860,66 +901,87 @@ const SubcategoryEditor: FC<SubcategoryEditorProps> = ({ items, onClose, onSaved
 
           {SUB_MAIN_CATEGORIES.map((mc) => {
             const rows = draft[mc];
-            if (rows.length === 0) return (
-              <div key={mc} className="subcat-edit-group">
-                <div className="subcat-edit-group__title">{SUB_MAIN_LABELS[mc]}</div>
-                <p className="subcat-group__empty">No subcategories under this main category yet.</p>
-              </div>
-            );
+            const isOpen = openGroup === mc;
+            const hiddenCount = rows.filter((r) => r.hidden).length;
             return (
-              <div key={mc} className="subcat-edit-group">
-                <div className="subcat-edit-group__title">{SUB_MAIN_LABELS[mc]}</div>
-                <ul className="subcat-edit-list">
-                  {rows.map((row, idx) => (
-                    <li key={row.slug} className={`subcat-edit-row ${row.hidden ? "subcat-edit-row--hidden" : ""}`}>
-                      <span className="schedule__order-controls">
-                        <button
-                          type="button"
-                          className="schedule__order-btn"
-                          aria-label={`Move ${row.label_en} up`}
-                          disabled={idx === 0}
-                          onClick={() => move(mc, idx, -1)}
-                        ><ChevronUp size={14} /></button>
-                        <button
-                          type="button"
-                          className="schedule__order-btn"
-                          aria-label={`Move ${row.label_en} down`}
-                          disabled={idx === rows.length - 1}
-                          onClick={() => move(mc, idx, 1)}
-                        ><ChevronDown size={14} /></button>
-                      </span>
-                      <div className="subcat-edit-fields">
-                        <label className="subcat-edit-field">
-                          <span className="subcat-edit-field__label">English</span>
-                          <input
-                            type="text"
-                            className="form-input form-input--sm"
-                            value={row.label_en}
-                            onChange={(e) => update(mc, idx, { label_en: e.target.value })}
-                          />
-                        </label>
-                        <label className="subcat-edit-field">
-                          <span className="subcat-edit-field__label">Ελληνικά</span>
-                          <input
-                            type="text"
-                            className="form-input form-input--sm"
-                            value={row.label_el}
-                            onChange={(e) => update(mc, idx, { label_el: e.target.value })}
-                          />
-                        </label>
-                      </div>
-                      <button
-                        type="button"
-                        className={`schedule__order-btn subcat-edit-hide ${row.hidden ? "subcat-edit-hide--on" : ""}`}
-                        aria-label={row.hidden ? `Show ${row.label_en} on menu` : `Hide ${row.label_en} from menu`}
-                        aria-pressed={row.hidden}
-                        onClick={() => update(mc, idx, { hidden: !row.hidden })}
-                      >
-                        {row.hidden ? <EyeOff size={14} /> : <Eye size={14} />}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+              <div key={mc} className="accordion-group">
+                <button
+                  type="button"
+                  className="accordion-header"
+                  aria-expanded={isOpen}
+                  onClick={() => setOpenGroup(isOpen ? null : mc)}
+                >
+                  <span className="accordion-header__title">{SUB_MAIN_LABELS[mc]}</span>
+                  <span className="accordion-header__right">
+                    <span className="accordion-header__meta">
+                      {rows.length} {rows.length === 1 ? "subcategory" : "subcategories"}
+                      {hiddenCount > 0 && ` · ${hiddenCount} hidden`}
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      className={`accordion-header__chevron ${isOpen ? "accordion-header__chevron--open" : ""}`}
+                    />
+                  </span>
+                </button>
+                {isOpen && (
+                  <div className="accordion-body">
+                    {rows.length === 0 ? (
+                      <p className="subcat-group__empty">No subcategories under this main category yet.</p>
+                    ) : (
+                      <ul className="subcat-edit-list">
+                        {rows.map((row, idx) => (
+                          <li key={row.slug} className={`subcat-edit-row ${row.hidden ? "subcat-edit-row--hidden" : ""}`}>
+                            <span className="schedule__order-controls">
+                              <button
+                                type="button"
+                                className="schedule__order-btn"
+                                aria-label={`Move ${row.label_en} up`}
+                                disabled={idx === 0}
+                                onClick={() => move(mc, idx, -1)}
+                              ><ChevronUp size={14} /></button>
+                              <button
+                                type="button"
+                                className="schedule__order-btn"
+                                aria-label={`Move ${row.label_en} down`}
+                                disabled={idx === rows.length - 1}
+                                onClick={() => move(mc, idx, 1)}
+                              ><ChevronDown size={14} /></button>
+                            </span>
+                            <div className="subcat-edit-fields">
+                              <label className="subcat-edit-field">
+                                <span className="subcat-edit-field__label">English</span>
+                                <input
+                                  type="text"
+                                  className="form-input form-input--sm"
+                                  value={row.label_en}
+                                  onChange={(e) => update(mc, idx, { label_en: e.target.value })}
+                                />
+                              </label>
+                              <label className="subcat-edit-field">
+                                <span className="subcat-edit-field__label">Ελληνικά</span>
+                                <input
+                                  type="text"
+                                  className="form-input form-input--sm"
+                                  value={row.label_el}
+                                  onChange={(e) => update(mc, idx, { label_el: e.target.value })}
+                                />
+                              </label>
+                            </div>
+                            <button
+                              type="button"
+                              className={`schedule__order-btn subcat-edit-hide ${row.hidden ? "subcat-edit-hide--on" : ""}`}
+                              aria-label={row.hidden ? `Show ${row.label_en} on menu` : `Hide ${row.label_en} from menu`}
+                              aria-pressed={row.hidden}
+                              onClick={() => update(mc, idx, { hidden: !row.hidden })}
+                            >
+                              {row.hidden ? <EyeOff size={14} /> : <Eye size={14} />}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -933,107 +995,6 @@ const SubcategoryEditor: FC<SubcategoryEditorProps> = ({ items, onClose, onSaved
               {saving ? "Saving…" : "Save subcategories"}
             </button>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/* ============================================================
-   Subcategory Management Modal — now grouped by main category
-   ============================================================ */
-interface SubcategoryManagerProps {
-  subcategories: SubcategoryDef[];
-  onSubcategoriesChange: (subs: SubcategoryDef[]) => void;
-  onClose: () => void;
-}
-
-const SubcategoryManager: FC<SubcategoryManagerProps> = ({
-  subcategories, onSubcategoriesChange, onClose,
-}) => {
-  const [newEn, setNewEn] = useState("");
-  const [newEl, setNewEl] = useState("");
-  const [newParent, setNewParent] = useState<MainCategoryId>("coffee");
-  const [error, setError] = useState<string | null>(null);
-
-  const handleAdd = (e: FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    const trimEn = newEn.trim();
-    const trimEl = newEl.trim();
-    if (!trimEn || !trimEl) {
-      setError("Both English and Greek names are required.");
-      return;
-    }
-    if (subcategories.some((c) => c.en.toLowerCase() === trimEn.toLowerCase())) {
-      setError("A subcategory with this English name already exists.");
-      return;
-    }
-    onSubcategoriesChange([...subcategories, { en: trimEn, el: trimEl, parent: newParent }]);
-    setNewEn("");
-    setNewEl("");
-  };
-
-  const handleDelete = (idx: number) => {
-    onSubcategoriesChange(subcategories.filter((_, i) => i !== idx));
-  };
-
-  return (
-    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-label="Manage subcategories">
-      <div className="modal-content modal-content--wide">
-        <div className="modal-header">
-          <h2 className="modal-title">Manage Subcategories</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close"><X size={20} /></button>
-        </div>
-        <div className="modal-body">
-          {error && (
-            <div className="toast toast--error" style={{ position: "static", transform: "none", marginBottom: "var(--sp-5)" }} role="alert">
-              {error}
-            </div>
-          )}
-          <form className="subcat-add-form" onSubmit={handleAdd}>
-            <select className="form-select" value={newParent} onChange={(e) => setNewParent(e.target.value as MainCategoryId)} style={{ flex: "0 0 auto", width: "auto" }}>
-              {MAIN_CATEGORIES.map((mc) => (
-                <option key={mc.id} value={mc.id}>{mc.en}</option>
-              ))}
-            </select>
-            <input type="text" className="form-input" placeholder="Name (English)" value={newEn} onChange={(e) => setNewEn(e.target.value)} />
-            <input type="text" className="form-input" placeholder="Όνομα (Ελληνικά)" value={newEl} onChange={(e) => setNewEl(e.target.value)} />
-            <button type="submit" className="btn btn--primary"><Plus size={16} /> Add</button>
-          </form>
-
-          {/* Grouped by main category */}
-          {MAIN_CATEGORIES.map((mc) => {
-            const subs = subcategories.filter((s) => s.parent === mc.id);
-            if (subs.length === 0) return (
-              <div key={mc.id} className="subcat-group">
-                <div className="subcat-group__title">{mc.en}</div>
-                <p className="subcat-group__empty">No subcategories yet</p>
-              </div>
-            );
-            return (
-              <div key={mc.id} className="subcat-group">
-                <div className="subcat-group__title">{mc.en}</div>
-                <div className="subcat-list" role="list">
-                  {subs.map((sub) => {
-                    const globalIdx = subcategories.indexOf(sub);
-                    return (
-                      <div key={sub.en} className="subcat-item" role="listitem">
-                        <div className="subcat-item__info">
-                          <span className="subcat-item__name">{sub.en}</span>
-                          <span className="subcat-item__name-el">{sub.el}</span>
-                        </div>
-                        <button className="btn btn--danger btn--sm" onClick={() => handleDelete(globalIdx)} aria-label={`Delete ${sub.en}`}><Trash2 size={14} /></button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="modal-footer">
-          <button className="btn btn--secondary" onClick={onClose}>Done</button>
         </div>
       </div>
     </div>
@@ -1427,6 +1388,7 @@ const SchedulePanel: FC<SchedulePanelProps> = ({ onClose, onSaved }) => {
   const [draft, setDraft] = useState<DaySchedule>(() => getSchedule());
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [activePhase, setActivePhase] = useState<DayPhase>(PHASE_ORDER[0]);
 
   const validate = useCallback((d: DaySchedule): string | null => {
     let prev = -1;
@@ -1507,72 +1469,87 @@ const SchedulePanel: FC<SchedulePanelProps> = ({ onClose, onSaved }) => {
             <X size={18} />
           </button>
         </div>
+
+        {/* Phase tabs — one tab per phase, shows cutoff time below the label */}
+        <div className="modal-tabs" role="tablist" aria-label="Day phases">
+          {PHASE_ORDER.map((phase) => (
+            <button
+              key={phase}
+              type="button"
+              role="tab"
+              aria-selected={activePhase === phase}
+              className={`modal-tab ${activePhase === phase ? "modal-tab--active" : ""}`}
+              onClick={() => setActivePhase(phase)}
+            >
+              {PHASE_LABELS[phase].label}
+              <span className="modal-tab__time">{fmtHour(draft.cutoffs[phase])}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="modal-body">
           <p className="schedule__intro">
-            When does each phase begin, and which categories should show first?
-            The cutoff hour changes the theme and the order of menu categories.
-            Use the arrows to reorder categories for each phase.
+            Set when this phase starts and which categories appear first. Switch
+            tabs to configure other phases. The cutoff times must be in ascending
+            order across all five phases.
           </p>
 
-          <div className="schedule__phase-cards" role="group" aria-label="Phases">
-            {PHASE_ORDER.map((phase) => (
-              <div key={phase} className="schedule__phase-card">
-                <div className="schedule__phase-header">
-                  <div>
-                    <div className="schedule__phase-name">{PHASE_LABELS[phase].label}</div>
-                    <div className="schedule__phase-hint">{PHASE_LABELS[phase].hint}</div>
-                  </div>
-                  <label className="schedule__input-wrap">
-                    <span className="schedule__input-label">Starts at</span>
-                    <input
-                      type="number"
-                      min={0}
-                      max={23}
-                      step={1}
-                      value={draft.cutoffs[phase]}
-                      onChange={(e) => handleCutoffChange(phase, parseInt(e.target.value, 10))}
-                      className="schedule__input"
-                      aria-label={`${PHASE_LABELS[phase].label} start hour`}
-                    />
-                    <span className="schedule__input-suffix">{fmtHour(draft.cutoffs[phase])}</span>
-                  </label>
-                </div>
-                <ul className="schedule__order-list" aria-label={`Category order for ${PHASE_LABELS[phase].label}`}>
-                  {draft.categoryOrder[phase].map((cat, idx) => (
-                    <li key={cat} className="schedule__order-row">
-                      <span className="schedule__order-rank">{idx + 1}</span>
-                      <span className="schedule__order-name">{CATEGORY_LABELS[cat] ?? cat}</span>
-                      <span className="schedule__order-controls">
-                        <button
-                          type="button"
-                          className="schedule__order-btn"
-                          aria-label={`Move ${CATEGORY_LABELS[cat] ?? cat} up`}
-                          disabled={idx === 0}
-                          onClick={() => handleMove(phase, idx, -1)}
-                        >
-                          <ChevronUp size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className="schedule__order-btn"
-                          aria-label={`Move ${CATEGORY_LABELS[cat] ?? cat} down`}
-                          disabled={idx === draft.categoryOrder[phase].length - 1}
-                          onClick={() => handleMove(phase, idx, 1)}
-                        >
-                          <ChevronDown size={14} />
-                        </button>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+          <div className="schedule__phase-card" role="tabpanel">
+            <div className="schedule__phase-header">
+              <div>
+                <div className="schedule__phase-name">{PHASE_LABELS[activePhase].label}</div>
+                <div className="schedule__phase-hint">{PHASE_LABELS[activePhase].hint}</div>
               </div>
-            ))}
+              <label className="schedule__input-wrap">
+                <span className="schedule__input-label">Starts at</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={23}
+                  step={1}
+                  value={draft.cutoffs[activePhase]}
+                  onChange={(e) => handleCutoffChange(activePhase, parseInt(e.target.value, 10))}
+                  className="schedule__input"
+                  aria-label={`${PHASE_LABELS[activePhase].label} start hour`}
+                />
+                <span className="schedule__input-suffix">{fmtHour(draft.cutoffs[activePhase])}</span>
+              </label>
+            </div>
+            <ul className="schedule__order-list" aria-label={`Category order for ${PHASE_LABELS[activePhase].label}`}>
+              {draft.categoryOrder[activePhase].map((cat, idx) => (
+                <li key={cat} className="schedule__order-row">
+                  <span className="schedule__order-rank">{idx + 1}</span>
+                  <span className="schedule__order-name">{CATEGORY_LABELS[cat] ?? cat}</span>
+                  <span className="schedule__order-controls">
+                    <button
+                      type="button"
+                      className="schedule__order-btn"
+                      aria-label={`Move ${CATEGORY_LABELS[cat] ?? cat} up`}
+                      disabled={idx === 0}
+                      onClick={() => handleMove(activePhase, idx, -1)}
+                    >
+                      <ChevronUp size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="schedule__order-btn"
+                      aria-label={`Move ${CATEGORY_LABELS[cat] ?? cat} down`}
+                      disabled={idx === draft.categoryOrder[activePhase].length - 1}
+                      onClick={() => handleMove(activePhase, idx, 1)}
+                    >
+                      <ChevronDown size={14} />
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {error && (
             <div className="schedule__error" role="alert">{error}</div>
           )}
         </div>
+
         <div className="modal-footer">
           <button className="btn btn--secondary" onClick={handleReset} disabled={saving}>
             <RotateCcw size={14} /> Reset to defaults
@@ -1666,11 +1643,6 @@ const AdminPanel: FC<AdminPanelProps> = ({ language }) => {
   const handleEdit = (item: MenuItemData) => { setEditingItem(item); setShowForm(true); };
   const handleAdd = () => { setEditingItem(null); setShowForm(true); };
   const handleCloseForm = () => { setShowForm(false); setEditingItem(null); };
-
-  const handleSubcategoriesChange = (subs: SubcategoryDef[]) => {
-    setKnownSubcategories(subs);
-    saveSubcategories(subs);
-  };
 
   // For filter pills — show subcategory names
   const categories = Array.from(new Set(items.map((i) => getField(i.category, "EN")))).sort();
