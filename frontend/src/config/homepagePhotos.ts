@@ -13,18 +13,28 @@
  * events broadcast updates to any open homepage tab.
  */
 
-import { fetchSiteSetting, updateSiteSetting, type JourneySlot, type GallerySlot, type PhotoSlot } from "../api/siteSetting";
+import {
+  fetchSiteSetting,
+  updateSiteSetting,
+  type JourneySlot,
+  type GallerySlot,
+  type PhotoSlot,
+  type CuratedEntry,
+} from "../api/siteSetting";
+import type { DayPhase } from "./schedule";
 
 export interface HomepagePhotosOverrides {
   hero: PhotoSlot | null;
   journey: JourneySlot[];
   gallery: GallerySlot[];
+  curation: CuratedEntry[];
 }
 
 export const EMPTY_HOMEPAGE_PHOTOS: HomepagePhotosOverrides = {
   hero: null,
   journey: [],
   gallery: [],
+  curation: [],
 };
 
 const STORAGE_KEY = "homeseaside_homepage_photos_v1";
@@ -64,7 +74,34 @@ function normalize(raw: unknown): HomepagePhotosOverrides {
       }))
       .sort((a, b) => a.position - b.position);
   }
+  if (Array.isArray(r.curation)) {
+    out.curation = r.curation
+      .filter((x): x is CuratedEntry => isCuratedEntry(x))
+      .map((x, i) => ({
+        ...x,
+        phases: Array.isArray(x.phases) ? (x.phases as DayPhase[]) : [],
+        subjects: Array.isArray(x.subjects) ? x.subjects : [],
+        captionEN: typeof x.captionEN === "string" ? x.captionEN : "",
+        captionEL: typeof x.captionEL === "string" ? x.captionEL : "",
+        altEN: typeof x.altEN === "string" ? x.altEN : x.captionEN ?? "",
+        altEL: typeof x.altEL === "string" ? x.altEL : x.captionEL ?? "",
+        priority: typeof x.priority === "number" ? x.priority : 0,
+        hidden: x.hidden === true,
+        position: typeof x.position === "number" ? x.position : i,
+      }))
+      .sort((a, b) => a.position - b.position);
+  }
   return out;
+}
+
+function isCuratedEntry(x: unknown): x is CuratedEntry {
+  if (!x || typeof x !== "object") return false;
+  const e = x as Partial<CuratedEntry>;
+  if (typeof e.slug !== "string" || !e.slug) return false;
+  if (e.kind !== "bundled" && e.kind !== "custom") return false;
+  // Custom entries must have a URL to be renderable; bundled don't.
+  if (e.kind === "custom" && typeof e.url !== "string") return false;
+  return true;
 }
 
 function readFromStorage(): HomepagePhotosOverrides | null {

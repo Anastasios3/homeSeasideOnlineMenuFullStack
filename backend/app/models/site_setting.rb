@@ -46,23 +46,85 @@ class SiteSetting
   field :subcategories, type: Hash, default: -> { {} }
 
   # ----- Homepage photos -----
-  # Three slot collections. Each slot has an id (stable key the frontend
-  # references), url (override path/CDN URL), alt_en/alt_el, position.
-  # Null url means "use the bundled default" so the frontend falls back.
+  # Structure:
+  #   hero     — single optional override (full-bleed homepage photo).
+  #              null = use bundled curated photo for current phase.
+  #   journey  — legacy override slots (kept for back-compat; the new UI
+  #              ignores them in favour of `curation`).
+  #   gallery  — same legacy story as `journey`.
+  #   curation — UNIFIED LIBRARY. Each entry is either a `bundled` photo
+  #              from album1.ts (referenced by slug) or a `custom` upload
+  #              (with its own url + srcset). Curation drives BOTH the
+  #              hero rotation (highest priority for current phase) and
+  #              the journey strip (ordered by `position`).
   #
-  # Shape:
-  # {
-  #   "hero":    { "url": "https://...", "alt_en": "...", "alt_el": "..." },
-  #   "journey": [ { "id": "morning-1", "url": "...", "alt_en": "...",
-  #                  "alt_el": "...", "caption_en": "...", "caption_el": "...",
-  #                  "position": 0 }, ... 16 entries ],
-  #   "gallery": [ { "id": "g1", "url": "...", "alt_en": "...",
-  #                  "alt_el": "...", "position": 0 }, ... ]
-  # }
-  field :homepage_photos, type: Hash, default: -> { { "hero" => nil, "journey" => [], "gallery" => [] } }
+  # CuratedEntry shape:
+  #   { "kind": "bundled" | "custom",
+  #     "slug": "food-session-30",                # bundled: album slug; custom: any stable id
+  #     "url": "/uploads/abc.jpg",                # custom only
+  #     "srcset": { "640": "...", "1280": "...", "1920": "..." },  # custom only
+  #     "width": 1920, "height": 1080,            # custom only
+  #     "phases": ["morning", "afternoon"],
+  #     "subjects": ["venue", "detail"],          # advisory tags
+  #     "captionEN": "Morning light, fresh menu",
+  #     "captionEL": "Πρωινό φως, φρέσκο μενού",
+  #     "altEN": "...", "altEL": "...",
+  #     "priority": 9,
+  #     "hidden": false,
+  #     "position": 0 }
+  field :homepage_photos, type: Hash, default: -> { SiteSetting.default_homepage_photos }
 
   def self.current
     first || create!
+  end
+
+  # Mirrors frontend/src/assets/photos/curation.ts so a fresh install shows
+  # the same homepage photos as the bundled fallback. Admins can then edit
+  # captions, phase tags, priorities, add/remove entries from this list,
+  # or upload custom photos that join the same curation feed.
+  def self.default_homepage_photos
+    {
+      "hero" => nil,
+      "journey" => [],
+      "gallery" => [],
+      "curation" => default_curation
+    }
+  end
+
+  def self.default_curation
+    bundled = [
+      ["food-session-30", %w[morning afternoon],         %w[venue detail],   "Morning light, fresh menu",                  "Πρωινό φως, φρέσκο μενού",                          9],
+      ["food-session-5",  %w[morning],                   %w[coffee food],    "Espresso, latte art, and what's next",       "Espresso, latte art, και τι ακολουθεί",             8],
+      ["food-session-10", %w[morning afternoon],         %w[coffee food],    "Slow breakfast by the window",               "Αργό πρωινό δίπλα στο παράθυρο",                    7],
+      ["food-session-40", %w[morning],                   %w[food detail],    "Honeycomb, walnuts, microgreens",            "Κηρήθρα, καρύδια, μικροφύλλα",                       0],
+      ["food-session-15", %w[afternoon],                 %w[food],           "Toasted sandwich, embossed tile, quiet hours","Ψητό σάντουιτς, ανάγλυφο πλακάκι, ήσυχες ώρες",     0],
+      ["food-session-20", %w[afternoon],                 %w[food],           "Stacked, layered, plenty",                   "Στρώσεις και ποικιλία",                              0],
+      ["food-session-25", %w[afternoon],                 %w[drink food],     "Fresh mango, salad, and a long lunch",       "Φρέσκο μάνγκο, σαλάτα, και ένα μεγάλο μεσημέρι",    0],
+      ["food-session-45", %w[afternoon],                 %w[food],           "Smoked salmon, garden greens",               "Καπνιστός σολομός, λαχανικά",                        0],
+      ["food-session-50", %w[golden],                    %w[dessert],        "Sweet endings as the light turns",           "Γλυκό κλείσιμο όσο το φως αλλάζει",                 7],
+      ["food-session-55", %w[golden],                    %w[dessert detail], "Chia, banana, berry — slow afternoon",       "Chia, μπανάνα, μούρα — αργό απόγευμα",              0],
+      ["food-session-67", %w[golden evening],            %w[ocean],          "The sea at golden hour",                     "Η θάλασσα στη χρυσή ώρα",                            10],
+      ["food-session-65", %w[golden evening],            %w[ocean],          "Pink skies, salt air",                       "Ρόδινος ουρανός, αλμυρός αέρας",                    0],
+      ["food-session-60", %w[evening night],             %w[food drink],     "Pizza, red wine, no rush",                   "Πίτσα, κόκκινο κρασί, χωρίς βιασύνη",               8],
+      ["food-session-58", %w[evening],                   %w[food],           "Late dinner, perfect crust",                 "Όψιμο δείπνο, τέλεια κρούστα",                       0],
+      ["food-session-70", %w[evening night],             %w[venue],          "Home Seaside, after dark",                   "Home Seaside, μετά το ηλιοβασίλεμα",                10],
+      ["food-session-1",  %w[evening night],             %w[venue detail],   "Glass, plant, the house bottle",             "Ποτήρι, φυτό, το μπουκάλι του σπιτιού",             0]
+    ]
+    bundled.each_with_index.map do |(slug, phases, subjects, en, el, pri), idx|
+      {
+        "kind"      => "bundled",
+        "slug"      => slug,
+        "phases"    => phases,
+        "subjects"  => subjects,
+        "captionEN" => en,
+        "captionEL" => el,
+        "altEN"     => en,
+        "altEL"     => el,
+        "priority"  => pri,
+        "hidden"    => false,
+        "position"  => idx
+      }
+    end
   end
 
   # Defaults that match the existing hardcoded values in

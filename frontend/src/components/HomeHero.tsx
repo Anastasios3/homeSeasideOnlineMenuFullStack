@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import Picture from "./Picture";
 import AdminPicture from "./AdminPicture";
 import { useTimeOfDay } from "../hooks/useTimeOfDay";
-import { ALBUM1_PHOTOS } from "../assets/photos/album1";
-import { heroPhotoForPhase } from "../assets/photos/curation";
+import {
+  getHeroEntryForPhase,
+  resolveImage,
+} from "../config/curationRuntime";
 import {
   getHomepagePhotos,
   HOMEPAGE_PHOTOS_STORAGE_KEY,
@@ -20,52 +22,75 @@ interface HomeHeroProps {
 /**
  * Full-bleed hero with a time-aware photograph behind the chunky wordmark.
  *
- * The photo is chosen by current day-phase via curation.ts — bright
- * tile/bottle shots during the day, the venue exterior at dusk, the rocky
- * shoreline at golden hour, etc. Photo swaps fluidly when the phase
- * changes (e.g. user is still on the page at 19:00 cutoff).
+ * Photo source resolution (first match wins):
+ *   1. Admin "hero override" slot (homepage_photos.hero) — explicit manual pick
+ *   2. Highest-priority entry from the curation feed matching current phase
+ *   3. Nothing (scrim only) — shouldn't happen but rendering is safe
  *
- * A subtle scrim layer keeps the wordmark + CTA readable regardless of
- * the underlying photo's tonal range.
+ * The component subscribes to homepage_photos storage events so any admin
+ * edit takes effect on the next paint without a reload.
  */
 const HomeHero: FC<HomeHeroProps> = ({ language, tagline, subtitle, ctaLabel }) => {
   const { phase } = useTimeOfDay();
-  const curated = heroPhotoForPhase(phase);
-  const meta = ALBUM1_PHOTOS[curated.slug];
 
-  // Subscribe to admin overrides — when an admin saves a new hero photo we
-  // want the homepage to swap to it on the next paint, no reload needed.
-  const [override, setOverride] = useState(() => getHomepagePhotos().hero);
+  // Re-read the cached overrides + curation on any admin save.
+  const [version, setVersion] = useState(0);
   useEffect(() => {
     const onChange = (e: StorageEvent) => {
-      if (e.key === HOMEPAGE_PHOTOS_STORAGE_KEY) setOverride(getHomepagePhotos().hero);
+      if (e.key === HOMEPAGE_PHOTOS_STORAGE_KEY) setVersion((v) => v + 1);
     };
     window.addEventListener("storage", onChange);
     return () => window.removeEventListener("storage", onChange);
   }, []);
+  void version; // dep marker — re-evaluates the getters below on bump
+
+  const heroOverride = getHomepagePhotos().hero;
+  const curated = heroOverride ? null : getHeroEntryForPhase(phase);
+  const resolved = curated ? resolveImage(curated) : null;
 
   return (
     <section className="home-hero">
-      {override ? (
+      {heroOverride ? (
         <div className="home-hero__photo">
           <AdminPicture
-            slot={override}
+            slot={heroOverride}
             language={language}
             priority
             sizes="100vw"
             fit="cover"
           />
         </div>
-      ) : meta && (
+      ) : resolved?.kind === "bundled" ? (
         <div className="home-hero__photo">
           <Picture
-            photo={meta}
-            alt={language === "EN" ? curated.captionEN : curated.captionEL}
+            photo={resolved.meta}
+            alt={
+              language === "EN"
+                ? resolved.entry.altEN ?? resolved.entry.captionEN
+                : resolved.entry.altEL ?? resolved.entry.captionEL
+            }
             priority
             sizes="100vw"
           />
         </div>
-      )}
+      ) : resolved?.kind === "custom" ? (
+        <div className="home-hero__photo">
+          <AdminPicture
+            slot={{
+              url: resolved.url,
+              srcset: resolved.srcset,
+              width: resolved.width,
+              height: resolved.height,
+              alt_en: resolved.entry.altEN ?? resolved.entry.captionEN,
+              alt_el: resolved.entry.altEL ?? resolved.entry.captionEL,
+            }}
+            language={language}
+            priority
+            sizes="100vw"
+            fit="cover"
+          />
+        </div>
+      ) : null}
       <div className="home-hero__scrim" aria-hidden="true" />
 
       <div className="home-hero__inner">

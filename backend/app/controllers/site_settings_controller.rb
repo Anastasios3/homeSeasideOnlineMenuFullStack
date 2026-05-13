@@ -37,10 +37,19 @@ class SiteSettingsController < ApplicationController
   private
 
   def serialize(setting)
+    # Backfill missing keys for documents created before a schema addition
+    # (e.g. old SiteSettings without `curation`). Merging the defaults on
+    # read means we never have to write a migration just to surface new
+    # fields — frontend always sees a complete payload.
+    homepage = SiteSetting.default_homepage_photos.merge(setting.homepage_photos || {})
+    if homepage["curation"].blank?
+      homepage["curation"] = SiteSetting.default_curation
+    end
+
     {
-      schedule:        setting.schedule        || SiteSetting.default_schedule,
-      subcategories:   setting.subcategories   || {},
-      homepage_photos: setting.homepage_photos || { "hero" => nil, "journey" => [], "gallery" => [] },
+      schedule:        setting.schedule       || SiteSetting.default_schedule,
+      subcategories:   setting.subcategories  || {},
+      homepage_photos: homepage,
       updated_at:      setting.updated_at
     }
   end

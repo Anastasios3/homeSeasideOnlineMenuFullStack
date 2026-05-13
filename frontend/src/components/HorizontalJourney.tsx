@@ -1,7 +1,12 @@
-import { type FC, useMemo } from "react";
+import { type FC, useEffect, useState } from "react";
 import Picture from "./Picture";
-import { ALBUM1_PHOTOS } from "../assets/photos/album1";
-import { buildJourney } from "../assets/photos/curation";
+import AdminPicture from "./AdminPicture";
+import {
+  getJourneyEntries,
+  resolveImage,
+} from "../config/curationRuntime";
+import { HOMEPAGE_PHOTOS_STORAGE_KEY } from "../config/homepagePhotos";
+import type { DayPhase } from "../config/schedule";
 
 interface HorizontalJourneyProps {
   language: "EN" | "EL";
@@ -9,21 +14,42 @@ interface HorizontalJourneyProps {
   titleEL?: string;
 }
 
+const PHASE_TITLES: Record<DayPhase, { en: string; el: string }> = {
+  morning:   { en: "Morning",  el: "Πρωί" },
+  afternoon: { en: "Noon",     el: "Μεσημέρι" },
+  golden:    { en: "Sunset",   el: "Ηλιοβασίλεμα" },
+  evening:   { en: "Night",    el: "Βράδυ" },
+  night:     { en: "Late",     el: "Αργά" },
+};
+
 /**
- * "A Day at Home Seaside" — horizontally scrolling photo journey grouped
- * into chapters by day-phase. On mobile and tablet it's a native
- * touch-swipe carousel with scroll-snap. On desktop the track scrolls
- * horizontally with normal mouse-wheel and trackpad gestures.
+ * "A Day at Home Seaside" — horizontally scrolling photo journey.
  *
- * Photo selection comes from curation.ts so swapping or re-ordering the
- * journey is one file to edit — no component changes.
+ * Photos come from the unified server-backed curation list (falls back to
+ * bundled curation when nothing is saved server-side). Chapter dividers
+ * are inserted automatically the first time each phase appears in the
+ * scroll order.
+ *
+ * Subscribes to homepage_photos storage events so admin edits propagate
+ * to the homepage live, no reload.
  */
 const HorizontalJourney: FC<HorizontalJourneyProps> = ({
   language,
   titleEN = "A Day at Home Seaside",
   titleEL = "Μια μέρα στο Home Seaside",
 }) => {
-  const chapters = useMemo(() => buildJourney(), []);
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    const onChange = (e: StorageEvent) => {
+      if (e.key === HOMEPAGE_PHOTOS_STORAGE_KEY) setVersion((v) => v + 1);
+    };
+    window.addEventListener("storage", onChange);
+    return () => window.removeEventListener("storage", onChange);
+  }, []);
+  void version;
+
+  const entries = getJourneyEntries();
+  const seenPhases = new Set<DayPhase>();
 
   return (
     <section className="journey" aria-label={language === "EN" ? titleEN : titleEL}>
@@ -37,40 +63,59 @@ const HorizontalJourney: FC<HorizontalJourneyProps> = ({
       </header>
 
       <div className="journey__track" role="list">
-        {chapters.map((chapter) =>
-          chapter.photos.map((curated, idx) => {
-            const meta = ALBUM1_PHOTOS[curated.slug];
-            if (!meta) return null;
-            const caption = language === "EN" ? curated.captionEN : curated.captionEL;
-            // Label the FIRST card of each chapter, regardless of overall position.
-            const phaseLabel =
-              idx === 0
-                ? language === "EN"
-                  ? chapter.titleEN
-                  : chapter.titleEL
-                : null;
+        {entries.map((entry) => {
+          const resolved = resolveImage(entry);
+          if (!resolved) return null;
 
-            return (
-              <article
-                key={`${chapter.phase}-${curated.slug}`}
-                className={`journey__card journey__card--${meta.orientation}`}
-                role="listitem"
-              >
-                {phaseLabel && (
-                  <span className="journey__chapter-tag">{phaseLabel}</span>
-                )}
-                <div className="journey__card-photo">
+          // First photo of each phase gets a chapter tag (auto-derived
+          // from `phases[0]` so the admin never has to think about it).
+          const firstPhase = entry.phases[0];
+          let phaseLabel: string | null = null;
+          if (firstPhase && !seenPhases.has(firstPhase)) {
+            seenPhases.add(firstPhase);
+            phaseLabel = language === "EN"
+              ? PHASE_TITLES[firstPhase].en
+              : PHASE_TITLES[firstPhase].el;
+          }
+
+          const caption = language === "EN" ? entry.captionEN : entry.captionEL;
+          const orientationClass =
+            resolved.kind === "bundled" ? `journey__card--${resolved.meta.orientation}` : "";
+
+          return (
+            <article
+              key={`${entry.kind}-${entry.slug}`}
+              className={`journey__card ${orientationClass}`}
+              role="listitem"
+            >
+              {phaseLabel && <span className="journey__chapter-tag">{phaseLabel}</span>}
+              <div className="journey__card-photo">
+                {resolved.kind === "bundled" ? (
                   <Picture
-                    photo={meta}
+                    photo={resolved.meta}
                     alt={caption}
                     sizes="(min-width: 1024px) 32vw, (min-width: 640px) 50vw, 78vw"
                   />
-                </div>
-                <p className="journey__card-caption">{caption}</p>
-              </article>
-            );
-          })
-        )}
+                ) : (
+                  <AdminPicture
+                    slot={{
+                      url: resolved.url,
+                      srcset: resolved.srcset,
+                      width: resolved.width,
+                      height: resolved.height,
+                      alt_en: entry.altEN ?? entry.captionEN,
+                      alt_el: entry.altEL ?? entry.captionEL,
+                    }}
+                    language={language}
+                    sizes="(min-width: 1024px) 32vw, (min-width: 640px) 50vw, 78vw"
+                    fit="cover"
+                  />
+                )}
+              </div>
+              <p className="journey__card-caption">{caption}</p>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

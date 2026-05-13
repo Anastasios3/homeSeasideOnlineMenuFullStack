@@ -16,10 +16,46 @@ export interface SiteSettingPayload {
   subcategories: Record<string, SubcategoryMeta[]>; // keyed by main_category
   homepage_photos: {
     hero: PhotoSlot | null;
-    journey: JourneySlot[];
-    gallery: GallerySlot[];
+    journey: JourneySlot[];     // legacy — superseded by `curation`
+    gallery: GallerySlot[];     // legacy — superseded by `curation`
+    curation: CuratedEntry[];   // unified library: bundled refs + custom uploads
   };
   updated_at: string | null;
+}
+
+/** Subject tags carried over from the original bundled curation.ts. */
+export type PhotoSubject =
+  | "coffee" | "food" | "drink" | "venue"
+  | "ocean" | "detail" | "dessert";
+
+/**
+ * A single photo in the unified curation feed.
+ *
+ *   kind: "bundled"  → `slug` points into ALBUM1_PHOTOS for image data.
+ *                       Image URLs / srcset / lqip come from the bundle.
+ *   kind: "custom"   → `slug` is just a stable id (e.g. an upload manifest
+ *                       id). `url` + `srcset` carry the actual image data.
+ *
+ * `phases` drives hero rotation (highest-priority for current phase wins).
+ * `position` drives the journey-strip order. `hidden: true` removes the
+ * entry from the homepage without deleting it.
+ */
+export interface CuratedEntry {
+  kind: "bundled" | "custom";
+  slug: string;
+  url?: string;
+  srcset?: { "640": string; "1280": string; "1920": string };
+  width?: number;
+  height?: number;
+  phases: DayPhase[];
+  subjects?: PhotoSubject[];
+  captionEN: string;
+  captionEL: string;
+  altEN?: string;
+  altEL?: string;
+  priority: number;
+  hidden: boolean;
+  position: number;
 }
 
 export interface SubcategoryMeta {

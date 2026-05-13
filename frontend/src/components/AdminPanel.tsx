@@ -30,8 +30,10 @@ import {
   saveHomepagePhotos,
   type HomepagePhotosOverrides,
 } from "../config/homepagePhotos";
+import { getCurationAll } from "../config/curationRuntime";
 import { uploadResponsivePhoto } from "../lib/imageUpload";
-import type { JourneySlot, GallerySlot } from "../api/siteSetting";
+import type { CuratedEntry } from "../api/siteSetting";
+import { ALBUM1_PHOTOS } from "../assets/photos/album1";
 import "../styles/AdminPanel.css";
 
 /** Build Authorization header from stored JWT */
@@ -289,20 +291,97 @@ function resolvePreviewUrl(url: string | undefined): string {
   return url;
 }
 
-function genSlotId(prefix: string): string {
-  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
-}
-
 const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
-  const [draft, setDraft] = useState<HomepagePhotosOverrides>(() => getHomepagePhotos());
+  const [draft, setDraft] = useState<HomepagePhotosOverrides>(() => {
+    // On mount, seed the draft with the bundled curation if nothing is
+    // saved server-side yet — gives the admin something to edit on day one.
+    const stored = getHomepagePhotos();
+    if (stored.curation.length === 0) {
+      return { ...stored, curation: getCurationAll() };
+    }
+    return stored;
+  });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [uploadingFor, setUploadingFor] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"hero" | "journey" | "gallery">("hero");
+  const [uploadingHero, setUploadingHero] = useState(false);
+  const [uploadingNew, setUploadingNew] = useState(false);
+  const [activeTab, setActiveTab] = useState<"library" | "rotation" | "hero">("library");
+  const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
 
-  // ---------- HERO ----------
+  // ------------------------------------------------------------
+  // Curation helpers — single source of truth for hero + journey
+  // ------------------------------------------------------------
+  const inRotation = (slug: string): boolean =>
+    draft.curation.some((e) => e.slug === slug);
+
+  const addBundledToRotation = (slug: string) => {
+    if (inRotation(slug)) return;
+    setDraft((prev) => {
+      // Default new bundled entries to "evening" — admin can edit phases later
+      const next: CuratedEntry = {
+        kind: "bundled",
+        slug,
+        phases: ["evening"],
+        captionEN: "",
+        captionEL: "",
+        altEN: "",
+        altEL: "",
+        priority: 0,
+        hidden: false,
+        position: prev.curation.length,
+      };
+      return { ...prev, curation: [...prev.curation, next] };
+    });
+  };
+
+  const removeFromRotation = (slug: string) => {
+    setDraft((prev) => ({
+      ...prev,
+      curation: prev.curation
+        .filter((e) => e.slug !== slug)
+        .map((e, i) => ({ ...e, position: i })),
+    }));
+  };
+
+  const toggleBundledRotation = (slug: string) => {
+    inRotation(slug) ? removeFromRotation(slug) : addBundledToRotation(slug);
+  };
+
+  const updateEntry = (slug: string, patch: Partial<CuratedEntry>) => {
+    setDraft((prev) => ({
+      ...prev,
+      curation: prev.curation.map((e) => (e.slug === slug ? { ...e, ...patch } : e)),
+    }));
+  };
+
+  const togglePhase = (slug: string, phase: DayPhase) => {
+    setDraft((prev) => ({
+      ...prev,
+      curation: prev.curation.map((e) => {
+        if (e.slug !== slug) return e;
+        const has = e.phases.includes(phase);
+        return { ...e, phases: has ? e.phases.filter((p) => p !== phase) : [...e.phases, phase] };
+      }),
+    }));
+  };
+
+  const moveEntry = (slug: string, direction: -1 | 1) => {
+    setDraft((prev) => {
+      const idx = prev.curation.findIndex((e) => e.slug === slug);
+      if (idx < 0) return prev;
+      const next = [...prev.curation];
+      const swap = idx + direction;
+      if (swap < 0 || swap >= next.length) return prev;
+      [next[idx], next[swap]] = [next[swap], next[idx]];
+      return { ...prev, curation: next.map((e, i) => ({ ...e, position: i })) };
+    });
+  };
+
+  // ------------------------------------------------------------
+  // Hero override (manual lock — bypasses curation rotation)
+  // ------------------------------------------------------------
   const handleHeroUpload = async (file: File) => {
-    setUploadingFor("hero");
+    setUploadingHero(true);
     setError(null);
     try {
       const manifest = await uploadResponsivePhoto(file);
@@ -324,176 +403,66 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Hero upload failed");
     } finally {
-      setUploadingFor(null);
+      setUploadingHero(false);
     }
   };
 
   const handleHeroAlt = (field: "alt_en" | "alt_el", value: string) => {
-    setDraft((prev) => prev.hero
-      ? { ...prev, hero: { ...prev.hero, [field]: value } }
-      : prev);
+    setDraft((prev) => prev.hero ? { ...prev, hero: { ...prev.hero, [field]: value } } : prev);
   };
 
-  const handleHeroClear = () => {
-    setDraft((prev) => ({ ...prev, hero: null }));
-  };
+  const handleHeroClear = () => setDraft((prev) => ({ ...prev, hero: null }));
 
-  // ---------- JOURNEY ----------
-  const handleJourneyUpload = async (id: string, file: File) => {
-    setUploadingFor(`journey-${id}`);
+  // ------------------------------------------------------------
+  // Custom upload — adds a new "custom" entry to the rotation
+  // ------------------------------------------------------------
+  const handleCustomUpload = async (file: File) => {
+    setUploadingNew(true);
     setError(null);
     try {
       const manifest = await uploadResponsivePhoto(file);
-      setDraft((prev) => ({
-        ...prev,
-        journey: prev.journey.map((s) =>
-          s.id === id
-            ? {
-                ...s,
-                url: manifest.url,
-                srcset: {
-                  "640": manifest.srcset[640],
-                  "1280": manifest.srcset[1280],
-                  "1920": manifest.srcset[1920],
-                },
-                width: manifest.width,
-                height: manifest.height,
-              }
-            : s),
-      }));
+      const slug = `upload-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+      const entry: CuratedEntry = {
+        kind: "custom",
+        slug,
+        url: manifest.url,
+        srcset: {
+          "640": manifest.srcset[640],
+          "1280": manifest.srcset[1280],
+          "1920": manifest.srcset[1920],
+        },
+        width: manifest.width,
+        height: manifest.height,
+        phases: ["evening"],
+        captionEN: "",
+        captionEL: "",
+        altEN: "",
+        altEL: "",
+        priority: 0,
+        hidden: false,
+        position: draft.curation.length,
+      };
+      setDraft((prev) => ({ ...prev, curation: [...prev.curation, entry] }));
+      setActiveTab("rotation");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Journey upload failed");
+      setError(e instanceof Error ? e.message : "Custom upload failed");
     } finally {
-      setUploadingFor(null);
+      setUploadingNew(false);
     }
   };
 
-  const handleJourneyAdd = () => {
-    setDraft((prev) => ({
-      ...prev,
-      journey: [
-        ...prev.journey,
-        {
-          id: genSlotId("journey"),
-          url: "",
-          alt_en: "",
-          alt_el: "",
-          caption_en: "",
-          caption_el: "",
-          position: prev.journey.length,
-        },
-      ],
-    }));
-  };
-
-  const handleJourneyChange = (id: string, patch: Partial<JourneySlot>) => {
-    setDraft((prev) => ({
-      ...prev,
-      journey: prev.journey.map((s) => (s.id === id ? { ...s, ...patch } : s)),
-    }));
-  };
-
-  const handleJourneyRemove = (id: string) => {
-    setDraft((prev) => ({
-      ...prev,
-      journey: prev.journey.filter((s) => s.id !== id).map((s, i) => ({ ...s, position: i })),
-    }));
-  };
-
-  const handleJourneyMove = (id: string, direction: -1 | 1) => {
-    setDraft((prev) => {
-      const idx = prev.journey.findIndex((s) => s.id === id);
-      if (idx < 0) return prev;
-      const next = [...prev.journey];
-      const swap = idx + direction;
-      if (swap < 0 || swap >= next.length) return prev;
-      [next[idx], next[swap]] = [next[swap], next[idx]];
-      return { ...prev, journey: next.map((s, i) => ({ ...s, position: i })) };
-    });
-  };
-
-  // ---------- GALLERY ----------
-  const handleGalleryUpload = async (id: string, file: File) => {
-    setUploadingFor(`gallery-${id}`);
-    setError(null);
-    try {
-      const manifest = await uploadResponsivePhoto(file);
-      setDraft((prev) => ({
-        ...prev,
-        gallery: prev.gallery.map((s) =>
-          s.id === id
-            ? {
-                ...s,
-                url: manifest.url,
-                srcset: {
-                  "640": manifest.srcset[640],
-                  "1280": manifest.srcset[1280],
-                  "1920": manifest.srcset[1920],
-                },
-                width: manifest.width,
-                height: manifest.height,
-              }
-            : s),
-      }));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Gallery upload failed");
-    } finally {
-      setUploadingFor(null);
-    }
-  };
-
-  const handleGalleryAdd = () => {
-    setDraft((prev) => ({
-      ...prev,
-      gallery: [
-        ...prev.gallery,
-        {
-          id: genSlotId("gallery"),
-          url: "",
-          alt_en: "",
-          alt_el: "",
-          position: prev.gallery.length,
-        },
-      ],
-    }));
-  };
-
-  const handleGalleryChange = (id: string, patch: Partial<GallerySlot>) => {
-    setDraft((prev) => ({
-      ...prev,
-      gallery: prev.gallery.map((s) => (s.id === id ? { ...s, ...patch } : s)),
-    }));
-  };
-
-  const handleGalleryRemove = (id: string) => {
-    setDraft((prev) => ({
-      ...prev,
-      gallery: prev.gallery.filter((s) => s.id !== id).map((s, i) => ({ ...s, position: i })),
-    }));
-  };
-
-  const handleGalleryMove = (id: string, direction: -1 | 1) => {
-    setDraft((prev) => {
-      const idx = prev.gallery.findIndex((s) => s.id === id);
-      if (idx < 0) return prev;
-      const next = [...prev.gallery];
-      const swap = idx + direction;
-      if (swap < 0 || swap >= next.length) return prev;
-      [next[idx], next[swap]] = [next[swap], next[idx]];
-      return { ...prev, gallery: next.map((s, i) => ({ ...s, position: i })) };
-    });
-  };
-
-  // ---------- SAVE ----------
+  // ------------------------------------------------------------
+  // Save
+  // ------------------------------------------------------------
   const handleSave = async () => {
     setSaving(true);
     setError(null);
     try {
-      // Drop empty journey/gallery slots (no image was ever uploaded).
       const cleaned: HomepagePhotosOverrides = {
         hero: draft.hero,
-        journey: draft.journey.filter((s) => s.url).map((s, i) => ({ ...s, position: i })),
-        gallery: draft.gallery.filter((s) => s.url).map((s, i) => ({ ...s, position: i })),
+        journey: [],
+        gallery: [],
+        curation: draft.curation.map((e, i) => ({ ...e, position: i })),
       };
       await saveHomepagePhotos(cleaned);
       setDraft(cleaned);
@@ -506,9 +475,25 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
     }
   };
 
+  // ------------------------------------------------------------
+  // Pre-compute lookup maps for the library grid
+  // ------------------------------------------------------------
+  const bundledSlugs = Object.keys(ALBUM1_PHOTOS);
+  const customEntries = draft.curation.filter((e) => e.kind === "custom");
+  const curatedCount = draft.curation.length;
+  const visibleCount = draft.curation.filter((e) => !e.hidden).length;
+
+  const phaseLabels: Record<DayPhase, string> = {
+    morning: "Morn",
+    afternoon: "Noon",
+    golden: "Gold",
+    evening: "Eve",
+    night: "Late",
+  };
+
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="photos-title">
-      <div className="modal modal--photos">
+      <div className="modal modal--photos modal--photos-wide">
         <div className="modal-header">
           <h2 id="photos-title" className="modal-title">Homepage Photos</h2>
           <button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
@@ -519,48 +504,249 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
           <button
             type="button"
             role="tab"
+            aria-selected={activeTab === "library"}
+            className={`modal-tab ${activeTab === "library" ? "modal-tab--active" : ""}`}
+            onClick={() => setActiveTab("library")}
+          >
+            Library
+            <span className="modal-tab__time">{bundledSlugs.length + customEntries.length} photos</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "rotation"}
+            className={`modal-tab ${activeTab === "rotation" ? "modal-tab--active" : ""}`}
+            onClick={() => setActiveTab("rotation")}
+          >
+            In Rotation
+            <span className="modal-tab__time">{visibleCount} of {curatedCount}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
             aria-selected={activeTab === "hero"}
             className={`modal-tab ${activeTab === "hero" ? "modal-tab--active" : ""}`}
             onClick={() => setActiveTab("hero")}
           >
-            Hero
-            <span className="modal-tab__time">{draft.hero ? "custom" : "default"}</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "journey"}
-            className={`modal-tab ${activeTab === "journey" ? "modal-tab--active" : ""}`}
-            onClick={() => setActiveTab("journey")}
-          >
-            Journey
-            <span className="modal-tab__time">{draft.journey.length} photos</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "gallery"}
-            className={`modal-tab ${activeTab === "gallery" ? "modal-tab--active" : ""}`}
-            onClick={() => setActiveTab("gallery")}
-          >
-            Gallery
-            <span className="modal-tab__time">{draft.gallery.length} photos</span>
+            Hero Override
+            <span className="modal-tab__time">{draft.hero ? "set" : "auto"}</span>
           </button>
         </div>
 
         <div className="modal-body">
-          <p className="schedule__intro">
-            Photos are auto-resized to 640 / 1280 / 1920 px before upload —
-            phones download the small size, laptops get the big one.
-          </p>
+          {/* ============ LIBRARY ============ */}
+          {activeTab === "library" && (
+            <section style={{ paddingTop: 0 }}>
+              <p className="schedule__intro">
+                These are all the photos available on the site. Click any photo
+                to add it to <strong>In Rotation</strong> (so it shows on the
+                homepage) or remove it. The 16 hand-picked photos that the site
+                ships with are marked. Upload your own at the bottom.
+              </p>
 
-          {/* HERO */}
+              {/* Custom uploads first if any */}
+              {customEntries.length > 0 && (
+                <>
+                  <h3 className="photo-section__title" style={{ marginTop: 0 }}>Your uploads ({customEntries.length})</h3>
+                  <div className="photo-library-grid">
+                    {customEntries.map((entry) => (
+                      <button
+                        key={entry.slug}
+                        type="button"
+                        className="photo-library-card photo-library-card--curated"
+                        onClick={() => removeFromRotation(entry.slug)}
+                        title="Click to remove from rotation"
+                      >
+                        <div className="photo-library-card__thumb">
+                          {entry.url && <img src={resolvePreviewUrl(entry.url)} alt="" />}
+                        </div>
+                        <div className="photo-library-card__meta">
+                          <span className="photo-library-card__badge photo-library-card__badge--in">In rotation</span>
+                          <span className="photo-library-card__name">Custom</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <h3 className="photo-section__title">Bundled photos ({bundledSlugs.length})</h3>
+              <div className="photo-library-grid">
+                {bundledSlugs.map((slug) => {
+                  const meta = ALBUM1_PHOTOS[slug];
+                  const curated = inRotation(slug);
+                  return (
+                    <button
+                      key={slug}
+                      type="button"
+                      className={`photo-library-card ${curated ? "photo-library-card--curated" : ""}`}
+                      onClick={() => toggleBundledRotation(slug)}
+                      onMouseEnter={() => setHoveredSlug(slug)}
+                      onMouseLeave={() => setHoveredSlug(null)}
+                      title={curated ? "Click to remove from rotation" : "Click to add to rotation"}
+                    >
+                      <div className="photo-library-card__thumb">
+                        <img src={meta.src.jpg[400]} alt="" loading="lazy" />
+                      </div>
+                      <div className="photo-library-card__meta">
+                        {curated ? (
+                          <span className="photo-library-card__badge photo-library-card__badge--in">In rotation</span>
+                        ) : (
+                          <span className="photo-library-card__badge">
+                            {hoveredSlug === slug ? "+ Add" : "Available"}
+                          </span>
+                        )}
+                        <span className="photo-library-card__name">{slug}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="photo-upload-cta">
+                <label className="btn btn--secondary">
+                  <Upload size={14} />
+                  {uploadingNew ? "Uploading…" : "Upload a new photo"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) void handleCustomUpload(f);
+                      e.target.value = "";
+                    }}
+                    disabled={uploadingNew}
+                  />
+                </label>
+                <span className="photo-upload-cta__hint">
+                  Auto-resized to 640 / 1280 / 1920 px. Added straight to In Rotation.
+                </span>
+              </div>
+            </section>
+          )}
+
+          {/* ============ IN ROTATION ============ */}
+          {activeTab === "rotation" && (
+            <section style={{ paddingTop: 0 }}>
+              <p className="schedule__intro">
+                These photos run on the homepage. Edit captions and phase tags
+                here. The hero shows the highest-priority photo matching the
+                current time of day. The journey strip scrolls through all
+                visible photos in the order below.
+              </p>
+
+              {draft.curation.length === 0 ? (
+                <div className="admin-empty"><p>No photos in rotation. Go to Library and pick some.</p></div>
+              ) : (
+                <ul className="rotation-list">
+                  {draft.curation.map((entry, idx) => {
+                    const thumbUrl = entry.kind === "bundled"
+                      ? ALBUM1_PHOTOS[entry.slug]?.src.jpg[400]
+                      : entry.url ? resolvePreviewUrl(entry.url) : "";
+                    return (
+                      <li key={entry.slug} className={`rotation-row ${entry.hidden ? "rotation-row--hidden" : ""}`}>
+                        <div className="rotation-row__thumb">
+                          {thumbUrl && <img src={thumbUrl} alt="" loading="lazy" />}
+                        </div>
+                        <div className="rotation-row__main">
+                          <div className="rotation-row__head">
+                            <span className="rotation-row__slug">
+                              {entry.kind === "bundled" ? entry.slug : `Custom · ${entry.slug.slice(0, 14)}…`}
+                            </span>
+                            <span className="rotation-row__actions">
+                              <button
+                                type="button"
+                                className="schedule__order-btn"
+                                aria-label="Move up"
+                                disabled={idx === 0}
+                                onClick={() => moveEntry(entry.slug, -1)}
+                              ><ChevronUp size={14} /></button>
+                              <button
+                                type="button"
+                                className="schedule__order-btn"
+                                aria-label="Move down"
+                                disabled={idx === draft.curation.length - 1}
+                                onClick={() => moveEntry(entry.slug, 1)}
+                              ><ChevronDown size={14} /></button>
+                              <button
+                                type="button"
+                                className={`schedule__order-btn ${entry.hidden ? "subcat-edit-hide--on" : ""}`}
+                                aria-label={entry.hidden ? "Show on homepage" : "Hide from homepage"}
+                                aria-pressed={entry.hidden}
+                                onClick={() => updateEntry(entry.slug, { hidden: !entry.hidden })}
+                              >{entry.hidden ? <EyeOff size={14} /> : <Eye size={14} />}</button>
+                              <button
+                                type="button"
+                                className="schedule__order-btn"
+                                aria-label="Remove from rotation"
+                                onClick={() => removeFromRotation(entry.slug)}
+                              ><Trash2 size={14} /></button>
+                            </span>
+                          </div>
+
+                          <div className="rotation-row__phases" role="group" aria-label="Day phases">
+                            {(["morning", "afternoon", "golden", "evening", "night"] as DayPhase[]).map((p) => (
+                              <button
+                                key={p}
+                                type="button"
+                                className={`phase-chip ${entry.phases.includes(p) ? "phase-chip--on" : ""}`}
+                                aria-pressed={entry.phases.includes(p)}
+                                onClick={() => togglePhase(entry.slug, p)}
+                              >
+                                {phaseLabels[p]}
+                              </button>
+                            ))}
+                            <label className="rotation-row__priority">
+                              <span>Priority</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={10}
+                                step={1}
+                                value={entry.priority}
+                                onChange={(e) => updateEntry(entry.slug, { priority: parseInt(e.target.value, 10) || 0 })}
+                                className="schedule__input"
+                              />
+                            </label>
+                          </div>
+
+                          <div className="rotation-row__captions">
+                            <label className="subcat-edit-field">
+                              <span className="subcat-edit-field__label">Caption (EN)</span>
+                              <input
+                                type="text"
+                                className="form-input form-input--sm"
+                                value={entry.captionEN}
+                                onChange={(e) => updateEntry(entry.slug, { captionEN: e.target.value })}
+                              />
+                            </label>
+                            <label className="subcat-edit-field">
+                              <span className="subcat-edit-field__label">Caption (EL)</span>
+                              <input
+                                type="text"
+                                className="form-input form-input--sm"
+                                value={entry.captionEL}
+                                onChange={(e) => updateEntry(entry.slug, { captionEL: e.target.value })}
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+          )}
+
+          {/* ============ HERO OVERRIDE ============ */}
           {activeTab === "hero" && (
-            <section className="photo-section" style={{ borderBottom: "none", paddingTop: 0 }}>
-              <h3 className="photo-section__title">Hero photo</h3>
-              <p className="photo-section__hint">
-                Full-bleed photo at the top of the homepage. Leave blank and the
-                site auto-picks a time-of-day photo from the built-in set.
+            <section style={{ paddingTop: 0 }}>
+              <p className="schedule__intro">
+                Set a specific photo as the homepage hero, locking it in regardless
+                of time of day. Leave this empty (Use auto-rotation) to let the
+                site pick the highest-priority photo for the current phase.
               </p>
               <div className="photo-hero-card">
                 <div className="photo-hero-card__preview">
@@ -569,14 +755,14 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
                   ) : (
                     <div className="photo-hero-card__placeholder">
                       <ImageIcon size={32} strokeWidth={1.4} />
-                      <span>Using built-in default</span>
+                      <span>Auto-rotation (recommended)</span>
                     </div>
                   )}
                 </div>
                 <div className="photo-hero-card__controls">
                   <label className="btn btn--secondary">
                     <Upload size={14} />
-                    {uploadingFor === "hero" ? "Uploading…" : draft.hero?.url ? "Replace" : "Upload photo"}
+                    {uploadingHero ? "Uploading…" : draft.hero?.url ? "Replace" : "Upload hero override"}
                     <input
                       type="file"
                       accept="image/*"
@@ -586,7 +772,7 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
                         if (f) void handleHeroUpload(f);
                         e.target.value = "";
                       }}
-                      disabled={uploadingFor !== null}
+                      disabled={uploadingHero}
                     />
                   </label>
                   {draft.hero && (
@@ -598,7 +784,6 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
                           className="form-input form-input--sm"
                           value={draft.hero.alt_en}
                           onChange={(e) => handleHeroAlt("alt_en", e.target.value)}
-                          placeholder="e.g. The sea at golden hour outside Home Seaside"
                         />
                       </label>
                       <label className="subcat-edit-field">
@@ -608,11 +793,10 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
                           className="form-input form-input--sm"
                           value={draft.hero.alt_el}
                           onChange={(e) => handleHeroAlt("alt_el", e.target.value)}
-                          placeholder="π.χ. Η θάλασσα στη χρυσή ώρα έξω από το Home Seaside"
                         />
                       </label>
                       <button type="button" className="btn btn--danger btn--sm" onClick={handleHeroClear}>
-                        <Trash2 size={14} /> Use built-in default again
+                        <Trash2 size={14} /> Use auto-rotation
                       </button>
                     </>
                   )}
@@ -621,167 +805,13 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
             </section>
           )}
 
-          {/* JOURNEY */}
-          {activeTab === "journey" && (
-            <section className="photo-section" style={{ borderBottom: "none", paddingTop: 0 }}>
-              <h3 className="photo-section__title">Journey photos</h3>
-              <p className="photo-section__hint">
-                Photos that scroll through morning → night on the homepage.
-                Order them with the arrows — they appear in this exact order.
-              </p>
-              <ul className="photo-slot-list">
-                {draft.journey.map((slot, idx) => (
-                  <li key={slot.id} className="photo-slot">
-                    <div className="photo-slot__thumb">
-                      {slot.url
-                        ? <img src={resolvePreviewUrl(slot.url)} alt="" />
-                        : <div className="photo-slot__placeholder"><ImageIcon size={24} /></div>}
-                    </div>
-                    <div className="photo-slot__fields">
-                      <label className="btn btn--secondary btn--sm">
-                        <Upload size={12} />
-                        {uploadingFor === `journey-${slot.id}` ? "Uploading…" : slot.url ? "Replace" : "Upload"}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          style={{ display: "none" }}
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) void handleJourneyUpload(slot.id, f);
-                            e.target.value = "";
-                          }}
-                          disabled={uploadingFor !== null}
-                        />
-                      </label>
-                      <div className="subcat-edit-fields">
-                        <label className="subcat-edit-field">
-                          <span className="subcat-edit-field__label">Caption (EN)</span>
-                          <input type="text" className="form-input form-input--sm"
-                            value={slot.caption_en}
-                            onChange={(e) => handleJourneyChange(slot.id, { caption_en: e.target.value })} />
-                        </label>
-                        <label className="subcat-edit-field">
-                          <span className="subcat-edit-field__label">Caption (EL)</span>
-                          <input type="text" className="form-input form-input--sm"
-                            value={slot.caption_el}
-                            onChange={(e) => handleJourneyChange(slot.id, { caption_el: e.target.value })} />
-                        </label>
-                      </div>
-                    </div>
-                    <div className="photo-slot__controls">
-                      <button type="button" className="schedule__order-btn"
-                        aria-label="Move up" disabled={idx === 0}
-                        onClick={() => handleJourneyMove(slot.id, -1)}>
-                        <ChevronUp size={14} />
-                      </button>
-                      <button type="button" className="schedule__order-btn"
-                        aria-label="Move down" disabled={idx === draft.journey.length - 1}
-                        onClick={() => handleJourneyMove(slot.id, 1)}>
-                        <ChevronDown size={14} />
-                      </button>
-                      <button type="button" className="schedule__order-btn"
-                        aria-label="Remove photo"
-                        onClick={() => handleJourneyRemove(slot.id)}>
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <button type="button" className="btn btn--secondary btn--sm" onClick={handleJourneyAdd}>
-                <Plus size={14} /> Add journey photo
-              </button>
-              <p className="photo-section__deferred">
-                Journey photos save to the server. Customer-side display currently
-                shows bundled photos — uploaded ones will appear on the homepage
-                once the homepage strip is wired up (on the punch list).
-              </p>
-            </section>
-          )}
-
-          {/* GALLERY */}
-          {activeTab === "gallery" && (
-            <section className="photo-section" style={{ borderBottom: "none", paddingTop: 0 }}>
-              <h3 className="photo-section__title">Gallery photos</h3>
-              <p className="photo-section__hint">
-                Supporting photos for the homepage gallery strip. Add as many as you want.
-              </p>
-              <ul className="photo-slot-list">
-                {draft.gallery.map((slot, idx) => (
-                  <li key={slot.id} className="photo-slot">
-                    <div className="photo-slot__thumb">
-                      {slot.url
-                        ? <img src={resolvePreviewUrl(slot.url)} alt="" />
-                        : <div className="photo-slot__placeholder"><ImageIcon size={24} /></div>}
-                    </div>
-                    <div className="photo-slot__fields">
-                      <label className="btn btn--secondary btn--sm">
-                        <Upload size={12} />
-                        {uploadingFor === `gallery-${slot.id}` ? "Uploading…" : slot.url ? "Replace" : "Upload"}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          style={{ display: "none" }}
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) void handleGalleryUpload(slot.id, f);
-                            e.target.value = "";
-                          }}
-                          disabled={uploadingFor !== null}
-                        />
-                      </label>
-                      <div className="subcat-edit-fields">
-                        <label className="subcat-edit-field">
-                          <span className="subcat-edit-field__label">Alt (EN)</span>
-                          <input type="text" className="form-input form-input--sm"
-                            value={slot.alt_en}
-                            onChange={(e) => handleGalleryChange(slot.id, { alt_en: e.target.value })} />
-                        </label>
-                        <label className="subcat-edit-field">
-                          <span className="subcat-edit-field__label">Alt (EL)</span>
-                          <input type="text" className="form-input form-input--sm"
-                            value={slot.alt_el}
-                            onChange={(e) => handleGalleryChange(slot.id, { alt_el: e.target.value })} />
-                        </label>
-                      </div>
-                    </div>
-                    <div className="photo-slot__controls">
-                      <button type="button" className="schedule__order-btn"
-                        aria-label="Move up" disabled={idx === 0}
-                        onClick={() => handleGalleryMove(slot.id, -1)}>
-                        <ChevronUp size={14} />
-                      </button>
-                      <button type="button" className="schedule__order-btn"
-                        aria-label="Move down" disabled={idx === draft.gallery.length - 1}
-                        onClick={() => handleGalleryMove(slot.id, 1)}>
-                        <ChevronDown size={14} />
-                      </button>
-                      <button type="button" className="schedule__order-btn"
-                        aria-label="Remove photo"
-                        onClick={() => handleGalleryRemove(slot.id)}>
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <button type="button" className="btn btn--secondary btn--sm" onClick={handleGalleryAdd}>
-                <Plus size={14} /> Add gallery photo
-              </button>
-              <p className="photo-section__deferred">
-                Gallery customer-side display wiring is on the punch list —
-                uploads save to the server but the homepage still shows the
-                bundled photos for now.
-              </p>
-            </section>
-          )}
-
           {error && <div className="schedule__error" role="alert">{error}</div>}
         </div>
+
         <div className="modal-footer">
           <div className="modal-footer__right">
-            <button className="btn btn--secondary" onClick={onClose} disabled={saving || uploadingFor !== null}>Cancel</button>
-            <button className="btn btn--primary" onClick={handleSave} disabled={saving || uploadingFor !== null}>
+            <button className="btn btn--secondary" onClick={onClose} disabled={saving || uploadingNew || uploadingHero}>Cancel</button>
+            <button className="btn btn--primary" onClick={handleSave} disabled={saving || uploadingNew || uploadingHero}>
               {saving ? "Saving…" : "Save photos"}
             </button>
           </div>
