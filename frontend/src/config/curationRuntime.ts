@@ -56,19 +56,38 @@ export function getCurationAll(): CuratedEntry[] {
 }
 
 /**
- * Hero rotation. Picks the highest-priority entry whose `phases` includes
- * the current day-phase. If nothing matches, falls back to the first
- * visible entry (so the hero never goes blank).
+ * Hero rotation.
+ *
+ * Resolution order:
+ *   1. `hero_picks[phase]` — if the admin has explicitly locked a slug
+ *      for this phase, that wins (provided the slug still exists and
+ *      isn't hidden).
+ *   2. Highest-priority visible entry whose `phases` includes the phase.
+ *   3. First visible entry in the curation — so the hero never goes blank.
  */
 export function getHeroEntryForPhase(phase: DayPhase): CuratedEntry | null {
+  const photos = getHomepagePhotos();
   const list = getCuration();
   if (list.length === 0) return null;
+
+  // 1. Explicit pick wins.
+  const lockedSlug = photos.hero_picks?.[phase];
+  if (lockedSlug) {
+    const locked = list.find((e) => e.slug === lockedSlug);
+    if (locked) return locked;
+  }
+
+  // 2. Priority-based match.
   const matches = list.filter((e) => e.phases.includes(phase));
-  if (matches.length === 0) return list[0];
-  return matches.reduce(
-    (best, e) => (e.priority > best.priority ? e : best),
-    matches[0],
-  );
+  if (matches.length > 0) {
+    return matches.reduce(
+      (best, e) => (e.priority > best.priority ? e : best),
+      matches[0],
+    );
+  }
+
+  // 3. Anything visible, so we don't render an empty hero.
+  return list[0];
 }
 
 /**

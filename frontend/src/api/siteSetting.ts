@@ -16,6 +16,12 @@ export interface SiteSettingPayload {
   subcategories: Record<string, SubcategoryMeta[]>; // keyed by main_category
   homepage_photos: {
     hero: PhotoSlot | null;
+    /**
+     * Per-phase locked hero. Each value is either a slug present in the
+     * curation list, or null = "auto-pick highest-priority matching photo".
+     * Five fixed slots, one per phase.
+     */
+    hero_picks: Record<DayPhase, string | null>;
     journey: JourneySlot[];     // legacy — superseded by `curation`
     gallery: GallerySlot[];     // legacy — superseded by `curation`
     curation: CuratedEntry[];   // unified library: bundled refs + custom uploads

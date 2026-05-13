@@ -1279,7 +1279,221 @@
   gap: var(--sp-3);
 }
 
-/* ---- Hero "what's showing now" preview card ---- */
+/* ---- Hero Override — 5 per-phase slot cards ---- */
+.hero-slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.hero-slot {
+  background: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--duration-fast) var(--ease-in-out);
+}
+
+.hero-slot--now {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-soft);
+}
+
+.hero-slot__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.hero-slot__phase-info {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.hero-slot__phase-name {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.hero-slot__phase-range {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
+}
+
+.hero-slot__now-badge {
+  font-size: 10px;
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px var(--sp-2);
+  border-radius: var(--radius-full);
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
+}
+
+.hero-slot__status {
+  font-size: 10px;
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px var(--sp-3);
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+}
+
+.hero-slot__status--locked {
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+}
+
+.hero-slot__body {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.hero-slot__preview {
+  aspect-ratio: 16 / 9;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.hero-slot__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hero-slot__preview-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  text-align: center;
+  padding: var(--sp-3);
+}
+
+.hero-slot__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.hero-slot__current {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-slot__current-meta {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.hero-slot__actions {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.hero-slot__picker {
+  border-top: 1px solid var(--border-secondary);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-secondary);
+}
+
+.hero-slot__picker-hint {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin-bottom: var(--sp-3);
+}
+
+.hero-slot__picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: var(--sp-2);
+}
+
+.hero-slot__pick {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: var(--bg-card);
+  cursor: pointer;
+  padding: 0;
+  transition: border-color var(--duration-fast) var(--ease-in-out),
+              transform var(--duration-fast) var(--ease-in-out);
+}
+
+.hero-slot__pick:hover {
+  border-color: var(--accent-primary);
+  transform: scale(1.03);
+}
+
+.hero-slot__pick--selected {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.hero-slot__pick img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hero-slot__pick-tick {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: var(--fw-bold);
+  border-radius: 50%;
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
+}
+
+@media (max-width: 640px) {
+  .hero-slot__body {
+    grid-template-columns: 1fr;
+  }
+  .hero-slot__preview {
+    max-width: 280px;
+  }
+}
+
+/* ---- Hero "what's showing now" preview card (legacy — kept for back-compat) ---- */
 .hero-current-preview {
   display: grid;
   grid-template-columns: 96px 1fr;

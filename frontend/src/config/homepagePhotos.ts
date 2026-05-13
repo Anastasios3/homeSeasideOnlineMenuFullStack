@@ -25,13 +25,23 @@ import type { DayPhase } from "./schedule";
 
 export interface HomepagePhotosOverrides {
   hero: PhotoSlot | null;
+  hero_picks: Record<DayPhase, string | null>;
   journey: JourneySlot[];
   gallery: GallerySlot[];
   curation: CuratedEntry[];
 }
 
+export const EMPTY_HERO_PICKS: Record<DayPhase, string | null> = {
+  morning: null,
+  afternoon: null,
+  golden: null,
+  evening: null,
+  night: null,
+};
+
 export const EMPTY_HOMEPAGE_PHOTOS: HomepagePhotosOverrides = {
   hero: null,
+  hero_picks: { ...EMPTY_HERO_PICKS },
   journey: [],
   gallery: [],
   curation: [],
@@ -48,10 +58,20 @@ function isPhotoSlot(x: unknown): x is PhotoSlot {
 }
 
 function normalize(raw: unknown): HomepagePhotosOverrides {
-  const out: HomepagePhotosOverrides = { ...EMPTY_HOMEPAGE_PHOTOS };
+  const out: HomepagePhotosOverrides = {
+    ...EMPTY_HOMEPAGE_PHOTOS,
+    hero_picks: { ...EMPTY_HERO_PICKS },
+  };
   if (!raw || typeof raw !== "object") return out;
   const r = raw as Record<string, unknown>;
   if (isPhotoSlot(r.hero)) out.hero = r.hero;
+  if (r.hero_picks && typeof r.hero_picks === "object") {
+    const hp = r.hero_picks as Record<string, unknown>;
+    for (const phase of ["morning", "afternoon", "golden", "evening", "night"] as DayPhase[]) {
+      const v = hp[phase];
+      out.hero_picks[phase] = typeof v === "string" && v.length > 0 ? v : null;
+    }
+  }
   if (Array.isArray(r.journey)) {
     out.journey = r.journey
       .filter((x): x is JourneySlot =>

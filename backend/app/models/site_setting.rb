@@ -85,9 +85,24 @@ class SiteSetting
   def self.default_homepage_photos
     {
       "hero" => nil,
+      "hero_picks" => default_hero_picks,
       "journey" => [],
       "gallery" => [],
       "curation" => default_curation
+    }
+  end
+
+  # Per-phase locked hero. Each value is either a slug present in the
+  # curation list, or nil = "auto-pick highest-priority matching photo".
+  # Five fixed slots, one per phase — the admin sees them as five hero
+  # cards in the Hero Override tab.
+  def self.default_hero_picks
+    {
+      "morning"   => nil,
+      "afternoon" => nil,
+      "golden"    => nil,
+      "evening"   => nil,
+      "night"     => nil
     }
   end
 

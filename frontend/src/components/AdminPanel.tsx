@@ -361,10 +361,12 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
   const [uploadingNew, setUploadingNew] = useState(false);
   const [activeTab, setActiveTab] = useState<"library" | "rotation" | "hero">("library");
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
-  /** Pending File for the Hero Override cropper. Null = no cropper open. */
-  const [heroCropFile, setHeroCropFile] = useState<File | null>(null);
+  /** Pending crop+upload for a specific hero slot. Null = no cropper open. */
+  const [heroCropFor, setHeroCropFor] = useState<{ phase: DayPhase; file: File } | null>(null);
   /** Pending File for a Library "upload new photo" cropper. */
   const [libraryCropFile, setLibraryCropFile] = useState<File | null>(null);
+  /** Which hero slot is showing the inline library picker (null = none open). */
+  const [pickerOpenFor, setPickerOpenFor] = useState<DayPhase | null>(null);
 
   const { phase: currentPhase } = useTimeOfDay();
 
@@ -467,28 +469,59 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
   };
 
   // ------------------------------------------------------------
-  // Hero override (manual lock — bypasses curation rotation)
+  // Per-phase hero picks
+  //
+  // Each of the 5 phases has a "hero pick" slug. If set, that slug from
+  // the curation list is locked as the hero whenever the site is in that
+  // phase. If null, the rotation falls back to the highest-priority
+  // matching entry.
+  //
+  // Uploading a new hero for phase X:
+  //   1. Resize + WebP via uploadResponsivePhoto
+  //   2. Add a `kind: custom` entry to the curation tagged with phase X
+  //      and a high priority (so it also wins the auto-rotation)
+  //   3. Set hero_picks[X] = newSlug
   // ------------------------------------------------------------
+  const updateHeroPick = (phase: DayPhase, slug: string | null) => {
+    setDraft((prev) => ({
+      ...prev,
+      hero_picks: { ...prev.hero_picks, [phase]: slug },
+    }));
+  };
+
   const handleHeroCropDone = async (blob: Blob) => {
-    setHeroCropFile(null);
+    if (!heroCropFor) return;
+    const targetPhase = heroCropFor.phase;
+    setHeroCropFor(null);
     setUploadingHero(true);
     setError(null);
     try {
       const manifest = await uploadResponsivePhoto(blob);
+      const slug = `upload-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+      const entry: CuratedEntry = {
+        kind: "custom",
+        slug,
+        url: manifest.url,
+        srcset: {
+          "640": manifest.srcset[640],
+          "1280": manifest.srcset[1280],
+          "1920": manifest.srcset[1920],
+        },
+        width: manifest.width,
+        height: manifest.height,
+        phases: [targetPhase],
+        captionEN: "",
+        captionEL: "",
+        altEN: "",
+        altEL: "",
+        priority: 10,
+        hidden: false,
+        position: draft.curation.length,
+      };
       setDraft((prev) => ({
         ...prev,
-        hero: {
-          url: manifest.url,
-          srcset: {
-            "640": manifest.srcset[640],
-            "1280": manifest.srcset[1280],
-            "1920": manifest.srcset[1920],
-          },
-          width: manifest.width,
-          height: manifest.height,
-          alt_en: prev.hero?.alt_en ?? "",
-          alt_el: prev.hero?.alt_el ?? "",
-        },
+        curation: [...prev.curation, entry],
+        hero_picks: { ...prev.hero_picks, [targetPhase]: slug },
       }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Hero upload failed");
@@ -496,12 +529,6 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
       setUploadingHero(false);
     }
   };
-
-  const handleHeroAlt = (field: "alt_en" | "alt_el", value: string) => {
-    setDraft((prev) => prev.hero ? { ...prev, hero: { ...prev.hero, [field]: value } } : prev);
-  };
-
-  const handleHeroClear = () => setDraft((prev) => ({ ...prev, hero: null }));
 
   // ------------------------------------------------------------
   // Custom upload — adds a new "custom" entry to the rotation
@@ -551,6 +578,7 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
     try {
       const cleaned: HomepagePhotosOverrides = {
         hero: draft.hero,
+        hero_picks: { ...draft.hero_picks },
         journey: [],
         gallery: [],
         curation: sortedCuration.map((e, i) => ({ ...e, position: i })),
@@ -567,16 +595,35 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
   };
 
   // ------------------------------------------------------------
-  // Current rotation hero — what would auto-rotate as the hero right now
-  // (used as a preview in the Hero Override tab)
+  // Per-phase hero resolver — applies the same logic as
+  // curationRuntime.getHeroEntryForPhase but against the current draft
+  // (so the admin sees pending edits reflected immediately).
+  //
+  // Resolution: explicit pick → highest-priority match → first visible.
   // ------------------------------------------------------------
-  const currentRotationHero = useMemo((): CuratedEntry | null => {
+  const heroForPhase = useCallback((phase: DayPhase): CuratedEntry | null => {
     const visible = draft.curation.filter((e) => !e.hidden);
     if (visible.length === 0) return null;
-    const matches = visible.filter((e) => e.phases.includes(currentPhase));
-    if (matches.length === 0) return visible[0];
-    return matches.reduce((best, e) => (e.priority > best.priority ? e : best), matches[0]);
-  }, [draft.curation, currentPhase]);
+    const lockedSlug = draft.hero_picks[phase];
+    if (lockedSlug) {
+      const locked = visible.find((e) => e.slug === lockedSlug);
+      if (locked) return locked;
+    }
+    const matches = visible.filter((e) => e.phases.includes(phase));
+    if (matches.length > 0) {
+      return matches.reduce((best, e) => (e.priority > best.priority ? e : best), matches[0]);
+    }
+    return visible[0];
+  }, [draft.curation, draft.hero_picks]);
+
+  // Time-range labels per phase, derived from the current schedule cutoffs.
+  const scheduleCutoffs = getSchedule().cutoffs;
+  const timeRangeFor = (phase: DayPhase): string => {
+    const idx = PHASE_ORDER.indexOf(phase);
+    const next = PHASE_ORDER[(idx + 1) % PHASE_ORDER.length];
+    const fmt = (h: number) => `${String(h).padStart(2, "0")}:00`;
+    return `${fmt(scheduleCutoffs[phase])}–${fmt(scheduleCutoffs[next])}`;
+  };
 
   const resolveThumb = (entry: CuratedEntry): string => {
     if (entry.kind === "bundled") {
@@ -868,104 +915,143 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
               )}
             </section>
           )}
-
-          {/* ============ HERO OVERRIDE ============ */}
+          {/* ============ HERO OVERRIDE — 5 per-phase slots ============ */}
           {activeTab === "hero" && (
             <section style={{ paddingTop: 0 }}>
               <p className="schedule__intro">
-                The hero auto-rotates by time of day — the highest-priority
-                photo matching the current phase wins. Lock a specific photo in
-                here to override the rotation. Uploaded photos are cropped to
-                16:9 and saved as compressed WebP at three sizes.
+                Five fixed hero slots, one per phase. Whatever you lock here
+                shows as the homepage hero during that time window. Leave a
+                slot on "Auto" and the rotation picks the highest-priority
+                photo whose phase tag matches.
               </p>
 
-              {/* Live preview — what's showing on the homepage right now */}
-              {currentRotationHero && !draft.hero && (
-                <div className="hero-current-preview">
-                  <div className="hero-current-preview__thumb">
-                    {(() => {
-                      const t = resolveThumb(currentRotationHero);
-                      return t ? <img src={t} alt="" /> : null;
-                    })()}
-                  </div>
-                  <div className="hero-current-preview__info">
-                    <span className="hero-current-preview__label">Currently shown on the homepage</span>
-                    <span className="hero-current-preview__slug">
-                      {currentRotationHero.kind === "bundled"
-                        ? currentRotationHero.slug
-                        : "Custom upload"}
-                    </span>
-                    <span className="hero-current-preview__meta">
-                      Phase: <strong>{phaseHeaderLabels[currentPhase]}</strong> ·
-                      Priority {currentRotationHero.priority} ·
-                      {currentRotationHero.captionEN || "—"}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Cropper takes over the tab while a file is selected */}
-              {heroCropFile ? (
+              {/* Cropper takes over the body while uploading for a slot */}
+              {heroCropFor ? (
                 <ImageCropper
-                  file={heroCropFile}
+                  file={heroCropFor.file}
                   aspectRatio={16 / 9}
                   onCrop={(blob) => void handleHeroCropDone(blob)}
-                  onCancel={() => setHeroCropFile(null)}
+                  onCancel={() => setHeroCropFor(null)}
                 />
               ) : (
-                <div className="photo-hero-card">
-                  <div className="photo-hero-card__preview">
-                    {draft.hero?.url ? (
-                      <img src={resolvePreviewUrl(draft.hero.url)} alt="" />
-                    ) : (
-                      <div className="photo-hero-card__placeholder">
-                        <ImageIcon size={32} strokeWidth={1.4} />
-                        <span>Auto-rotation (recommended)</span>
+                <div className="hero-slot-list">
+                  {PHASE_ORDER.map((phase) => {
+                    const lockedSlug = draft.hero_picks[phase];
+                    const resolved = heroForPhase(phase);
+                    const isNow = phase === currentPhase;
+                    const isPickerOpen = pickerOpenFor === phase;
+                    const visibleCuration = draft.curation.filter((e) => !e.hidden);
+                    return (
+                      <div key={phase} className={`hero-slot ${isNow ? "hero-slot--now" : ""}`}>
+                        <div className="hero-slot__header">
+                          <div className="hero-slot__phase-info">
+                            <span className="hero-slot__phase-name">{phaseHeaderLabels[phase]}</span>
+                            <span className="hero-slot__phase-range">{timeRangeFor(phase)}</span>
+                            {isNow && <span className="hero-slot__now-badge">Now</span>}
+                          </div>
+                          <span className={`hero-slot__status ${lockedSlug ? "hero-slot__status--locked" : ""}`}>
+                            {lockedSlug ? "Locked" : "Auto"}
+                          </span>
+                        </div>
+                        <div className="hero-slot__body">
+                          <div className="hero-slot__preview">
+                            {resolved ? (
+                              (() => {
+                                const t = resolveThumb(resolved);
+                                return t ? <img src={t} alt="" /> : (
+                                  <div className="hero-slot__preview-empty">
+                                    <ImageIcon size={28} strokeWidth={1.4} />
+                                    <span>No matching photo</span>
+                                  </div>
+                                );
+                              })()
+                            ) : (
+                              <div className="hero-slot__preview-empty">
+                                <ImageIcon size={28} strokeWidth={1.4} />
+                                <span>No photos in rotation</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="hero-slot__details">
+                            <span className="hero-slot__current">
+                              {resolved
+                                ? (resolved.kind === "bundled" ? resolved.slug : `Custom upload`)
+                                : "—"}
+                            </span>
+                            <span className="hero-slot__current-meta">
+                              {resolved?.captionEN || (resolved ? "No caption" : "Add photos in the Library tab")}
+                            </span>
+                            <div className="hero-slot__actions">
+                              <button
+                                type="button"
+                                className="btn btn--secondary btn--sm"
+                                onClick={() => setPickerOpenFor(isPickerOpen ? null : phase)}
+                                disabled={visibleCuration.length === 0}
+                              >
+                                {isPickerOpen ? "Close picker" : "Pick from library"}
+                              </button>
+                              <label className="btn btn--secondary btn--sm">
+                                <Upload size={12} />
+                                {uploadingHero ? "Uploading…" : "Upload new"}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  style={{ display: "none" }}
+                                  onChange={(e) => {
+                                    const f = e.target.files?.[0];
+                                    if (f) setHeroCropFor({ phase, file: f });
+                                    e.target.value = "";
+                                  }}
+                                  disabled={uploadingHero}
+                                />
+                              </label>
+                              {lockedSlug && (
+                                <button
+                                  type="button"
+                                  className="btn btn--danger btn--sm"
+                                  onClick={() => updateHeroPick(phase, null)}
+                                >
+                                  Reset to auto
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Inline library picker — shows all visible curation
+                            entries; click a thumb to lock that slug for this phase */}
+                        {isPickerOpen && (
+                          <div className="hero-slot__picker">
+                            <div className="hero-slot__picker-hint">
+                              Click any photo to lock it as the {phaseHeaderLabels[phase].toLowerCase()} hero.
+                              {visibleCuration.length === 0 && " (No photos in rotation yet — add some from the Library tab.)"}
+                            </div>
+                            <div className="hero-slot__picker-grid">
+                              {visibleCuration.map((entry) => {
+                                const selected = entry.slug === lockedSlug;
+                                const t = resolveThumb(entry);
+                                return (
+                                  <button
+                                    key={entry.slug}
+                                    type="button"
+                                    className={`hero-slot__pick ${selected ? "hero-slot__pick--selected" : ""}`}
+                                    onClick={() => {
+                                      updateHeroPick(phase, entry.slug);
+                                      setPickerOpenFor(null);
+                                    }}
+                                    title={entry.kind === "bundled" ? entry.slug : "Custom upload"}
+                                  >
+                                    {t && <img src={t} alt="" loading="lazy" />}
+                                    {selected && <span className="hero-slot__pick-tick">✓</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="photo-hero-card__controls">
-                    <label className="btn btn--secondary">
-                      <Upload size={14} />
-                      {uploadingHero ? "Uploading…" : draft.hero?.url ? "Replace (crop + WebP)" : "Upload hero (crop + WebP)"}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) setHeroCropFile(f);
-                          e.target.value = "";
-                        }}
-                        disabled={uploadingHero}
-                      />
-                    </label>
-                    {draft.hero && (
-                      <>
-                        <label className="subcat-edit-field">
-                          <span className="subcat-edit-field__label">Alt text (English)</span>
-                          <input
-                            type="text"
-                            className="form-input form-input--sm"
-                            value={draft.hero.alt_en}
-                            onChange={(e) => handleHeroAlt("alt_en", e.target.value)}
-                          />
-                        </label>
-                        <label className="subcat-edit-field">
-                          <span className="subcat-edit-field__label">Alt text (Ελληνικά)</span>
-                          <input
-                            type="text"
-                            className="form-input form-input--sm"
-                            value={draft.hero.alt_el}
-                            onChange={(e) => handleHeroAlt("alt_el", e.target.value)}
-                          />
-                        </label>
-                        <button type="button" className="btn btn--danger btn--sm" onClick={handleHeroClear}>
-                          <Trash2 size={14} /> Use auto-rotation
-                        </button>
-                      </>
-                    )}
-                  </div>
+                    );
+                  })}
                 </div>
               )}
             </section>

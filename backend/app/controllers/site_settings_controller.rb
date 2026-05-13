@@ -45,6 +45,8 @@ class SiteSettingsController < ApplicationController
     if homepage["curation"].blank?
       homepage["curation"] = SiteSetting.default_curation
     end
+    # Backfill hero_picks for documents created before this field existed.
+    homepage["hero_picks"] = SiteSetting.default_hero_picks.merge(homepage["hero_picks"] || {})
 
     {
       schedule:        setting.schedule       || SiteSetting.default_schedule,
