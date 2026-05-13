@@ -983,6 +983,167 @@
   }
 }
 
+/* ---- Photo Manager (homepage hero / journey / gallery) ---- */
+.modal--photos {
+  max-width: 880px;
+  width: 100%;
+}
+
+.photo-section {
+  padding: var(--sp-5) 0;
+  border-bottom: 1px dashed var(--border-secondary);
+}
+
+.photo-section:last-of-type {
+  border-bottom: none;
+}
+
+.photo-section__title {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-semibold);
+  margin: 0 0 var(--sp-2);
+  color: var(--text-primary);
+}
+
+.photo-section__hint {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--sp-4);
+  max-width: 60ch;
+  line-height: var(--lh-relaxed);
+}
+
+.photo-section__deferred {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--text-xs);
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  border-left: 3px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
+  line-height: var(--lh-normal);
+}
+
+.photo-hero-card {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+}
+
+.photo-hero-card__preview {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.photo-hero-card__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-hero-card__placeholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  text-align: center;
+  padding: var(--sp-3);
+}
+
+.photo-hero-card__controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.photo-hero-card__controls .btn {
+  align-self: flex-start;
+}
+
+.photo-slot-list {
+  list-style: none;
+  margin: 0 0 var(--sp-3);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.photo-slot {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: var(--sp-3);
+  align-items: flex-start;
+  padding: var(--sp-3);
+  background: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.photo-slot__thumb {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.photo-slot__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-slot__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+}
+
+.photo-slot__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.photo-slot__fields .btn {
+  align-self: flex-start;
+}
+
+.photo-slot__controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+@media (max-width: 640px) {
+  .photo-hero-card {
+    grid-template-columns: 1fr;
+  }
+  .photo-slot {
+    grid-template-columns: 80px 1fr;
+  }
+  .photo-slot__controls {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
 /* ---- Toast notification ---- */
 .toast {
   position: fixed;

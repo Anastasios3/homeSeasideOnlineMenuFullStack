@@ -32,7 +32,13 @@ export interface SubcategoryMeta {
 }
 
 export interface PhotoSlot {
+  /** Largest URL — used as the default <img src>. */
   url: string;
+  /** Per-width JPG URLs for the customer-side srcSet attribute. */
+  srcset?: { "640": string; "1280": string; "1920": string };
+  /** Intrinsic source dimensions, captured at upload time. */
+  width?: number;
+  height?: number;
   alt_en: string;
   alt_el: string;
 }

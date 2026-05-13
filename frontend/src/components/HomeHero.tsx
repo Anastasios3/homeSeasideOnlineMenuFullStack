@@ -1,9 +1,14 @@
-import { type FC } from "react";
+import { type FC, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Picture from "./Picture";
+import AdminPicture from "./AdminPicture";
 import { useTimeOfDay } from "../hooks/useTimeOfDay";
 import { ALBUM1_PHOTOS } from "../assets/photos/album1";
 import { heroPhotoForPhase } from "../assets/photos/curation";
+import {
+  getHomepagePhotos,
+  HOMEPAGE_PHOTOS_STORAGE_KEY,
+} from "../config/homepagePhotos";
 
 interface HomeHeroProps {
   language: "EN" | "EL";
@@ -28,9 +33,30 @@ const HomeHero: FC<HomeHeroProps> = ({ language, tagline, subtitle, ctaLabel }) 
   const curated = heroPhotoForPhase(phase);
   const meta = ALBUM1_PHOTOS[curated.slug];
 
+  // Subscribe to admin overrides — when an admin saves a new hero photo we
+  // want the homepage to swap to it on the next paint, no reload needed.
+  const [override, setOverride] = useState(() => getHomepagePhotos().hero);
+  useEffect(() => {
+    const onChange = (e: StorageEvent) => {
+      if (e.key === HOMEPAGE_PHOTOS_STORAGE_KEY) setOverride(getHomepagePhotos().hero);
+    };
+    window.addEventListener("storage", onChange);
+    return () => window.removeEventListener("storage", onChange);
+  }, []);
+
   return (
     <section className="home-hero">
-      {meta && (
+      {override ? (
+        <div className="home-hero__photo">
+          <AdminPicture
+            slot={override}
+            language={language}
+            priority
+            sizes="100vw"
+            fit="cover"
+          />
+        </div>
+      ) : meta && (
         <div className="home-hero__photo">
           <Picture
             photo={meta}

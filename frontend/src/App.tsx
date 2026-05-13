@@ -1,13 +1,17 @@
 import { useState, useCallback, useEffect, type FC, type FormEvent } from "react";
-import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation, useParams } from "react-router-dom";
 import axios from "axios";
 import TopBar from "./components/TopBar";
 import CategoryNav from "./components/CategoryNav";
 import MenuSection from "./components/MenuSection";
 import AdminPanel from "./components/AdminPanel";
 import HomePage from "./components/HomePage";
+import AboutPage from "./components/AboutPage";
+import CategoryLanding from "./components/CategoryLanding";
+import VisitPage from "./components/VisitPage";
 import { Lock, ArrowLeft, Instagram } from "lucide-react";
 import { VENUE } from "./components/HomePage";
+import { useDocumentMeta } from "./seo";
 import "./App.css";
 
 type CategoryType = "coffee" | "spirits" | "cocktails" | "beer&wine" | "food";
@@ -15,6 +19,7 @@ type CategoryType = "coffee" | "spirits" | "cocktails" | "beer&wine" | "food";
 import { getAdminToken, setAdminToken, clearAdminToken } from "./auth";
 import { loadScheduleFromServer } from "./config/schedule";
 import { loadSubcategoriesFromServer } from "./config/subcategories";
+import { loadHomepagePhotosFromServer } from "./config/homepagePhotos";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -26,6 +31,10 @@ const Footer: FC<{ page?: "home" | "menu" | "admin" }> = ({ page = "home" }) => 
     <div className="site-footer__inner">
       <span className="site-footer__brand">Home Seaside · Rethymno</span>
       <div className="site-footer__right">
+        <Link to="/about" className="site-footer__admin-link">About</Link>
+        <span className="site-footer__sep">·</span>
+        <Link to="/menu" className="site-footer__admin-link">Menu</Link>
+        <span className="site-footer__sep">·</span>
         <a
           href={VENUE.instagram}
           target="_blank"
@@ -169,6 +178,16 @@ function CustomerMenu() {
     setActiveCategory(cat);
   }, []);
 
+  useDocumentMeta({
+    title: language === "EN"
+      ? "Menu — Home Seaside Bar & More, Rethymno"
+      : "Μενού — Home Seaside Bar & More, Ρέθυμνο",
+    description: language === "EN"
+      ? "Full menu at Home Seaside in Rethymno — specialty coffee, advanced cocktails, an extensive rum selection, cold beers, quality wines, and comfort food."
+      : "Πλήρες μενού στο Home Seaside στο Ρέθυμνο — specialty καφές, εξελιγμένα cocktails, μεγάλη συλλογή ρουμιού, μπύρες, ποιοτικά κρασιά και comfort φαγητό.",
+    canonicalPath: "/menu",
+  });
+
   return (
     <div className="app-container">
       <header>
@@ -195,6 +214,13 @@ function AdminPage() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(() =>
     getAdminToken() ? null : false
   );
+
+  useDocumentMeta({
+    title: "Admin — Home Seaside",
+    description: "Internal admin panel for Home Seaside Bar & More.",
+    canonicalPath: "/admin",
+    noindex: true,
+  });
 
   // On mount, verify existing token with the backend (only when we have one).
   useEffect(() => {
@@ -241,12 +267,63 @@ function ScrollToTop() {
   return null;
 }
 
+/* ============================================================
+   Content-page wrappers — pulls language state from a wrapper
+   so AboutPage/CategoryLanding/VisitPage can stay stateless.
+   ============================================================ */
+function AboutPageWrapper() {
+  const [language, setLanguage] = useState<"EN" | "EL">("EN");
+  return (
+    <div className="app-container">
+      <header>
+        <TopBar onLanguageChange={setLanguage} />
+      </header>
+      <main className="main-content">
+        <AboutPage language={language} />
+      </main>
+      <Footer page="home" />
+    </div>
+  );
+}
+
+function CategoryLandingWrapper() {
+  const { category } = useParams<{ category: string }>();
+  const [language, setLanguage] = useState<"EN" | "EL">("EN");
+  return (
+    <div className="app-container">
+      <header>
+        <TopBar onLanguageChange={setLanguage} />
+      </header>
+      <main className="main-content">
+        <CategoryLanding language={language} category={category ?? ""} />
+      </main>
+      <Footer page="menu" />
+    </div>
+  );
+}
+
+function VisitPageWrapper() {
+  const [language, setLanguage] = useState<"EN" | "EL">("EN");
+  return (
+    <div className="app-container">
+      <header>
+        <TopBar onLanguageChange={setLanguage} />
+      </header>
+      <main className="main-content">
+        <VisitPage language={language} />
+      </main>
+      <Footer page="home" />
+    </div>
+  );
+}
+
 function App() {
   // Hydrate cached schedule + subcategory overrides from the server once at
   // app boot. Subsequent changes flow through StorageEvent + in-memory cache.
   useEffect(() => {
     loadScheduleFromServer();
     loadSubcategoriesFromServer();
+    loadHomepagePhotosFromServer();
   }, []);
 
   return (
@@ -255,6 +332,9 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePageWrapper />} />
         <Route path="/menu" element={<CustomerMenu />} />
+        <Route path="/menu/:category" element={<CategoryLandingWrapper />} />
+        <Route path="/about" element={<AboutPageWrapper />} />
+        <Route path="/visit" element={<VisitPageWrapper />} />
         <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </BrowserRouter>

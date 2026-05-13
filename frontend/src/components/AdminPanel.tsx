@@ -25,6 +25,13 @@ import {
   type MainCategoryId as SubMainCategoryId,
   type SubcategoryOverrides,
 } from "../config/subcategories";
+import {
+  getHomepagePhotos,
+  saveHomepagePhotos,
+  type HomepagePhotosOverrides,
+} from "../config/homepagePhotos";
+import { uploadResponsivePhoto } from "../lib/imageUpload";
+import type { PhotoSlot, JourneySlot, GallerySlot } from "../api/siteSetting";
 import "../styles/AdminPanel.css";
 
 /** Build Authorization header from stored JWT */
@@ -262,6 +269,483 @@ const ImageCropper: FC<ImageCropperProps> = ({ file, onCrop, onCancel }) => {
       <div className="image-cropper__actions">
         <button type="button" className="btn btn--secondary" onClick={onCancel}>Cancel</button>
         <button type="button" className="btn btn--primary" onClick={handleCrop}><Crop size={14} /> Apply Crop</button>
+      </div>
+    </div>
+  );
+};
+
+/* ============================================================
+   Photo Manager — admin overrides for homepage hero/journey/gallery
+   ============================================================ */
+interface PhotoManagerProps {
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+function resolvePreviewUrl(url: string | undefined): string {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith("/")) return `${API}${url.replace(/^\/menu_items/, "")}`.replace("/menu_items", "");
+  return url;
+}
+
+function genSlotId(prefix: string): string {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
+  const [draft, setDraft] = useState<HomepagePhotosOverrides>(() => getHomepagePhotos());
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+
+  // ---------- HERO ----------
+  const handleHeroUpload = async (file: File) => {
+    setUploadingFor("hero");
+    setError(null);
+    try {
+      const manifest = await uploadResponsivePhoto(file);
+      setDraft((prev) => ({
+        ...prev,
+        hero: {
+          url: manifest.url,
+          srcset: {
+            "640": manifest.srcset[640],
+            "1280": manifest.srcset[1280],
+            "1920": manifest.srcset[1920],
+          },
+          width: manifest.width,
+          height: manifest.height,
+          alt_en: prev.hero?.alt_en ?? "",
+          alt_el: prev.hero?.alt_el ?? "",
+        },
+      }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Hero upload failed");
+    } finally {
+      setUploadingFor(null);
+    }
+  };
+
+  const handleHeroAlt = (field: "alt_en" | "alt_el", value: string) => {
+    setDraft((prev) => prev.hero
+      ? { ...prev, hero: { ...prev.hero, [field]: value } }
+      : prev);
+  };
+
+  const handleHeroClear = () => {
+    setDraft((prev) => ({ ...prev, hero: null }));
+  };
+
+  // ---------- JOURNEY ----------
+  const handleJourneyUpload = async (id: string, file: File) => {
+    setUploadingFor(`journey-${id}`);
+    setError(null);
+    try {
+      const manifest = await uploadResponsivePhoto(file);
+      setDraft((prev) => ({
+        ...prev,
+        journey: prev.journey.map((s) =>
+          s.id === id
+            ? {
+                ...s,
+                url: manifest.url,
+                srcset: {
+                  "640": manifest.srcset[640],
+                  "1280": manifest.srcset[1280],
+                  "1920": manifest.srcset[1920],
+                },
+                width: manifest.width,
+                height: manifest.height,
+              }
+            : s),
+      }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Journey upload failed");
+    } finally {
+      setUploadingFor(null);
+    }
+  };
+
+  const handleJourneyAdd = () => {
+    setDraft((prev) => ({
+      ...prev,
+      journey: [
+        ...prev.journey,
+        {
+          id: genSlotId("journey"),
+          url: "",
+          alt_en: "",
+          alt_el: "",
+          caption_en: "",
+          caption_el: "",
+          position: prev.journey.length,
+        },
+      ],
+    }));
+  };
+
+  const handleJourneyChange = (id: string, patch: Partial<JourneySlot>) => {
+    setDraft((prev) => ({
+      ...prev,
+      journey: prev.journey.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+    }));
+  };
+
+  const handleJourneyRemove = (id: string) => {
+    setDraft((prev) => ({
+      ...prev,
+      journey: prev.journey.filter((s) => s.id !== id).map((s, i) => ({ ...s, position: i })),
+    }));
+  };
+
+  const handleJourneyMove = (id: string, direction: -1 | 1) => {
+    setDraft((prev) => {
+      const idx = prev.journey.findIndex((s) => s.id === id);
+      if (idx < 0) return prev;
+      const next = [...prev.journey];
+      const swap = idx + direction;
+      if (swap < 0 || swap >= next.length) return prev;
+      [next[idx], next[swap]] = [next[swap], next[idx]];
+      return { ...prev, journey: next.map((s, i) => ({ ...s, position: i })) };
+    });
+  };
+
+  // ---------- GALLERY ----------
+  const handleGalleryUpload = async (id: string, file: File) => {
+    setUploadingFor(`gallery-${id}`);
+    setError(null);
+    try {
+      const manifest = await uploadResponsivePhoto(file);
+      setDraft((prev) => ({
+        ...prev,
+        gallery: prev.gallery.map((s) =>
+          s.id === id
+            ? {
+                ...s,
+                url: manifest.url,
+                srcset: {
+                  "640": manifest.srcset[640],
+                  "1280": manifest.srcset[1280],
+                  "1920": manifest.srcset[1920],
+                },
+                width: manifest.width,
+                height: manifest.height,
+              }
+            : s),
+      }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Gallery upload failed");
+    } finally {
+      setUploadingFor(null);
+    }
+  };
+
+  const handleGalleryAdd = () => {
+    setDraft((prev) => ({
+      ...prev,
+      gallery: [
+        ...prev.gallery,
+        {
+          id: genSlotId("gallery"),
+          url: "",
+          alt_en: "",
+          alt_el: "",
+          position: prev.gallery.length,
+        },
+      ],
+    }));
+  };
+
+  const handleGalleryChange = (id: string, patch: Partial<GallerySlot>) => {
+    setDraft((prev) => ({
+      ...prev,
+      gallery: prev.gallery.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+    }));
+  };
+
+  const handleGalleryRemove = (id: string) => {
+    setDraft((prev) => ({
+      ...prev,
+      gallery: prev.gallery.filter((s) => s.id !== id).map((s, i) => ({ ...s, position: i })),
+    }));
+  };
+
+  const handleGalleryMove = (id: string, direction: -1 | 1) => {
+    setDraft((prev) => {
+      const idx = prev.gallery.findIndex((s) => s.id === id);
+      if (idx < 0) return prev;
+      const next = [...prev.gallery];
+      const swap = idx + direction;
+      if (swap < 0 || swap >= next.length) return prev;
+      [next[idx], next[swap]] = [next[swap], next[idx]];
+      return { ...prev, gallery: next.map((s, i) => ({ ...s, position: i })) };
+    });
+  };
+
+  // ---------- SAVE ----------
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      // Drop empty journey/gallery slots (no image was ever uploaded).
+      const cleaned: HomepagePhotosOverrides = {
+        hero: draft.hero,
+        journey: draft.journey.filter((s) => s.url).map((s, i) => ({ ...s, position: i })),
+        gallery: draft.gallery.filter((s) => s.url).map((s, i) => ({ ...s, position: i })),
+      };
+      await saveHomepagePhotos(cleaned);
+      setDraft(cleaned);
+      onSaved();
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="photos-title">
+      <div className="modal modal--photos">
+        <div className="modal-header">
+          <h2 id="photos-title" className="modal-title">Homepage Photos</h2>
+          <button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
+        </div>
+        <div className="modal-body">
+          <p className="schedule__intro">
+            Upload photos here and they're resized to three sizes (640w / 1280w /
+            1920w) automatically before upload — phones get the small one,
+            laptops get the big one, so visitors don't waste data.
+          </p>
+
+          {/* HERO */}
+          <section className="photo-section">
+            <h3 className="photo-section__title">Hero photo</h3>
+            <p className="photo-section__hint">
+              The big photo at the top of the homepage. If you leave this blank,
+              the site picks a time-of-day photo from the built-in set.
+            </p>
+            <div className="photo-hero-card">
+              <div className="photo-hero-card__preview">
+                {draft.hero?.url ? (
+                  <img src={resolvePreviewUrl(draft.hero.url)} alt="" />
+                ) : (
+                  <div className="photo-hero-card__placeholder">
+                    <ImageIcon size={32} strokeWidth={1.4} />
+                    <span>Using built-in default</span>
+                  </div>
+                )}
+              </div>
+              <div className="photo-hero-card__controls">
+                <label className="btn btn--secondary">
+                  <Upload size={14} />
+                  {uploadingFor === "hero" ? "Uploading…" : draft.hero?.url ? "Replace" : "Upload photo"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) void handleHeroUpload(f);
+                      e.target.value = "";
+                    }}
+                    disabled={uploadingFor !== null}
+                  />
+                </label>
+                {draft.hero && (
+                  <>
+                    <label className="subcat-edit-field">
+                      <span className="subcat-edit-field__label">Alt text (English)</span>
+                      <input
+                        type="text"
+                        className="form-input form-input--sm"
+                        value={draft.hero.alt_en}
+                        onChange={(e) => handleHeroAlt("alt_en", e.target.value)}
+                        placeholder="e.g. The sea at golden hour outside Home Seaside"
+                      />
+                    </label>
+                    <label className="subcat-edit-field">
+                      <span className="subcat-edit-field__label">Alt text (Ελληνικά)</span>
+                      <input
+                        type="text"
+                        className="form-input form-input--sm"
+                        value={draft.hero.alt_el}
+                        onChange={(e) => handleHeroAlt("alt_el", e.target.value)}
+                        placeholder="π.χ. Η θάλασσα στη χρυσή ώρα έξω από το Home Seaside"
+                      />
+                    </label>
+                    <button type="button" className="btn btn--danger btn--sm" onClick={handleHeroClear}>
+                      <Trash2 size={14} /> Use built-in default again
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* JOURNEY */}
+          <section className="photo-section">
+            <h3 className="photo-section__title">Journey photos</h3>
+            <p className="photo-section__hint">
+              Photos that scroll through morning → night on the homepage.
+              Order them however you like — they appear in this order.
+            </p>
+            <ul className="photo-slot-list">
+              {draft.journey.map((slot, idx) => (
+                <li key={slot.id} className="photo-slot">
+                  <div className="photo-slot__thumb">
+                    {slot.url
+                      ? <img src={resolvePreviewUrl(slot.url)} alt="" />
+                      : <div className="photo-slot__placeholder"><ImageIcon size={24} /></div>}
+                  </div>
+                  <div className="photo-slot__fields">
+                    <label className="btn btn--secondary btn--sm">
+                      <Upload size={12} />
+                      {uploadingFor === `journey-${slot.id}` ? "Uploading…" : slot.url ? "Replace" : "Upload"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) void handleJourneyUpload(slot.id, f);
+                          e.target.value = "";
+                        }}
+                        disabled={uploadingFor !== null}
+                      />
+                    </label>
+                    <div className="subcat-edit-fields">
+                      <label className="subcat-edit-field">
+                        <span className="subcat-edit-field__label">Caption (EN)</span>
+                        <input type="text" className="form-input form-input--sm"
+                          value={slot.caption_en}
+                          onChange={(e) => handleJourneyChange(slot.id, { caption_en: e.target.value })} />
+                      </label>
+                      <label className="subcat-edit-field">
+                        <span className="subcat-edit-field__label">Caption (EL)</span>
+                        <input type="text" className="form-input form-input--sm"
+                          value={slot.caption_el}
+                          onChange={(e) => handleJourneyChange(slot.id, { caption_el: e.target.value })} />
+                      </label>
+                    </div>
+                  </div>
+                  <div className="photo-slot__controls">
+                    <button type="button" className="schedule__order-btn"
+                      aria-label="Move up" disabled={idx === 0}
+                      onClick={() => handleJourneyMove(slot.id, -1)}>
+                      <ChevronUp size={14} />
+                    </button>
+                    <button type="button" className="schedule__order-btn"
+                      aria-label="Move down" disabled={idx === draft.journey.length - 1}
+                      onClick={() => handleJourneyMove(slot.id, 1)}>
+                      <ChevronDown size={14} />
+                    </button>
+                    <button type="button" className="schedule__order-btn"
+                      aria-label="Remove photo"
+                      onClick={() => handleJourneyRemove(slot.id)}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <button type="button" className="btn btn--secondary btn--sm" onClick={handleJourneyAdd}>
+              <Plus size={14} /> Add journey photo
+            </button>
+            <p className="photo-section__deferred">
+              Saved data flows to the server. Customer-side display of the journey
+              strip is wired up only for the bundled photos right now — uploaded
+              journey photos appear in the admin but not yet on the homepage.
+              That last bit is on the punch list.
+            </p>
+          </section>
+
+          {/* GALLERY */}
+          <section className="photo-section">
+            <h3 className="photo-section__title">Gallery photos</h3>
+            <p className="photo-section__hint">
+              Supporting photos for the homepage gallery strip. Add as many as you want.
+            </p>
+            <ul className="photo-slot-list">
+              {draft.gallery.map((slot, idx) => (
+                <li key={slot.id} className="photo-slot">
+                  <div className="photo-slot__thumb">
+                    {slot.url
+                      ? <img src={resolvePreviewUrl(slot.url)} alt="" />
+                      : <div className="photo-slot__placeholder"><ImageIcon size={24} /></div>}
+                  </div>
+                  <div className="photo-slot__fields">
+                    <label className="btn btn--secondary btn--sm">
+                      <Upload size={12} />
+                      {uploadingFor === `gallery-${slot.id}` ? "Uploading…" : slot.url ? "Replace" : "Upload"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) void handleGalleryUpload(slot.id, f);
+                          e.target.value = "";
+                        }}
+                        disabled={uploadingFor !== null}
+                      />
+                    </label>
+                    <div className="subcat-edit-fields">
+                      <label className="subcat-edit-field">
+                        <span className="subcat-edit-field__label">Alt (EN)</span>
+                        <input type="text" className="form-input form-input--sm"
+                          value={slot.alt_en}
+                          onChange={(e) => handleGalleryChange(slot.id, { alt_en: e.target.value })} />
+                      </label>
+                      <label className="subcat-edit-field">
+                        <span className="subcat-edit-field__label">Alt (EL)</span>
+                        <input type="text" className="form-input form-input--sm"
+                          value={slot.alt_el}
+                          onChange={(e) => handleGalleryChange(slot.id, { alt_el: e.target.value })} />
+                      </label>
+                    </div>
+                  </div>
+                  <div className="photo-slot__controls">
+                    <button type="button" className="schedule__order-btn"
+                      aria-label="Move up" disabled={idx === 0}
+                      onClick={() => handleGalleryMove(slot.id, -1)}>
+                      <ChevronUp size={14} />
+                    </button>
+                    <button type="button" className="schedule__order-btn"
+                      aria-label="Move down" disabled={idx === draft.gallery.length - 1}
+                      onClick={() => handleGalleryMove(slot.id, 1)}>
+                      <ChevronDown size={14} />
+                    </button>
+                    <button type="button" className="schedule__order-btn"
+                      aria-label="Remove photo"
+                      onClick={() => handleGalleryRemove(slot.id)}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <button type="button" className="btn btn--secondary btn--sm" onClick={handleGalleryAdd}>
+              <Plus size={14} /> Add gallery photo
+            </button>
+            <p className="photo-section__deferred">
+              Gallery customer-side display wiring is also on the punch list —
+              uploads save to the server but the homepage gallery strip still
+              shows the bundled photos for now.
+            </p>
+          </section>
+
+          {error && <div className="schedule__error" role="alert">{error}</div>}
+        </div>
+        <div className="modal-footer">
+          <div className="modal-footer__right">
+            <button className="btn btn--secondary" onClick={onClose} disabled={saving || uploadingFor !== null}>Cancel</button>
+            <button className="btn btn--primary" onClick={handleSave} disabled={saving || uploadingFor !== null}>
+              {saving ? "Saving…" : "Save photos"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1123,6 +1607,7 @@ const AdminPanel: FC<AdminPanelProps> = ({ language }) => {
   const [toast, setToast] = useState<ToastState>(null);
   const [showSubcatManager, setShowSubcatManager] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
+  const [showPhotos, setShowPhotos] = useState(false);
   const [knownSubcategories, setKnownSubcategories] = useState(loadSubcategories);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -1221,6 +1706,9 @@ const AdminPanel: FC<AdminPanelProps> = ({ language }) => {
           <button className="btn btn--secondary" onClick={() => setShowSubcatManager(true)}>
             <FolderPlus size={16} /> Subcategories
           </button>
+          <button className="btn btn--secondary" onClick={() => setShowPhotos(true)}>
+            <ImageIcon size={16} /> Photos
+          </button>
           <button className="btn btn--primary" onClick={handleAdd}>
             <Plus size={16} /> Add Item
           </button>
@@ -1300,6 +1788,7 @@ const AdminPanel: FC<AdminPanelProps> = ({ language }) => {
         />
       )}
       {showSchedule && <SchedulePanel onClose={() => setShowSchedule(false)} onSaved={() => showToast("Schedule updated", "success")} />}
+      {showPhotos && <PhotoManager onClose={() => setShowPhotos(false)} onSaved={() => showToast("Photos updated", "success")} />}
       {toast && <div className={`toast toast--${toast.type}`} role="status" aria-live="polite">{toast.message}</div>}
     </div>
   );
