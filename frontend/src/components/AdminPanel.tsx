@@ -1,11 +1,20 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import type { FC, FormEvent, ChangeEvent } from "react";
 import axios from "axios";
 import {
   Plus, Pencil, Trash2, X, FolderPlus, Search,
-  Upload, Image as ImageIcon, Crop,
+  Upload, Image as ImageIcon, Crop, Clock, RotateCcw,
 } from "lucide-react";
-import { getAdminToken } from "../App";
+import { getAdminToken } from "../auth";
+import {
+  DEFAULT_PHASE_CUTOFFS,
+  PHASE_ORDER,
+  getCutoffs,
+  setCutoffs,
+  resetCutoffs,
+  type DayPhase,
+  type PhaseCutoffs,
+} from "../config/schedule";
 import "../styles/AdminPanel.css";
 
 /** Build Authorization header from stored JWT */
@@ -136,7 +145,9 @@ interface ImageCropperProps {
 const ImageCropper: FC<ImageCropperProps> = ({ file, onCrop, onCancel }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
-  const [imgSrc, setImgSrc] = useState<string>("");
+  // Derive the blob URL synchronously from the file so we don't need a
+  // setState-in-effect — the cleanup effect below revokes on unmount/file change.
+  const imgSrc = useMemo(() => URL.createObjectURL(file), [file]);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [cropArea, setCropArea] = useState({ x: 0, y: 0, size: 200 });
   const [dragging, setDragging] = useState(false);
@@ -144,11 +155,7 @@ const ImageCropper: FC<ImageCropperProps> = ({ file, onCrop, onCancel }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [displaySize, setDisplaySize] = useState({ w: 0, h: 0 });
 
-  useEffect(() => {
-    const url = URL.createObjectURL(file);
-    setImgSrc(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+  useEffect(() => () => URL.revokeObjectURL(imgSrc), [imgSrc]);
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
@@ -687,6 +694,125 @@ const ItemForm: FC<ItemFormProps> = ({ item, subcategories, onSave, onClose }) =
 };
 
 /* ============================================================
+   Schedule Panel — admin overrides for time-of-day phase cutoffs
+   ============================================================ */
+interface SchedulePanelProps {
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+const PHASE_LABELS: Record<DayPhase, { label: string; hint: string }> = {
+  morning:   { label: "Morning",   hint: "Opening, light coffee, food" },
+  afternoon: { label: "Afternoon", hint: "Brunch, lighter cocktails" },
+  golden:    { label: "Golden",    hint: "Aperitivo, sunset mood" },
+  evening:   { label: "Evening",   hint: "Full bar, cocktails forward" },
+  night:     { label: "Night",     hint: "Late, spirits, low-key" },
+};
+
+const fmtHour = (h: number): string => `${String(h).padStart(2, "0")}:00`;
+
+const SchedulePanel: FC<SchedulePanelProps> = ({ onClose, onSaved }) => {
+  const [draft, setDraft] = useState<PhaseCutoffs>(() => getCutoffs());
+  const [error, setError] = useState<string | null>(null);
+
+  const validate = useCallback((d: PhaseCutoffs): string | null => {
+    let prev = -1;
+    for (const phase of PHASE_ORDER) {
+      const v = d[phase];
+      if (!Number.isInteger(v) || v < 0 || v > 23) {
+        return `${PHASE_LABELS[phase].label} must be an hour between 0 and 23.`;
+      }
+      if (v <= prev) {
+        return `${PHASE_LABELS[phase].label} must come after the previous phase.`;
+      }
+      prev = v;
+    }
+    return null;
+  }, []);
+
+  const handleChange = (phase: DayPhase, value: number) => {
+    const next = { ...draft, [phase]: value };
+    setDraft(next);
+    setError(validate(next));
+  };
+
+  const handleSave = () => {
+    const err = validate(draft);
+    if (err) { setError(err); return; }
+    setCutoffs(draft);
+    onSaved();
+    onClose();
+  };
+
+  const handleReset = () => {
+    setDraft(DEFAULT_PHASE_CUTOFFS);
+    resetCutoffs();
+    setError(null);
+    onSaved();
+  };
+
+  const isDirty = PHASE_ORDER.some((p) => draft[p] !== getCutoffs()[p]);
+
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="schedule-title">
+      <div className="modal modal--schedule">
+        <div className="modal-header">
+          <h2 id="schedule-title" className="modal-title">Daily Schedule</h2>
+          <button className="modal-close" onClick={onClose} aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="modal-body">
+          <p className="schedule__intro">
+            When does each phase begin? These hours change the theme, the
+            featured photo on the home page, and the order of menu categories.
+          </p>
+
+          <div className="schedule__grid" role="group" aria-label="Phase start times">
+            {PHASE_ORDER.map((phase) => (
+              <label key={phase} className="schedule__row">
+                <span className="schedule__phase">
+                  <span className="schedule__phase-name">{PHASE_LABELS[phase].label}</span>
+                  <span className="schedule__phase-hint">{PHASE_LABELS[phase].hint}</span>
+                </span>
+                <span className="schedule__input-wrap">
+                  <input
+                    type="number"
+                    min={0}
+                    max={23}
+                    step={1}
+                    value={draft[phase]}
+                    onChange={(e) => handleChange(phase, parseInt(e.target.value, 10))}
+                    className="schedule__input"
+                    aria-label={`${PHASE_LABELS[phase].label} start hour`}
+                  />
+                  <span className="schedule__input-suffix">{fmtHour(draft[phase])}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+
+          {error && (
+            <div className="schedule__error" role="alert">{error}</div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn--secondary" onClick={handleReset}>
+            <RotateCcw size={14} /> Reset to defaults
+          </button>
+          <div className="modal-footer__right">
+            <button className="btn btn--secondary" onClick={onClose}>Cancel</button>
+            <button className="btn btn--primary" onClick={handleSave} disabled={!!error || !isDirty}>
+              Save schedule
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ============================================================
    Admin Panel (main)
    ============================================================ */
 interface AdminPanelProps {
@@ -703,6 +829,7 @@ const AdminPanel: FC<AdminPanelProps> = ({ language }) => {
   const [editingItem, setEditingItem] = useState<MenuItemData | null>(null);
   const [toast, setToast] = useState<ToastState>(null);
   const [showSubcatManager, setShowSubcatManager] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
   const [knownSubcategories, setKnownSubcategories] = useState(loadSubcategories);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -735,7 +862,7 @@ const AdminPanel: FC<AdminPanelProps> = ({ language }) => {
     }
     setKnownSubcategories(merged);
     saveSubcategories(merged);
-  }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [items]);
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -795,6 +922,9 @@ const AdminPanel: FC<AdminPanelProps> = ({ language }) => {
           </p>
         </div>
         <div className="admin-header__actions">
+          <button className="btn btn--secondary" onClick={() => setShowSchedule(true)}>
+            <Clock size={16} /> Schedule
+          </button>
           <button className="btn btn--secondary" onClick={() => setShowSubcatManager(true)}>
             <FolderPlus size={16} /> Subcategories
           </button>
@@ -870,6 +1000,7 @@ const AdminPanel: FC<AdminPanelProps> = ({ language }) => {
 
       {showForm && <ItemForm item={editingItem} subcategories={knownSubcategories} onSave={handleSave} onClose={handleCloseForm} />}
       {showSubcatManager && <SubcategoryManager subcategories={knownSubcategories} onSubcategoriesChange={handleSubcategoriesChange} onClose={() => setShowSubcatManager(false)} />}
+      {showSchedule && <SchedulePanel onClose={() => setShowSchedule(false)} onSaved={() => showToast("Schedule updated", "success")} />}
       {toast && <div className={`toast toast--${toast.type}`} role="status" aria-live="polite">{toast.message}</div>}
     </div>
   );

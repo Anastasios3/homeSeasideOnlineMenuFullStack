@@ -1,0 +1,343 @@
+/* ============================================================
+   Phase 2 — Home page sections
+     HomeHero          (full-bleed time-aware photo + wordmark)
+     HorizontalJourney (the "A Day at Home Seaside" track)
+     ParallaxBlock     (illustration + copy split sections)
+   ============================================================ */
+
+/* ─────────────────────────────────────────────────────────────
+   HomeHero
+   ───────────────────────────────────────────────────────────── */
+
+/* The HomePage.css already defines .home-hero with text-only padding.
+   We layer the photo + scrim on top and re-centre the wordmark. */
+.home-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 88vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--sp-14) var(--sp-7) var(--sp-12);
+  padding-top: calc(var(--header-h) + var(--sp-14));
+  /* Sectioned colour anchor so the cream/black scrim works in both themes */
+  background-color: var(--bg-secondary);
+}
+
+.home-hero__photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.home-hero__photo .hs-picture {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto !important; /* let it fill the section, not the source ratio */
+}
+
+.home-hero__photo .hs-picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Scrim — a soft gradient that fades the bottom into solid bg, keeping the
+   wordmark readable without darkening the whole photo. */
+.home-hero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.35) 100%),
+    linear-gradient(0deg, var(--bg-secondary) 0%, transparent 22%);
+}
+
+[data-theme="dark"] .home-hero__scrim {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(0deg, var(--bg-secondary) 0%, transparent 22%);
+}
+
+.home-hero__inner {
+  position: relative;
+  z-index: 2;
+  max-width: 560px;
+}
+
+/* Wordmark — always render in cream-white over the photo, so it reads in
+   both themes (the scrim ensures contrast). */
+.home-hero__wordmark {
+  display: block;
+  margin: 0 auto var(--sp-6);
+  width: 230px;
+  height: auto;
+  filter: brightness(0) invert(1) drop-shadow(0 4px 24px rgba(0, 0, 0, 0.4)) !important;
+}
+
+/* Override the prior tagline/subtitle colours so they read on the photo */
+.home-hero .home-hero__tagline {
+  color: var(--gold-200);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.home-hero .home-hero__subtitle {
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 480px;
+}
+
+.home-hero .home-hero__cta {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 768px) {
+  .home-hero {
+    min-height: 78vh;
+  }
+  .home-hero__wordmark {
+    width: 160px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Horizontal Journey
+   ───────────────────────────────────────────────────────────── */
+
+.journey {
+  padding: var(--sp-12) 0;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+}
+
+.journey__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  max-width: var(--content-wide-max-w);
+  margin: 0 auto var(--sp-7);
+  padding: 0 var(--sp-7);
+  gap: var(--sp-5);
+}
+
+.journey__title {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-variation-settings: "opsz" 96, "SOFT" 50;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.journey__hint {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.journey__track {
+  display: flex;
+  gap: var(--sp-6);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: var(--sp-3) var(--sp-7) var(--sp-7);
+  /* fade edges so cards exit/enter softly */
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--sp-7), #000 calc(100% - var(--sp-7)), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--sp-7), #000 calc(100% - var(--sp-7)), transparent 100%);
+}
+
+.journey__track::-webkit-scrollbar { display: none; }
+
+.journey__card {
+  flex: 0 0 auto;
+  width: 78vw;
+  max-width: 420px;
+  scroll-snap-align: start;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.journey__card--landscape {
+  width: 88vw;
+  max-width: 560px;
+}
+
+.journey__card--portrait {
+  width: 64vw;
+  max-width: 360px;
+}
+
+@media (min-width: 1024px) {
+  .journey__card { width: 28vw; max-width: 440px; }
+  .journey__card--landscape { width: 36vw; max-width: 540px; }
+  .journey__card--portrait { width: 22vw; max-width: 340px; }
+}
+
+.journey__card-photo {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-color: var(--bg-tertiary);
+}
+
+.journey__card-photo .hs-picture {
+  aspect-ratio: 4 / 5;
+}
+
+.journey__card--landscape .hs-picture { aspect-ratio: 4 / 3; }
+.journey__card--portrait .hs-picture { aspect-ratio: 3 / 4; }
+.journey__card--square .hs-picture { aspect-ratio: 1; }
+
+.journey__chapter-tag {
+  position: absolute;
+  top: var(--sp-4);
+  left: var(--sp-4);
+  z-index: 2;
+  padding: var(--sp-2) var(--sp-4);
+  background-color: var(--bg-card);
+  color: var(--accent-primary);
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 48, "SOFT" 30;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+  letter-spacing: -0.005em;
+}
+
+.journey__card-caption {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--lh-normal);
+  padding: 0 var(--sp-2);
+  margin: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ParallaxBlock
+   ───────────────────────────────────────────────────────────── */
+
+.parallax-block {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-10);
+  align-items: center;
+  padding: var(--sp-13) var(--sp-7);
+  max-width: var(--content-wide-max-w);
+  margin: 0 auto;
+}
+
+.parallax-block--tint-cream { background-color: var(--cream-100); border-radius: var(--radius-xl); }
+.parallax-block--tint-pink  { background-color: var(--pink-50);   border-radius: var(--radius-xl); }
+.parallax-block--tint-ocean { background-color: var(--ocean-50);  border-radius: var(--radius-xl); }
+
+[data-theme="dark"] .parallax-block--tint-cream,
+[data-theme="dark"] .parallax-block--tint-pink,
+[data-theme="dark"] .parallax-block--tint-ocean {
+  background-color: var(--bg-secondary);
+}
+
+.parallax-block--right .parallax-block__illustration-wrap {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.parallax-block--right .parallax-block__content {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.parallax-block__illustration-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 360px;
+}
+
+.parallax-block__illustration {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 480px;
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 700ms var(--ease-out),
+    transform 800ms var(--ease-out);
+  will-change: transform;
+}
+
+[data-theme="dark"] .parallax-block__illustration {
+  filter: brightness(0.9) saturate(0.85);
+}
+
+.parallax-block.is-in-view .parallax-block__illustration {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.parallax-block__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  max-width: 500px;
+}
+
+.parallax-block__content h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-variation-settings: "opsz" 144, "SOFT" 60;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: var(--lh-tight);
+}
+
+.parallax-block__content p {
+  font-size: var(--text-md);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .parallax-block {
+    grid-template-columns: 1fr;
+    gap: var(--sp-7);
+    padding: var(--sp-11) var(--sp-5);
+  }
+  .parallax-block--right .parallax-block__illustration-wrap,
+  .parallax-block--right .parallax-block__content {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .parallax-block__illustration-wrap {
+    min-height: 240px;
+    order: -1;
+  }
+  .parallax-block__illustration {
+    max-height: 280px;
+  }
+  .parallax-block__content h2 {
+    font-size: var(--text-3xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parallax-block__illustration {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

@@ -6,18 +6,15 @@ import CategoryNav from "./components/CategoryNav";
 import MenuSection from "./components/MenuSection";
 import AdminPanel from "./components/AdminPanel";
 import HomePage from "./components/HomePage";
-import { Lock, ArrowLeft } from "lucide-react";
+import { Lock, ArrowLeft, Instagram } from "lucide-react";
+import { VENUE } from "./components/HomePage";
 import "./App.css";
 
 type CategoryType = "coffee" | "spirits" | "cocktails" | "beer&wine" | "food";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-const TOKEN_KEY = "homeseaside_admin_token";
+import { getAdminToken, setAdminToken, clearAdminToken } from "./auth";
 
-/** Read / write / clear the JWT from sessionStorage */
-export const getAdminToken = (): string | null => sessionStorage.getItem(TOKEN_KEY);
-const setAdminToken = (token: string) => sessionStorage.setItem(TOKEN_KEY, token);
-const clearAdminToken = () => sessionStorage.removeItem(TOKEN_KEY);
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 /* ============================================================
    Footer
@@ -25,30 +22,31 @@ const clearAdminToken = () => sessionStorage.removeItem(TOKEN_KEY);
 const Footer: FC<{ page?: "home" | "menu" | "admin" }> = ({ page = "home" }) => (
   <footer className="site-footer">
     <div className="site-footer__inner">
-      <span className="site-footer__brand">
-        Home Seaside
-      </span>
+      <span className="site-footer__brand">Home Seaside · Rethymno</span>
       <div className="site-footer__right">
-        {page === "home" && (
-          <Link to="/admin" className="site-footer__admin-link">
-            Admin
-          </Link>
-        )}
-        {page === "menu" && (
-          <Link to="/admin" className="site-footer__admin-link">
-            Admin
-          </Link>
-        )}
-        {page === "admin" && (
+        <a
+          href={VENUE.instagram}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="site-footer__admin-link"
+          aria-label="Home Seaside on Instagram"
+        >
+          <Instagram size={12} />
+          {VENUE.instagramHandle}
+        </a>
+        <span className="site-footer__sep">·</span>
+        {page === "admin" ? (
           <Link to="/" className="site-footer__admin-link">
             <ArrowLeft size={12} />
             Back to Home
           </Link>
+        ) : (
+          <Link to="/admin" className="site-footer__admin-link">
+            Admin
+          </Link>
         )}
         <span className="site-footer__sep">·</span>
-        <span className="site-footer__credit">
-          Development by LogiQo Labs
-        </span>
+        <span className="site-footer__credit">Development by LogiQo Labs</span>
       </div>
     </div>
   </footer>
@@ -191,26 +189,27 @@ function CustomerMenu() {
    ============================================================ */
 function AdminPage() {
   const [language, setLanguage] = useState<"EN" | "EL">("EN");
-  const [authenticated, setAuthenticated] = useState(false);
-  const [checking, setChecking] = useState(true);
+  // null = still verifying, false = no/invalid token, true = authenticated.
+  const [authenticated, setAuthenticated] = useState<boolean | null>(() =>
+    getAdminToken() ? null : false
+  );
 
-  // On mount, verify existing token with the backend
+  // On mount, verify existing token with the backend (only when we have one).
   useEffect(() => {
     const token = getAdminToken();
-    if (!token) {
-      setChecking(false);
-      return;
-    }
+    if (!token) return;
     axios
       .get(`${API_URL}/admin/verify`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(() => setAuthenticated(true))
-      .catch(() => clearAdminToken())
-      .finally(() => setChecking(false));
+      .catch(() => {
+        clearAdminToken();
+        setAuthenticated(false);
+      });
   }, []);
 
-  if (checking) return null;
+  if (authenticated === null) return null;
 
   if (!authenticated) {
     return <AdminGate onAuth={() => setAuthenticated(true)} />;

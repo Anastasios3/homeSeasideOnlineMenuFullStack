@@ -40,6 +40,10 @@
   --text-3xl: 1.875rem;
   --text-4xl: 2.25rem;
 
+  /* ---- Font families ---- */
+  --font-body: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Fraunces", "Times New Roman", Georgia, serif;
+
   /* ---- Font weights ---- */
   --fw-normal: 400;
   --fw-medium: 500;
@@ -71,6 +75,13 @@
   --duration-fast: 150ms;
   --duration-normal: 250ms;
   --duration-slow: 400ms;
+
+  /* ---- Coastal cream canvas (added Phase 1) ---- */
+  --cream-50:  #fdfaf3;
+  --cream-100: #faf5e9;
+  --cream-200: #f3ead5;
+  --cream-300: #e9dcb8;
+  --cream-ink: #1a1a1a;
 
   /* ---- Color Palette: Pink shades ---- */
   --pink-50: #fef5f9;
@@ -145,13 +156,15 @@
    Light theme
    ============================================================ */
 [data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-secondary: var(--grey-50);
-  --bg-tertiary: var(--grey-100);
-  --bg-header: rgba(255, 255, 255, 0.82);
-  --bg-nav: rgba(255, 255, 255, 0.92);
+  /* Daytime canvas — warm cream, never pure white. Lifts the photography
+     and lets the coral/gold/coral accents read as accents. */
+  --bg-primary: var(--cream-50);
+  --bg-secondary: var(--cream-100);
+  --bg-tertiary: var(--cream-200);
+  --bg-header: rgba(253, 250, 243, 0.82);
+  --bg-nav: rgba(253, 250, 243, 0.94);
   --bg-card: #ffffff;
-  --bg-card-hover: var(--grey-50);
+  --bg-card-hover: var(--cream-100);
   --bg-input: #ffffff;
   --bg-toggle: var(--grey-200);
   --bg-toggle-active: var(--coral-400);
@@ -179,12 +192,12 @@
   --nav-indicator: var(--coral-400);
   --nav-hover-bg: var(--grey-100);
 
-  --tag-bg: var(--grey-100);
-  --tag-text: var(--grey-600);
+  --tag-bg: var(--cream-100);
+  --tag-text: var(--grey-700);
   --allergen-bg: var(--coral-50);
-  --allergen-text: var(--coral-600);
+  --allergen-text: var(--coral-700);
 
-  --header-border: var(--grey-200);
+  --header-border: var(--cream-200);
   --header-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
@@ -253,13 +266,31 @@ html {
 
 body {
   height: 100%;
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: var(--lh-normal);
   color: var(--text-primary);
   background-color: var(--bg-primary);
   transition: background-color var(--duration-normal) var(--ease-in-out),
               color var(--duration-normal) var(--ease-in-out);
+}
+
+/* Display headings use Fraunces with its optical-size axis dialled to large
+   for the soft, slightly quirky character that pairs with the hand-drawn
+   illustrations. SOFT axis adds the curvy/playful detailing. */
+h1, h2, h3, .display, .home-hero__title, .home-section__heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-variation-settings: "opsz" 96, "SOFT" 50, "WONK" 0;
+  letter-spacing: -0.01em;
+  line-height: var(--lh-tight);
+}
+
+h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-variation-settings: "opsz" 48, "SOFT" 30, "WONK" 0;
+  letter-spacing: -0.005em;
 }
 
 #root {

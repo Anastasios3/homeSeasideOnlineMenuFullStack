@@ -41,8 +41,33 @@
       "@context": "https://schema.org",
       "@type": "Restaurant",
       "name": "Home Seaside Bar & More",
-      "description": "Seaside bar and restaurant offering freshly brewed coffee, handcrafted cocktails, fine spirits, cold beers, quality wines, and delicious food.",
+      "description": "Seaside bar and restaurant in Rethymno, Crete — specialty coffee, handcrafted cocktails, fine spirits, cold beers, quality wines, and fresh food.",
       "servesCuisine": ["Coffee", "Cocktails", "Mediterranean"],
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Leof. Emmanouil Kefalogianni 18",
+        "addressLocality": "Rethymno",
+        "postalCode": "741 31",
+        "addressRegion": "Crete",
+        "addressCountry": "GR"
+      },
+      "telephone": "+30 2831 022782",
+      "email": "home_seaside_rethimno@hotmail.com",
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 35.3718449,
+        "longitude": 24.4742788
+      },
+      "hasMap": "https://maps.app.goo.gl/Bni5sF7oQSpCuB2w8",
+      "sameAs": [
+        "https://www.instagram.com/home_seaside",
+        "https://maps.app.goo.gl/Bni5sF7oQSpCuB2w8"
+      ],
+      "openingHoursSpecification": [
+        { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday"], "opens": "09:00", "closes": "00:00" },
+        { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Friday","Saturday"],                            "opens": "09:00", "closes": "02:00" },
+        { "@type": "OpeningHoursSpecification", "dayOfWeek": "Sunday",                                          "opens": "10:00", "closes": "00:00" }
+      ],
       "hasMenu": {
         "@type": "Menu",
         "name": "Main Menu",
@@ -55,6 +80,30 @@
     <!-- Preload critical fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600;700&display=swap"
+    />
+
+    <!-- Pre-hydration theme — avoids FOUC. Reads localStorage override or
+         falls back to schedule (mirrors src/config/schedule.ts). -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("homeseaside_theme_override");
+          var theme;
+          if (stored === "light" || stored === "dark") {
+            theme = stored;
+          } else {
+            var h = new Date().getHours();
+            theme = (h >= 19 || h < 6) ? "dark" : "light";
+          }
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

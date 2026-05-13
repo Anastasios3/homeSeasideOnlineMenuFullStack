@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { FC } from "react";
 import axios from "axios";
-import { UtensilsCrossed, X, ChevronDown, AlertTriangle } from "lucide-react";
+import { Search, X, AlertTriangle } from "lucide-react";
 import "../styles/MenuSection.css";
 
 type Language = "EN" | "EL";
@@ -114,16 +114,39 @@ const SkeletonLoader: FC = () => (
 );
 
 /* ---------- Empty state ---------- */
-const EmptyState: FC<{ language: Language }> = ({ language }) => (
-  <div className="menu-empty" role="status">
-    <div className="menu-empty__icon" aria-hidden="true">
-      <UtensilsCrossed size={48} strokeWidth={1.2} />
+interface EmptyStateProps {
+  language: Language;
+  variant?: "none" | "search";
+  query?: string;
+  onClear?: () => void;
+}
+const EmptyState: FC<EmptyStateProps> = ({ language, variant = "none", query, onClear }) => {
+  const isSearch = variant === "search";
+  return (
+    <div className="menu-empty" role="status">
+      <img
+        src="/illustration-vase.webp"
+        alt=""
+        aria-hidden="true"
+        className="menu-empty__art"
+        loading="lazy"
+        decoding="async"
+      />
+      <p className="menu-empty__text">
+        {isSearch
+          ? language === "EN"
+            ? <>Nothing matches <em>“{query}”</em></>
+            : <>Δεν βρέθηκε αποτέλεσμα για <em>«{query}»</em></>
+          : language === "EN" ? "No items available" : "Δεν υπάρχουν διαθέσιμα"}
+      </p>
+      {isSearch && onClear && (
+        <button type="button" className="menu-empty__clear" onClick={onClear}>
+          {language === "EN" ? "Clear search" : "Καθαρισμός"}
+        </button>
+      )}
     </div>
-    <p className="menu-empty__text">
-      {language === "EN" ? "No items available" : "Δεν υπάρχουν διαθέσιμα"}
-    </p>
-  </div>
-);
+  );
+};
 
 /* ---------- Item Detail Modal ---------- */
 interface ItemModalProps {
@@ -250,80 +273,110 @@ const ItemModal: FC<ItemModalProps> = ({ item, language, onClose }) => {
   );
 };
 
-/* ---------- Subcategory filter ---------- */
-interface SubcategoryFilterProps {
+/* ---------- Subcategory chips (horizontal scroll, scroll-snap) ---------- */
+interface SubcategoryChipsProps {
   subcategories: string[];
   activeSubcategory: string | null;
   onSelect: (sub: string | null) => void;
   language: Language;
   items: MenuItemData[];
+  counts: Map<string, number>;
 }
 
-const SubcategoryFilter: FC<SubcategoryFilterProps> = ({
-  subcategories, activeSubcategory, onSelect, language, items,
+const SubcategoryChips: FC<SubcategoryChipsProps> = ({
+  subcategories, activeSubcategory, onSelect, language, items, counts,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleClick = () => setIsOpen(false);
-    const timer = setTimeout(() => {
-      document.addEventListener("click", handleClick);
-    }, 0);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener("click", handleClick);
-    };
-  }, [isOpen]);
-
-  const getLocalizedSubcategory = (subEN: string): string => {
+  const localized = useCallback((subEN: string): string => {
     const item = items.find((i) => getCategoryEN(i) === subEN);
-    if (item) return getField(item.category, language);
-    return subEN;
-  };
-
-  const currentLabel = activeSubcategory
-    ? getLocalizedSubcategory(activeSubcategory)
-    : language === "EN" ? "All Subcategories" : "Όλες οι Υποκατηγορίες";
+    return item ? getField(item.category, language) : subEN;
+  }, [items, language]);
 
   if (subcategories.length <= 1) return null;
 
+  const total = Array.from(counts.values()).reduce((a, b) => a + b, 0);
+
   return (
-    <div className="subcategory-filter">
-      <button
-        className={`subcategory-filter__toggle ${isOpen ? "subcategory-filter__toggle--open" : ""}`}
-        onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-      >
-        <span className="subcategory-filter__label">{currentLabel}</span>
-        <ChevronDown size={16} className="subcategory-filter__chevron" />
-      </button>
-      {isOpen && (
-        <div className="subcategory-filter__dropdown" role="listbox">
+    <nav
+      className="subcategory-chips"
+      aria-label={language === "EN" ? "Subcategories" : "Υποκατηγορίες"}
+    >
+      <div className="subcategory-chips__track">
+        <button
+          type="button"
+          className={`subcategory-chip ${!activeSubcategory ? "subcategory-chip--active" : ""}`}
+          onClick={() => onSelect(null)}
+          aria-pressed={!activeSubcategory}
+        >
+          <span>{language === "EN" ? "All" : "Όλα"}</span>
+          <span className="subcategory-chip__count">{total}</span>
+        </button>
+        {subcategories.map((sub) => (
           <button
-            className={`subcategory-filter__option ${!activeSubcategory ? "subcategory-filter__option--active" : ""}`}
-            role="option"
-            aria-selected={!activeSubcategory}
-            onClick={() => { onSelect(null); setIsOpen(false); }}
+            key={sub}
+            type="button"
+            className={`subcategory-chip ${activeSubcategory === sub ? "subcategory-chip--active" : ""}`}
+            onClick={() => onSelect(sub)}
+            aria-pressed={activeSubcategory === sub}
           >
-            {language === "EN" ? "All" : "Όλα"}
+            <span>{localized(sub)}</span>
+            <span className="subcategory-chip__count">{counts.get(sub) ?? 0}</span>
           </button>
-          {subcategories.map((sub) => (
-            <button
-              key={sub}
-              className={`subcategory-filter__option ${activeSubcategory === sub ? "subcategory-filter__option--active" : ""}`}
-              role="option"
-              aria-selected={activeSubcategory === sub}
-              onClick={() => { onSelect(sub); setIsOpen(false); }}
-            >
-              {getLocalizedSubcategory(sub)}
-            </button>
-          ))}
-        </div>
+        ))}
+      </div>
+    </nav>
+  );
+};
+
+/* ---------- Search input ---------- */
+interface SearchInputProps {
+  value: string;
+  onChange: (v: string) => void;
+  language: Language;
+}
+const SearchInput: FC<SearchInputProps> = ({ value, onChange, language }) => {
+  const placeholder = language === "EN" ? "Search the menu" : "Αναζήτηση μενού";
+  return (
+    <div className={`menu-search ${value ? "menu-search--has-value" : ""}`} role="search">
+      <Search size={16} strokeWidth={2} className="menu-search__icon" aria-hidden="true" />
+      <input
+        type="search"
+        inputMode="search"
+        className="menu-search__input"
+        placeholder={placeholder}
+        aria-label={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {value && (
+        <button
+          type="button"
+          className="menu-search__clear"
+          onClick={() => onChange("")}
+          aria-label={language === "EN" ? "Clear search" : "Καθαρισμός"}
+        >
+          <X size={14} strokeWidth={2.2} />
+        </button>
       )}
     </div>
   );
+};
+
+/** Case-insensitive substring match across name/desc/category in both locales. */
+const matchesQuery = (item: MenuItemData, q: string): boolean => {
+  if (!q) return true;
+  const needle = q.toLowerCase();
+  const haystack = [
+    item.name?.en,
+    item.name?.el,
+    item.description?.en,
+    item.description?.el,
+    item.category?.en,
+    item.category?.el,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(needle);
 };
 
 /* ---------- Main Component ---------- */
@@ -333,9 +386,12 @@ const MenuSection: FC<MenuSectionProps> = ({ language, activeCategory }) => {
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<MenuItemData | null>(null);
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
+  // Reset filters when switching main category — keeps the UX predictable.
   useEffect(() => {
     setActiveSubcategory(null);
+    setSearchQuery("");
   }, [activeCategory]);
 
   useEffect(() => {
@@ -359,22 +415,31 @@ const MenuSection: FC<MenuSectionProps> = ({ language, activeCategory }) => {
     return items.filter((item) => item.main_category === activeCategory);
   }, [items, activeCategory]);
 
-  /** Available subcategories for the current main category */
-  const subcategories = useMemo(() => {
-    const cats = new Set<string>();
+  /** Available subcategories for the current main category, with counts that
+      respect the current search query — chip counts reflect what the user
+      would actually see if they tapped the chip. */
+  const { subcategories, subcategoryCounts } = useMemo(() => {
+    const counts = new Map<string, number>();
     for (const item of filteredItems) {
-      cats.add(getCategoryEN(item));
+      if (!matchesQuery(item, searchQuery)) continue;
+      const k = getCategoryEN(item);
+      counts.set(k, (counts.get(k) ?? 0) + 1);
     }
-    return Array.from(cats).sort();
-  }, [filteredItems]);
+    const subs = Array.from(counts.keys()).sort();
+    return { subcategories: subs, subcategoryCounts: counts };
+  }, [filteredItems, searchQuery]);
 
-  /** Further filter by subcategory if selected */
+  /** Further filter by subcategory + search query. */
   const displayItems = useMemo(() => {
-    if (!activeSubcategory) return filteredItems;
-    return filteredItems.filter(
-      (item) => getCategoryEN(item).toLowerCase() === activeSubcategory.toLowerCase()
-    );
-  }, [filteredItems, activeSubcategory]);
+    return filteredItems.filter((item) => {
+      if (!matchesQuery(item, searchQuery)) return false;
+      if (activeSubcategory &&
+        getCategoryEN(item).toLowerCase() !== activeSubcategory.toLowerCase()) {
+        return false;
+      }
+      return true;
+    });
+  }, [filteredItems, activeSubcategory, searchQuery]);
 
   /** Group items by subcategory */
   const grouped = useMemo(() => {
@@ -409,47 +474,74 @@ const MenuSection: FC<MenuSectionProps> = ({ language, activeCategory }) => {
     return <EmptyState language={language} />;
   }
 
+  const showSearchEmpty = displayItems.length === 0;
+
   return (
     <>
       <div role="tabpanel" aria-label={activeCategory ?? "Menu"}>
-        <SubcategoryFilter
-          subcategories={subcategories}
-          activeSubcategory={activeSubcategory}
-          onSelect={setActiveSubcategory}
-          language={language}
-          items={items}
-        />
+        <div className="menu-toolbar">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            language={language}
+          />
+          <SubcategoryChips
+            subcategories={subcategories}
+            activeSubcategory={activeSubcategory}
+            onSelect={setActiveSubcategory}
+            language={language}
+            items={items}
+            counts={subcategoryCounts}
+          />
+        </div>
 
-        {Array.from(grouped.entries()).map(([category, categoryItems]) => (
-          <section key={category} className="menu-category" aria-label={category}>
-            <h2 className="menu-category__title">
-              {getField(categoryItems[0]?.category, language)}
-            </h2>
-            <ul className="menu-items">
-              {categoryItems.map((item) => (
-                <li key={getId(item)} className="menu-item">
-                  <button
-                    className="menu-item__button"
-                    onClick={() => handleItemClick(item)}
-                    aria-label={`${getField(item.name, language)}, ${formatPrice(item.price)}${item.pricing_type && item.pricing_type !== "single" && item.price_secondary != null ? ` / ${formatPrice(item.price_secondary)}` : ""}`}
-                  >
-                    <div className="menu-item__info">
-                      <div className="menu-item__name">
-                        {getField(item.name, language)}
-                      </div>
-                      {getField(item.description, language) && (
-                        <div className="menu-item__desc">
-                          {getField(item.description, language)}
+        {showSearchEmpty ? (
+          <EmptyState
+            language={language}
+            variant="search"
+            query={searchQuery}
+            onClear={() => { setSearchQuery(""); setActiveSubcategory(null); }}
+          />
+        ) : (
+          Array.from(grouped.entries()).map(([category, categoryItems]) => (
+            <section key={category} className="menu-category" aria-label={category}>
+              <h2 className="menu-category__title">
+                {getField(categoryItems[0]?.category, language)}
+              </h2>
+              <ul className="menu-items">
+                {categoryItems.map((item) => {
+                  const thumb = getImageFullUrl(item.image_url);
+                  return (
+                    <li key={getId(item)} className="menu-item">
+                      <button
+                        className="menu-item__button"
+                        onClick={() => handleItemClick(item)}
+                        aria-label={`${getField(item.name, language)}, ${formatPrice(item.price)}${item.pricing_type && item.pricing_type !== "single" && item.price_secondary != null ? ` / ${formatPrice(item.price_secondary)}` : ""}`}
+                      >
+                        {thumb && (
+                          <span className="menu-item__thumb" aria-hidden="true">
+                            <img src={thumb} alt="" loading="lazy" decoding="async" />
+                          </span>
+                        )}
+                        <div className="menu-item__info">
+                          <div className="menu-item__name">
+                            {getField(item.name, language)}
+                          </div>
+                          {getField(item.description, language) && (
+                            <div className="menu-item__desc">
+                              {getField(item.description, language)}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <DualPrice item={item} language={language} size="sm" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+                        <DualPrice item={item} language={language} size="sm" />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))
+        )}
       </div>
 
       {selectedItem && (

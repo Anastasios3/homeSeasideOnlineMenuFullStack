@@ -112,6 +112,29 @@
   transform: translateX(100%);
 }
 
+/* ── 3-option variant (theme: Light / Auto / Dark) ─────────── */
+.pill-toggle--three {
+  width: 124px;
+}
+
+.pill-toggle--three .pill-toggle__option {
+  /* All three options share the width evenly */
+}
+
+.pill-toggle__indicator--3 {
+  width: calc((100% - 6px) / 3);
+}
+
+.pill-toggle__indicator--pos-1 { transform: translateX(0%); }
+.pill-toggle__indicator--pos-2 { transform: translateX(100%); }
+.pill-toggle__indicator--pos-3 { transform: translateX(200%); }
+
+@media (max-width: 768px) {
+  .pill-toggle--three {
+    width: 108px;
+  }
+}
+
 /* ============================================================
    Mobile
    ============================================================ */

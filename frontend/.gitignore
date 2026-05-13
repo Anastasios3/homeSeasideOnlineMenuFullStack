@@ -25,3 +25,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Raw, unprocessed source media — never bundled. See raw-assets/README.md.
+raw-assets/album1/
+raw-assets/album*/
+
+# Heavy originals that historically lived under src/assets/. The optimize
+# script reads from raw-assets/ and writes responsive variants into
+# src/assets/photos/. Originals must not enter the bundle.
+src/assets/album1/
+src/assets/album*/

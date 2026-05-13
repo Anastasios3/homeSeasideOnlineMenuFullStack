@@ -1,5 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Coffee, Martini, Beer, Utensils, Wine } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useTimeOfDay } from "../hooks/useTimeOfDay";
+import { PHASE_CATEGORY_ORDER } from "../config/schedule";
+import {
+  CoffeeIcon,
+  CocktailIcon,
+  WineIcon,
+  SpiritsIcon,
+  FoodIcon,
+} from "./CategoryIcons";
 import "../styles/CategoryNav.css";
 
 type CategoryType = "coffee" | "spirits" | "cocktails" | "beer&wine" | "food";
@@ -14,28 +22,28 @@ interface CategoryConfig {
 const CATEGORIES: Record<CategoryType, CategoryConfig> = {
   coffee: {
     id: "coffee",
-    label: { EN: "coffee & more", EL: "καφες & αλλα" },
-    icon: <Coffee size={20} strokeWidth={1.8} />,
+    label: { EN: "coffee & more", EL: "καφές & άλλα" },
+    icon: <CoffeeIcon size={22} />,
   },
   spirits: {
     id: "spirits",
-    label: { EN: "spirits", EL: "ποτα" },
-    icon: <Wine size={20} strokeWidth={1.8} />,
+    label: { EN: "spirits", EL: "ποτά" },
+    icon: <SpiritsIcon size={22} />,
   },
   cocktails: {
     id: "cocktails",
-    label: { EN: "cocktails", EL: "κοκτειλ" },
-    icon: <Martini size={20} strokeWidth={1.8} />,
+    label: { EN: "cocktails", EL: "κοκτέιλ" },
+    icon: <CocktailIcon size={22} />,
   },
   "beer&wine": {
     id: "beer&wine",
-    label: { EN: "beer & wine", EL: "μπυρα & κρασι" },
-    icon: <Beer size={20} strokeWidth={1.8} />,
+    label: { EN: "beer & wine", EL: "μπύρα & κρασί" },
+    icon: <WineIcon size={22} />,
   },
   food: {
     id: "food",
-    label: { EN: "food", EL: "φαγητο" },
-    icon: <Utensils size={20} strokeWidth={1.8} />,
+    label: { EN: "food", EL: "φαγητό" },
+    icon: <FoodIcon size={22} />,
   },
 };
 
@@ -44,33 +52,18 @@ interface CategoryNavProps {
   onCategoryChange?: (category: CategoryType) => void;
 }
 
-const getOrder = (): CategoryType[] => {
-  const hour = new Date().getHours();
-  if (hour >= 6 && hour < 12)
-    return ["coffee", "food", "beer&wine", "cocktails", "spirits"];
-  if (hour >= 12 && hour < 17)
-    return ["food", "coffee", "beer&wine", "spirits", "cocktails"];
-  if (hour >= 17 && hour < 21)
-    return ["cocktails", "coffee", "food", "beer&wine", "spirits"];
-  return ["cocktails", "spirits", "beer&wine", "food", "coffee"];
-};
-
 const CategoryNav: React.FC<CategoryNavProps> = ({
   currentLanguage = "EN",
   onCategoryChange,
 }) => {
-  const [orderedKeys, setOrderedKeys] = useState<CategoryType[]>(getOrder);
-  const [activeCategory, setActiveCategory] = useState<CategoryType>(
-    getOrder()[0]
+  const { phase } = useTimeOfDay();
+  const orderedKeys = useMemo<CategoryType[]>(
+    () => PHASE_CATEGORY_ORDER[phase] as CategoryType[],
+    [phase]
   );
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newOrder = getOrder();
-      setOrderedKeys(newOrder);
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  const [activeCategory, setActiveCategory] = useState<CategoryType>(
+    orderedKeys[0]
+  );
 
   const handleClick = useCallback(
     (id: CategoryType) => {
