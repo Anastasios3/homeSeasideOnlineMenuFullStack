@@ -4,6 +4,10 @@ Rails.application.routes.draw do
   resources :menu_items, only: [:index, :show, :create, :update, :destroy]
   resources :uploads, only: [:create]
 
+  # Singleton: schedule, subcategory metadata, homepage photos
+  get   "site_setting", to: "site_settings#show"
+  patch "site_setting", to: "site_settings#update"
+
   # Admin authentication
   post   "admin/login",  to: "sessions#create"
   delete "admin/logout", to: "sessions#destroy"
