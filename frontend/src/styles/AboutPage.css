@@ -57,6 +57,14 @@
     margin: 0 0 var(--sp-10);
     border-radius: var(--radius-xl);
   }
+
+  /* Desktop: bump the lede so it reads as hero-tier subtitle, not body copy.
+     Mobile keeps --text-lg (and the <540px override below drops it to base). */
+  .about__lede {
+    font-size: var(--text-xl);
+    line-height: 1.45;
+    max-width: 52ch;
+  }
 }
 
 /* ── Story (alternating photo + text chapters) ──────────── */

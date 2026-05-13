@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FC } from "react";
+import { Link } from "react-router-dom";
 import { Clock, MapPin, MousePointerClick, Phone, Mail, Instagram } from "lucide-react";
 import HomeHero from "./HomeHero";
 import HorizontalJourney from "./HorizontalJourney";
@@ -40,9 +41,11 @@ const content = {
     aboutTitle: "An Ordinary Day, Slowed Down",
     aboutText:
       "Tucked along the seafront in Rethymno, Home Seaside is the kind of place where the hour drifts. Cappuccinos at ten. Mango juice and a long lunch at one. A glass of something cold when the sky turns pink. Made carefully, served generously — for as long as you want to stay.",
+    aboutCta: "Read more about us →",
     visitTitle: "Come See Us",
     visitText:
       "We open at nine and stay until the night is done. Walk in, pick a chair, take your time. The terrace if there's a breeze. The window seat if you want to watch the sea.",
+    visitCta: "Plan your visit →",
     hoursTitle: "Hours & Location",
     days: [
       { day: "Monday – Thursday", time: "09:00 – 00:00" },
@@ -62,9 +65,11 @@ const content = {
     aboutTitle: "Μια συνηθισμένη μέρα, σε αργό ρυθμό",
     aboutText:
       "Στην παραλιακή του Ρεθύμνου, το Home Seaside είναι ένας χώρος που η ώρα κυλά αργά. Cappuccino στις δέκα. Χυμός μάνγκο και μεσημεριανό στη μία. Ένα ποτήρι κάτι κρύο όσο ο ουρανός γίνεται ροζ. Φτιαγμένα με προσοχή, σερβιρισμένα με γενναιοδωρία — για όσο θέλεις να μείνεις.",
+    aboutCta: "Διάβασε περισσότερα για εμάς →",
     visitTitle: "Έλα να μας βρεις",
     visitText:
       "Ανοίγουμε στις εννιά και μένουμε όσο πάει η νύχτα. Μπες, διάλεξε καρέκλα, πάρε τον χρόνο σου. Στη βεράντα αν έχει αεράκι. Στο παράθυρο, αν θες να βλέπεις τη θάλασσα.",
+    visitCta: "Σχεδίασε την επίσκεψή σου →",
     hoursTitle: "Ώρες & Τοποθεσία",
     days: [
       { day: "Δευτέρα – Πέμπτη", time: "09:00 – 00:00" },
@@ -143,6 +148,9 @@ const HomePage: FC<HomePageProps> = ({ language }) => {
       >
         <h2>{t.aboutTitle}</h2>
         <p>{t.aboutText}</p>
+        <Link to="/about" className="home-section-cta">
+          {t.aboutCta}
+        </Link>
       </ParallaxBlock>
 
       {/* ─── Hours & Location with embedded map ─── */}
@@ -224,6 +232,9 @@ const HomePage: FC<HomePageProps> = ({ language }) => {
       >
         <h2>{t.visitTitle}</h2>
         <p>{t.visitText}</p>
+        <Link to="/visit" className="home-section-cta">
+          {t.visitCta}
+        </Link>
       </ParallaxBlock>
 
       {/* ─── FAQ — plain HTML, no schema. Helps AI Overviews + on-page authority. ─── */}

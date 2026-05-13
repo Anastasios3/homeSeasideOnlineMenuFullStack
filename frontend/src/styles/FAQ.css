@@ -22,8 +22,8 @@
 }
 
 [data-theme="dark"] .home-faq.home-textured-bg .home-faq__item {
-  background-color: hsla(24, 15%, 12%, 0.7);
-  border-color: hsla(28, 30%, 30%, 0.35);
+  background-color: hsla(220, 6%, 12%, 0.7);
+  border-color: hsla(220, 10%, 30%, 0.3);
 }
 
 .home-faq__inner {

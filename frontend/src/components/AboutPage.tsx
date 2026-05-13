@@ -38,12 +38,11 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
     canonicalPath: "/about",
   });
 
-  const heroPhoto = ALBUM1_PHOTOS["food-session-6"]
-    ?? ALBUM1_PHOTOS["food-session-36"]
-    ?? ALBUM1_PHOTOS["food-session-69"];
+  const heroPhoto = ALBUM1_PHOTOS["food-session-70"]
+    ?? ALBUM1_PHOTOS["food-session-6"];
 
-  const heroAltEN = "The Home Seaside terrace on the Rethymno seafront, Crete";
-  const heroAltEL = "Η βεράντα του Home Seaside στην παραλιακή του Ρεθύμνου";
+  const heroAltEN = "Home Seaside at night, lit up on the Rethymno seafront";
+  const heroAltEL = "Το Home Seaside τη νύχτα, φωτισμένο στην παραλιακή του Ρεθύμνου";
 
   const chapters: Chapter[] = [
     {

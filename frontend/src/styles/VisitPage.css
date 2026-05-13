@@ -8,6 +8,21 @@
   align-items: center;
   justify-content: center;
   padding: var(--sp-10) var(--sp-5);
+  /* Warm radial wash from the top so the page doesn't read as a flat
+     clinical landing. Subtle — just enough to suggest hearth/seafront. */
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    hsla(36, 60%, 96%, 0.6) 0%,
+    transparent 60%
+  );
+}
+
+[data-theme="dark"] .visit {
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    hsla(220, 25%, 14%, 0.55) 0%,
+    transparent 65%
+  );
 }
 
 .visit__inner {
@@ -32,10 +47,17 @@
 .visit__title {
   font-family: var(--font-display);
   font-size: var(--text-4xl);
-  letter-spacing: -0.015em;
+  font-weight: 500;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
   margin: 0 0 var(--sp-4);
-  line-height: var(--lh-tight);
+  line-height: 1.1;
+}
+
+@media (min-width: 768px) {
+  .visit__title {
+    font-size: var(--text-5xl);
+  }
 }
 
 .visit__lede {
@@ -142,6 +164,7 @@
 }
 
 .visit__choice {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--sp-5);
@@ -166,6 +189,27 @@
   outline: none;
 }
 
+/* Visual hierarchy:
+   - Google (primary): thin accent top-stripe + heavier hover shadow.
+   - TripAdvisor (secondary): brand-green icon, no stripe, lighter hover.
+   - Private feedback (tertiary): more subdued — softer background. */
+.visit__choice--public::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent-primary);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+}
+
+.visit__choice--public:hover,
+.visit__choice--public:focus-visible {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
 .visit__choice--public .visit__choice-icon {
   background: #ffffff;
   color: var(--text-primary);
@@ -173,8 +217,14 @@
 }
 
 .visit__choice--tripadvisor .visit__choice-icon {
-  background: #e6f4ea;
-  color: #00766c;
+  /* TripAdvisor signature green (#00AF87) on a pale tint so the owl reads
+     immediately as the TA brand without overpowering the warm palette. */
+  background: #e7f6f0;
+  color: #00AF87;
+}
+
+.visit__choice--private {
+  background: var(--bg-secondary, var(--bg-card));
 }
 
 .visit__choice--private .visit__choice-icon {

@@ -22,14 +22,30 @@ const GoogleG: FC<{ size?: number }> = ({ size = 28 }) => (
 );
 
 /**
- * Simplified TripAdvisor owl mark. Rendered monochrome in the accent color
- * so the card visually matches the other review CTAs.
+ * Simplified TripAdvisor owl mark — solid head circle in the brand green
+ * (#00AF87) with two large white eyes, dark pupils, small highlights, and
+ * a triangular beak. More immediately recognizable than a flat monochrome
+ * silhouette. The `color: currentColor` paths inherit the brand green from
+ * the .visit__choice--tripadvisor .visit__choice-icon container.
  */
 const TripAdvisorOwl: FC<{ size?: number }> = ({ size = 28 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M12 4.5C7.305 4.5 3.5 8.305 3.5 13c0 4.695 3.805 8.5 8.5 8.5s8.5-3.805 8.5-8.5c0-4.695-3.805-8.5-8.5-8.5zm-4 11.25a2.75 2.75 0 1 1 0-5.5 2.75 2.75 0 0 1 0 5.5zm8 0a2.75 2.75 0 1 1 0-5.5 2.75 2.75 0 0 1 0 5.5z"/>
-    <circle cx="8" cy="13" r="1.1" fill="white"/>
-    <circle cx="16" cy="13" r="1.1" fill="white"/>
+  <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
+    {/* Outer head circle */}
+    <circle cx="24" cy="24" r="22" fill="currentColor" />
+    {/* Left eye — white sclera */}
+    <circle cx="15.5" cy="22" r="6.5" fill="#fff" />
+    {/* Right eye — white sclera */}
+    <circle cx="32.5" cy="22" r="6.5" fill="#fff" />
+    {/* Left pupil */}
+    <circle cx="15.5" cy="22" r="2.6" fill="#0f172a" />
+    {/* Right pupil — slightly offset shape suggesting the TA "pin" inside the right eye */}
+    <circle cx="32.5" cy="22" r="2.6" fill="#0f172a" />
+    {/* Left pupil highlight */}
+    <circle cx="14.4" cy="20.8" r="0.9" fill="#fff" />
+    {/* Right pupil highlight */}
+    <circle cx="31.4" cy="20.8" r="0.9" fill="#fff" />
+    {/* Beak — small inverted triangle between eyes */}
+    <path d="M24 27 L21.5 30.5 L26.5 30.5 Z" fill="currentColor" stroke="#0f172a" strokeWidth="0.6" />
   </svg>
 );
 
@@ -120,8 +136,8 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
               <span className="visit__choice-body">
                 <span className="visit__choice-title">Leave a Google review</span>
                 <span className="visit__choice-desc">
-                  Public, on our Google listing. Helps other guests find us and
-                  tells our team how we're doing.
+                  Public, on our Google listing. Helps the next traveller find
+                  us — and tells our team what's working.
                 </span>
               </span>
               <ExternalLink size={16} className="visit__choice-arrow" />
@@ -139,8 +155,8 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
               <span className="visit__choice-body">
                 <span className="visit__choice-title">Leave a TripAdvisor review</span>
                 <span className="visit__choice-desc">
-                  Public, on our TripAdvisor listing. Helps travellers find us
-                  before they arrive.
+                  Public, on TripAdvisor. The first place a lot of guests look
+                  before they arrive in Rethymno.
                 </span>
               </span>
               <ExternalLink size={16} className="visit__choice-arrow" />
@@ -156,8 +172,8 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
               <span className="visit__choice-body">
                 <span className="visit__choice-title">Send us private feedback</span>
                 <span className="visit__choice-desc">
-                  Direct to the manager. For anything you'd rather not say in
-                  public — or just to drop us a note.
+                  Straight to the manager. For anything you'd rather not say
+                  in public — or just to drop us a line.
                 </span>
               </span>
               <ExternalLink size={16} className="visit__choice-arrow" />
@@ -211,8 +227,8 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
             <span className="visit__choice-body">
               <span className="visit__choice-title">Άφησε αξιολόγηση στο Google</span>
               <span className="visit__choice-desc">
-                Δημόσια, στο Google listing μας. Βοηθάει άλλους επισκέπτες να
-                μας βρουν και λέει στην ομάδα μας πώς τα πάμε.
+                Δημόσια, στο Google listing μας. Βοηθάει τον επόμενο ταξιδιώτη
+                να μας βρει — και μας λέει τι πάει καλά.
               </span>
             </span>
             <ExternalLink size={16} className="visit__choice-arrow" />
@@ -230,8 +246,8 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
             <span className="visit__choice-body">
               <span className="visit__choice-title">Άφησε αξιολόγηση στο TripAdvisor</span>
               <span className="visit__choice-desc">
-                Δημόσια, στο TripAdvisor listing μας. Βοηθάει ταξιδιώτες να μας
-                βρουν πριν φτάσουν.
+                Δημόσια, στο TripAdvisor. Το πρώτο μέρος που κοιτάζουν πολλοί
+                επισκέπτες πριν φτάσουν στο Ρέθυμνο.
               </span>
             </span>
             <ExternalLink size={16} className="visit__choice-arrow" />
@@ -247,8 +263,8 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
             <span className="visit__choice-body">
               <span className="visit__choice-title">Στείλε μας ιδιωτικά τη γνώμη σου</span>
               <span className="visit__choice-desc">
-                Απευθείας στον υπεύθυνο. Για ό,τι θες να μας πεις χωρίς να
-                δημοσιευτεί — ή απλά για ένα μήνυμα.
+                Απευθείας στον υπεύθυνο. Για ό,τι δεν θες να πεις δημόσια —
+                ή απλά για ένα μήνυμα.
               </span>
             </span>
             <ExternalLink size={16} className="visit__choice-arrow" />
