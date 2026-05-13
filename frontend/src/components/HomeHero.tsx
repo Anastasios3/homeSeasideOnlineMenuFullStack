@@ -7,10 +7,7 @@ import {
   getHeroEntryForPhase,
   resolveImage,
 } from "../config/curationRuntime";
-import {
-  getHomepagePhotos,
-  HOMEPAGE_PHOTOS_STORAGE_KEY,
-} from "../config/homepagePhotos";
+import { HOMEPAGE_PHOTOS_STORAGE_KEY } from "../config/homepagePhotos";
 
 interface HomeHeroProps {
   language: "EN" | "EL";
@@ -22,13 +19,14 @@ interface HomeHeroProps {
 /**
  * Full-bleed hero with a time-aware photograph behind the chunky wordmark.
  *
- * Photo source resolution (first match wins):
- *   1. Admin "hero override" slot (homepage_photos.hero) — explicit manual pick
- *   2. Highest-priority entry from the curation feed matching current phase
- *   3. Nothing (scrim only) — shouldn't happen but rendering is safe
+ * The photo comes from `getHeroEntryForPhase(currentPhase)` which applies
+ * the unified resolution order:
+ *   1. Admin's locked `hero_picks[phase]` slug (Hero Override tab)
+ *   2. Highest-priority visible curation entry whose phases include the phase
+ *   3. First visible entry — so the hero never goes blank
  *
- * The component subscribes to homepage_photos storage events so any admin
- * edit takes effect on the next paint without a reload.
+ * Subscribes to homepage_photos storage events so any admin edit takes
+ * effect on the next paint without a reload.
  */
 const HomeHero: FC<HomeHeroProps> = ({ language, tagline, subtitle, ctaLabel }) => {
   const { phase } = useTimeOfDay();
@@ -44,23 +42,12 @@ const HomeHero: FC<HomeHeroProps> = ({ language, tagline, subtitle, ctaLabel }) 
   }, []);
   void version; // dep marker — re-evaluates the getters below on bump
 
-  const heroOverride = getHomepagePhotos().hero;
-  const curated = heroOverride ? null : getHeroEntryForPhase(phase);
+  const curated = getHeroEntryForPhase(phase);
   const resolved = curated ? resolveImage(curated) : null;
 
   return (
     <section className="home-hero">
-      {heroOverride ? (
-        <div className="home-hero__photo">
-          <AdminPicture
-            slot={heroOverride}
-            language={language}
-            priority
-            sizes="100vw"
-            fit="cover"
-          />
-        </div>
-      ) : resolved?.kind === "bundled" ? (
+      {resolved?.kind === "bundled" ? (
         <div className="home-hero__photo">
           <Picture
             photo={resolved.meta}

@@ -577,7 +577,10 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
     setError(null);
     try {
       const cleaned: HomepagePhotosOverrides = {
-        hero: draft.hero,
+        // Legacy single-photo hero field is no longer surfaced in the UI.
+        // We explicitly clear it on save so old data from the previous
+        // override system can't keep winning over the new per-phase picks.
+        hero: null,
         hero_picks: { ...draft.hero_picks },
         journey: [],
         gallery: [],
