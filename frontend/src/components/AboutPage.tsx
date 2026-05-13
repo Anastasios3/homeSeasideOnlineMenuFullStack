@@ -46,7 +46,7 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
 
   const chapters: Chapter[] = [
     {
-      photo: ALBUM1_PHOTOS["food-session-8"] ?? ALBUM1_PHOTOS["food-session-15"],
+      photo: ALBUM1_PHOTOS["food-session-6"] ?? ALBUM1_PHOTOS["food-session-8"],
       altEN: "Espresso and brunch on a sunny morning at Home Seaside",
       altEL: "Espresso και brunch ένα ηλιόλουστο πρωινό στο Home Seaside",
       titleEN: "Mornings start slow",
@@ -134,7 +134,7 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
       ),
     },
     {
-      photo: ALBUM1_PHOTOS["food-session-15"] ?? ALBUM1_PHOTOS["food-session-34"],
+      photo: ALBUM1_PHOTOS["food-session-36"] ?? ALBUM1_PHOTOS["food-session-15"],
       altEN: "A toasted sandwich and side salad at Home Seaside, mid-afternoon",
       altEL: "Ψητό σάντουιτς και σαλάτα στο Home Seaside, μεσημεριανές ώρες",
       titleEN: "Food that doesn't rush",
