@@ -79,8 +79,8 @@ const TRIPADVISOR_REVIEW_URL = "https://www.tripadvisor.com/Restaurant_Review-g1
 const VisitPage: FC<VisitPageProps> = ({ language }) => {
   useDocumentMeta({
     title: language === "EN"
-      ? "Thanks for visiting — Home Seaside"
-      : "Ευχαριστούμε για την επίσκεψη — Home Seaside",
+      ? "Thanks for visiting · Home Seaside"
+      : "Ευχαριστούμε για την επίσκεψη · Home Seaside",
     description: language === "EN"
       ? "Leave a Google review or share private feedback with the Home Seaside team."
       : "Άφησε μια αξιολόγηση στο Google ή στείλε μας ιδιωτικά τη γνώμη σου.",
@@ -100,8 +100,7 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
             <p className="visit__eyebrow">Home Seaside · Rethymno</p>
             <h1 className="visit__title">Thanks for visiting today</h1>
             <p className="visit__lede">
-              We'd love to hear how it went. Pick whichever feels right —
-              every option goes directly to us.
+              Tell us how it went. Whichever option you pick, it lands with us, not a third party.
             </p>
           </header>
 
@@ -117,7 +116,7 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
             <span className="visit__instagram-cta-body">
               <span className="visit__instagram-cta-title">@home_seaside</span>
               <span className="visit__instagram-cta-subtitle">
-                Daily stories, drinks, sunset photos — the life of the bar.
+                Daily stories, drinks, sunset photos. The life of the bar.
               </span>
             </span>
             <ExternalLink size={16} className="visit__instagram-cta-arrow" />
@@ -136,8 +135,7 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
               <span className="visit__choice-body">
                 <span className="visit__choice-title">Leave a Google review</span>
                 <span className="visit__choice-desc">
-                  Public, on our Google listing. Helps the next traveller find
-                  us — and tells our team what's working.
+                  Public, on our Google listing. The first place travellers check before they pick where to eat in Rethymno.
                 </span>
               </span>
               <ExternalLink size={16} className="visit__choice-arrow" />
@@ -172,8 +170,7 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
               <span className="visit__choice-body">
                 <span className="visit__choice-title">Send us private feedback</span>
                 <span className="visit__choice-desc">
-                  Straight to the manager. For anything you'd rather not say
-                  in public — or just to drop us a line.
+                  Goes straight to the manager. Anything you'd rather keep off the public record, or just a quick note for us.
                 </span>
               </span>
               <ExternalLink size={16} className="visit__choice-arrow" />
@@ -191,8 +188,7 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
           <p className="visit__eyebrow">Home Seaside · Ρέθυμνο</p>
           <h1 className="visit__title">Ευχαριστούμε για την επίσκεψη</h1>
           <p className="visit__lede">
-            Θα θέλαμε πολύ να μάθουμε πώς πέρασες. Διάλεξε ό,τι σου ταιριάζει —
-            κάθε επιλογή έρχεται απευθείας σε εμάς.
+            Πες μας πώς πέρασες. Όποια επιλογή κι αν διαλέξεις, έρχεται σε εμάς, όχι σε κάποιον τρίτο.
           </p>
         </header>
 
@@ -208,7 +204,7 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
           <span className="visit__instagram-cta-body">
             <span className="visit__instagram-cta-title">@home_seaside</span>
             <span className="visit__instagram-cta-subtitle">
-              Καθημερινές στιγμές, ποτά, ηλιοβασιλέματα — η ζωή του μπαρ.
+              Καθημερινές στιγμές, ποτά, ηλιοβασιλέματα. Η ζωή του μπαρ.
             </span>
           </span>
           <ExternalLink size={16} className="visit__instagram-cta-arrow" />
@@ -227,8 +223,7 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
             <span className="visit__choice-body">
               <span className="visit__choice-title">Άφησε αξιολόγηση στο Google</span>
               <span className="visit__choice-desc">
-                Δημόσια, στο Google listing μας. Βοηθάει τον επόμενο ταξιδιώτη
-                να μας βρει — και μας λέει τι πάει καλά.
+                Δημόσια, στο Google listing μας. Το πρώτο μέρος που κοιτούν οι ταξιδιώτες πριν αποφασίσουν πού θα φάνε στο Ρέθυμνο.
               </span>
             </span>
             <ExternalLink size={16} className="visit__choice-arrow" />
@@ -263,8 +258,7 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
             <span className="visit__choice-body">
               <span className="visit__choice-title">Στείλε μας ιδιωτικά τη γνώμη σου</span>
               <span className="visit__choice-desc">
-                Απευθείας στον υπεύθυνο. Για ό,τι δεν θες να πεις δημόσια —
-                ή απλά για ένα μήνυμα.
+                Πάει απευθείας στον υπεύθυνο. Ό,τι προτιμάς να μην ειπωθεί δημόσια, ή απλά ένα μήνυμα για εμάς.
               </span>
             </span>
             <ExternalLink size={16} className="visit__choice-arrow" />

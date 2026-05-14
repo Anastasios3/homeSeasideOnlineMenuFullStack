@@ -15,7 +15,7 @@ interface QA {
 const FAQ_EN: QA[] = [
   {
     q: "Where exactly is Home Seaside?",
-    a: "On the Rethymno seafront — Leof. Emmanouil Kefalogianni 18. Two minutes' walk from the Fortezza and the Old Venetian Harbour. The terrace looks straight out at the water.",
+    a: "On the Rethymno seafront, at Leof. Emmanouil Kefalogianni 18. Two minutes' walk from the Fortezza and the Old Venetian Harbour. The terrace looks straight out at the water.",
   },
   {
     q: "What is Home Seaside best known for?",
@@ -27,11 +27,11 @@ const FAQ_EN: QA[] = [
   },
   {
     q: "Do you take reservations?",
-    a: "Yes. Call +30 2831 022782 or write to home_seaside_rethimno@hotmail.com. Weekend evenings and larger tables fill up — it's worth booking ahead.",
+    a: "Yes. Call +30 2831 022782 or write to home_seaside_rethimno@hotmail.com. Weekend evenings and larger tables fill up, so it's worth booking ahead.",
   },
   {
     q: "Do you serve breakfast and food all day?",
-    a: "Yes. The kitchen opens when we do and closes when we close. Brunch in the morning, full lunch at midday, comfort food carrying on through the evening.",
+    a: "Yes. The kitchen opens when we do and closes when we close. Brunch starts the morning. Lunch runs into a long afternoon. By evening it shifts to pizza and small plates.",
   },
   {
     q: "Is there outdoor seating with a sea view?",
@@ -42,7 +42,7 @@ const FAQ_EN: QA[] = [
 const FAQ_EL: QA[] = [
   {
     q: "Πού ακριβώς βρίσκεται το Home Seaside;",
-    a: "Στην παραλιακή του Ρεθύμνου — Λεωφ. Εμμανουήλ Κεφαλογιάννη 18. Δύο λεπτά με τα πόδια από τη Φορτέτζα και το Παλιό Ενετικό Λιμάνι. Η βεράντα κοιτάζει κατευθείαν στη θάλασσα.",
+    a: "Στην παραλιακή του Ρεθύμνου, στη Λεωφ. Εμμανουήλ Κεφαλογιάννη 18. Δύο λεπτά με τα πόδια από τη Φορτέτζα και το Παλιό Ενετικό Λιμάνι. Η βεράντα κοιτάζει κατευθείαν στη θάλασσα.",
   },
   {
     q: "Για τι είναι γνωστό το Home Seaside;",
@@ -54,11 +54,11 @@ const FAQ_EL: QA[] = [
   },
   {
     q: "Δέχεστε κρατήσεις;",
-    a: "Ναι. Καλέστε στο +30 2831 022782 ή γράψτε στο home_seaside_rethimno@hotmail.com. Σαββατοκύριακα το βράδυ και μεγαλύτερες παρέες γεμίζουν — αξίζει να κλείσετε από πριν.",
+    a: "Ναι. Καλέστε στο +30 2831 022782 ή γράψτε στο home_seaside_rethimno@hotmail.com. Σαββατοκύριακα το βράδυ και μεγαλύτερες παρέες γεμίζουν, οπότε αξίζει να κλείσετε από πριν.",
   },
   {
     q: "Σερβίρετε πρωινό και φαγητό όλη μέρα;",
-    a: "Ναι. Η κουζίνα ανοίγει όταν ανοίγουμε και κλείνει όταν κλείνουμε. Brunch το πρωί, μεσημεριανό στη μία, comfort food που συνεχίζει μέχρι το βράδυ.",
+    a: "Ναι. Η κουζίνα ανοίγει όταν ανοίγουμε και κλείνει όταν κλείνουμε. Το brunch ξεκινάει το πρωί. Το μεσημεριανό κυλάει σε ένα μακρύ απόγευμα. Το βράδυ γυρνάει σε πίτσα και μεζέδες.",
   },
   {
     q: "Υπάρχει εξωτερικό κάθισμα με θέα στη θάλασσα;",

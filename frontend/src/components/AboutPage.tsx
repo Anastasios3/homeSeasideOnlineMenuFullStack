@@ -30,8 +30,8 @@ interface Chapter {
 const AboutPage: FC<AboutPageProps> = ({ language }) => {
   useDocumentMeta({
     title: language === "EN"
-      ? "About Home Seaside — Seafront Café & Bar in Rethymno"
-      : "Σχετικά με το Home Seaside — Παραθαλάσσιο café & bar στο Ρέθυμνο",
+      ? "About Home Seaside · Seafront café & bar in Rethymno"
+      : "Σχετικά με το Home Seaside · Παραθαλάσσιο café & bar στο Ρέθυμνο",
     description: language === "EN"
       ? "The story behind Home Seaside Bar & More in Rethymno, Crete. A seafront café and cocktail bar known for specialty coffee, an extensive rum selection, and comfort food."
       : "Η ιστορία πίσω από το Home Seaside Bar & More στο Ρέθυμνο της Κρήτης. Παραθαλάσσιο café και cocktail bar γνωστό για specialty καφέ, μεγάλη συλλογή ρουμιού και comfort φαγητό.",
@@ -61,10 +61,7 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
           </p>
           <p>
             We take coffee seriously without making a fuss about it.
-            Fresh beans, careful temperatures, latte art that arrives
-            without comment. Brunch carries the morning — eggs cooked
-            how you ask, honeycomb spooned over thick yogurt, toast that
-            smells of the kitchen. If you want to nurse a long flat
+            Fresh beans, careful temperatures, latte art that arrives without comment. Brunch carries the morning. Eggs cooked how you ask, honeycomb spooned over thick yogurt, toast that smells of the kitchen. If you want to nurse a long flat
             white by the window, this is the place for it.
           </p>
         </>
@@ -79,9 +76,7 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
           </p>
           <p>
             Παίρνουμε τον καφέ στα σοβαρά χωρίς να το κάνουμε θέμα.
-            Φρέσκοι κόκκοι, σωστές θερμοκρασίες, latte art χωρίς
-            φιγούρες. Το brunch κρατάει το πρωί — αυγά όπως τα ζητάς,
-            κηρήθρα πάνω σε πηχτό γιαούρτι, τοστ που μυρίζει κουζίνα.
+            Φρέσκοι κόκκοι, σωστές θερμοκρασίες, latte art χωρίς φιγούρες. Το brunch κρατάει το πρωί. Αυγά όπως τα ζητάς, κηρήθρα πάνω σε πηχτό γιαούρτι, τοστ που μυρίζει κουζίνα.
             Αν θες να αργήσεις πάνω από έναν flat white δίπλα στο
             παράθυρο, εδώ είναι το μέρος.
           </p>
@@ -107,8 +102,7 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
           <p>
             Order a classic and we will build it properly. Order
             something signature and we will tell you what is in it.
-            Ask for a recommendation — that is what we like best. The
-            night unfolds at whatever pace you want; we keep the
+            Ask for a recommendation. That is what we like best. The night unfolds at whatever pace you want; we keep the
             shaker moving until it stops feeling right.
           </p>
         </>
@@ -126,7 +120,7 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
           <p>
             Παράγγειλε ένα κλασικό και θα φτιαχτεί σωστά. Παράγγειλε
             κάτι signature και θα σου πούμε τι έχει μέσα. Ζήτα μια
-            πρόταση — αυτό μας αρέσει περισσότερο. Η βραδιά
+            πρόταση. Αυτό μας αρέσει περισσότερο. Η βραδιά
             ξεδιπλώνεται στον ρυθμό σου· κρατάμε το shaker σε
             κίνηση όσο νιώθει σωστό.
           </p>
@@ -150,9 +144,7 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
             season; the spirit of it does not.
           </p>
           <p>
-            Sourcing is local where it should be — Cretan olive oil,
-            cheeses from the mountain villages, fish landed at the
-            harbour up the road. The plates are generous, the portions
+            Sourcing is local where it should be. Cretan olive oil, cheeses from the mountain villages, fish landed at the harbour up the road. The plates are generous, the portions
             unfussy. Stay through three courses or just split a salad
             with a glass of wine. Both are welcome.
           </p>
@@ -169,8 +161,7 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
             αλλάζει λίγο με την εποχή· ο χαρακτήρας του όχι.
           </p>
           <p>
-            Πρώτες ύλες από εδώ όπου ταιριάζει — κρητικό λάδι,
-            τυριά από τα ορεινά χωριά, ψάρι από το λιμάνι πιο πάνω.
+            Πρώτες ύλες από εδώ όπου ταιριάζει. Κρητικό λάδι, τυριά από τα ορεινά χωριά, ψάρι από το λιμάνι πιο πάνω.
             Τα πιάτα είναι γενναιόδωρα, οι μερίδες ανεπιτήδευτες.
             Μείνε για τρία πιάτα ή μοιράσου μια σαλάτα με ένα ποτήρι
             κρασί. Και τα δύο ευπρόσδεκτα.
@@ -194,9 +185,7 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
             five, the room shifts with the light.
           </p>
           <p>
-            The crowd is a mix — locals on long lunches, travellers
-            who walked over from the Old Town, families who come back
-            every summer and ask about the dog. We are happy to host
+            The crowd is a mix. Locals on long lunches, travellers who walked over from the Old Town, families who come back every summer and ask about the dog. We are happy to host
             any of them, for as long as they would like to stay. No
             one is going to rush you out.
           </p>
@@ -209,14 +198,10 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
             βεράντα δουλεύει στα πιο δροσερά απογεύματα· τα
             σκιαζόμενα τραπέζια κρατούν το καλοκαίρι μακριά από τον
             ήλιο. Μέσα, ο χώρος γίνεται ζεστός τον χειμώνα και μένει
-            δροσερός τον Αύγουστο. Καπουτσίνο στις δέκα, spritz
-            στις πέντε — ο χώρος αλλάζει με το φως.
+            δροσερός τον Αύγουστο. Καπουτσίνο στις δέκα, spritz στις πέντε, ο χώρος αλλάζει με το φως.
           </p>
           <p>
-            Ο κόσμος είναι ένα μείγμα — ντόπιοι σε μεγάλα μεσημέρια,
-            ταξιδιώτες που περπάτησαν από την Παλιά Πόλη,
-            οικογένειες που έρχονται κάθε καλοκαίρι και ρωτούν για
-            τον σκύλο. Φιλοξενούμε ευχαρίστως όλους τους, για όσο
+            Ο κόσμος είναι ένα μείγμα. Ντόπιοι σε μεγάλα μεσημέρια, ταξιδιώτες που περπάτησαν από την Παλιά Πόλη, οικογένειες που έρχονται κάθε καλοκαίρι και ρωτούν για τον σκύλο. Φιλοξενούμε ευχαρίστως όλους τους, για όσο
             θέλουν να μείνουν. Κανείς δεν θα σε βιάσει να φύγεις.
           </p>
         </>
@@ -233,15 +218,12 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
           <p>
             Leof. Emmanouil Kefalogianni 18, on the Rethymno seafront
             promenade, two minutes' walk from the Fortezza and the
-            Old Venetian Harbour. From the Old Town, follow the water
-            east — you will see us before you arrive.
+            Old Venetian Harbour. From the Old Town, follow the water east. You will see us before you arrive.
           </p>
           <p>
             Walk-ins are always welcome. For larger groups or weekend
             evenings, a quick call ahead is the kind move:{" "}
-            <a href="tel:+302831022782">+30 2831 022782</a>. For the
-            daily rhythm — new arrivals on the bar, what came out of
-            the kitchen this morning — follow{" "}
+            <a href="tel:+302831022782">+30 2831 022782</a>. For the daily rhythm (new arrivals on the bar, what came out of the kitchen this morning), follow{" "}
             <a
               href="https://www.instagram.com/home_seaside"
               target="_blank"
@@ -258,16 +240,13 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
           <p>
             Λεωφ. Εμμανουήλ Κεφαλογιάννη 18, στην παραλιακή του
             Ρεθύμνου, δύο λεπτά με τα πόδια από τη Φορτέτζα και το
-            Παλιό Ενετικό Λιμάνι. Από την Παλιά Πόλη, ακολούθα τη
-            θάλασσα ανατολικά — θα μας δεις πριν φτάσεις.
+            Παλιό Ενετικό Λιμάνι. Από την Παλιά Πόλη, ακολούθα τη θάλασσα ανατολικά. Θα μας δεις πριν φτάσεις.
           </p>
           <p>
             Walk-ins πάντα ευπρόσδεκτα. Για μεγαλύτερες παρέες ή
             βράδια Σαββατοκύριακου, μια γρήγορη κλήση εκ των
             προτέρων είναι καλή κίνηση:{" "}
-            <a href="tel:+302831022782">+30 2831 022782</a>. Για την
-            καθημερινή ροή — τι νέο μπήκε στο μπαρ, τι βγήκε από την
-            κουζίνα σήμερα — ακολούθα μας στο{" "}
+            <a href="tel:+302831022782">+30 2831 022782</a>. Για την καθημερινή ροή (τι νέο μπήκε στο μπαρ, τι βγήκε από την κουζίνα σήμερα), ακολούθα μας στο{" "}
             <a
               href="https://www.instagram.com/home_seaside"
               target="_blank"
@@ -290,9 +269,7 @@ const AboutPage: FC<AboutPageProps> = ({ language }) => {
           <h1 className="about__title">An ordinary day on the Rethymno seafront</h1>
           <p className="about__lede">
             Home Seaside Bar &amp; More is a seafront café and cocktail bar
-            on the Rethymno promenade in Crete — two minutes' walk from
-            the Fortezza and the Old Venetian Harbour. We open at nine
-            for coffee and stay until the night feels finished.
+            on the Rethymno promenade in Crete. Two minutes' walk from the Fortezza and the Old Venetian Harbour. We open at nine for coffee and stay until the night feels finished.
           </p>
         </header>
 

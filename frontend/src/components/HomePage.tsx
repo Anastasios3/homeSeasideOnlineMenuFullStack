@@ -35,16 +35,16 @@ export const VENUE = {
 
 const content = {
   EN: {
-    heroSubtitle: "Drinks, bites, and the perfect seaside atmosphere — in the heart of Rethymno.",
+    heroSubtitle: "Drinks, food, and a chair by the sea, in Rethymno.",
     ctaMenu: "View Our Menu",
     journeyTitle: "A Day at Home Seaside",
     aboutTitle: "An Ordinary Day, Slowed Down",
     aboutText:
-      "Tucked along the seafront in Rethymno, Home Seaside is the kind of place where the hour drifts. Cappuccinos at ten. Mango juice and a long lunch at one. A glass of something cold when the sky turns pink. Made carefully, served generously — for as long as you want to stay.",
+      "Home Seaside sits on the Rethymno seafront. The hour drifts here. Cappuccinos at ten. Mango juice and a long lunch at one. A glass of something cold when the sky turns pink. Made carefully, served generously, for as long as you want to stay.",
     aboutCta: "Read more about us →",
     visitTitle: "Come See Us",
     visitText:
-      "We open at nine and stay until the night is done. Walk in, pick a chair, take your time. The terrace if there's a breeze. The window seat if you want to watch the sea.",
+      "We open at nine. We close when the night is done. Walk in, pick a chair, stay as long as you like. The terrace catches the breeze in summer. The window seat keeps you close to the sea any time of year.",
     visitCta: "Plan your visit →",
     hoursTitle: "Hours & Location",
     days: [
@@ -59,16 +59,16 @@ const content = {
     mapClickToInteract: "Click to interact",
   },
   EL: {
-    heroSubtitle: "Ποτά, μεζέδες, και η τέλεια παραθαλάσσια ατμόσφαιρα — στην καρδιά του Ρεθύμνου.",
+    heroSubtitle: "Ποτά, φαγητό, και μια καρέκλα δίπλα στη θάλασσα, στο Ρέθυμνο.",
     ctaMenu: "Δείτε το Μενού",
     journeyTitle: "Μια μέρα στο Home Seaside",
     aboutTitle: "Μια συνηθισμένη μέρα, σε αργό ρυθμό",
     aboutText:
-      "Στην παραλιακή του Ρεθύμνου, το Home Seaside είναι ένας χώρος που η ώρα κυλά αργά. Cappuccino στις δέκα. Χυμός μάνγκο και μεσημεριανό στη μία. Ένα ποτήρι κάτι κρύο όσο ο ουρανός γίνεται ροζ. Φτιαγμένα με προσοχή, σερβιρισμένα με γενναιοδωρία — για όσο θέλεις να μείνεις.",
+      "Το Home Seaside βρίσκεται στην παραλιακή του Ρεθύμνου. Η ώρα κυλά αργά εδώ. Cappuccino στις δέκα. Χυμός μάνγκο και μεσημεριανό στη μία. Ένα ποτήρι κάτι κρύο όσο ο ουρανός γίνεται ροζ. Φτιαγμένα με προσοχή, σερβιρισμένα με γενναιοδωρία, για όσο θέλεις να μείνεις.",
     aboutCta: "Διάβασε περισσότερα για εμάς →",
     visitTitle: "Έλα να μας βρεις",
     visitText:
-      "Ανοίγουμε στις εννιά και μένουμε όσο πάει η νύχτα. Μπες, διάλεξε καρέκλα, πάρε τον χρόνο σου. Στη βεράντα αν έχει αεράκι. Στο παράθυρο, αν θες να βλέπεις τη θάλασσα.",
+      "Ανοίγουμε στις εννιά. Κλείνουμε όταν τελειώσει η νύχτα. Μπες, διάλεξε καρέκλα, μείνε όσο θέλεις. Η βεράντα πιάνει το αεράκι το καλοκαίρι. Το παράθυρο σε κρατάει κοντά στη θάλασσα όλο τον χρόνο.",
     visitCta: "Σχεδίασε την επίσκεψή σου →",
     hoursTitle: "Ώρες & Τοποθεσία",
     days: [
@@ -113,11 +113,11 @@ const HomePage: FC<HomePageProps> = ({ language }) => {
 
   useDocumentMeta({
     title: language === "EN"
-      ? "Home Seaside — Seaside Bar, Specialty Coffee & Rum in Rethymno"
-      : "Home Seaside — Παραθαλάσσιο μπαρ, καφές & ρούμι στο Ρέθυμνο",
+      ? "Home Seaside · Seaside bar, specialty coffee & rum in Rethymno"
+      : "Home Seaside · Παραθαλάσσιο μπαρ, καφές & ρούμι στο Ρέθυμνο",
     description: language === "EN"
-      ? "A seafront café and cocktail bar in Rethymno, Crete. Specialty coffee, an extensive rum selection, advanced cocktails, comfort food — open from morning to late night."
-      : "Παραθαλάσσιο café-bar στο Ρέθυμνο της Κρήτης. Specialty καφές, μεγάλη συλλογή από ρούμι, εξελιγμένα cocktails και comfort φαγητό — από το πρωί μέχρι αργά το βράδυ.",
+      ? "A seafront café and cocktail bar in Rethymno, Crete. Specialty coffee, an extensive rum selection, advanced cocktails, comfort food. Open from morning to late night."
+      : "Παραθαλάσσιο café-bar στο Ρέθυμνο της Κρήτης. Specialty καφές, μεγάλη συλλογή από ρούμι, εξελιγμένα cocktails και comfort φαγητό. Από το πρωί μέχρι αργά το βράδυ.",
     canonicalPath: "/",
   });
 
