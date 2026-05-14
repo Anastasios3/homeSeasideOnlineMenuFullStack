@@ -5,7 +5,7 @@
 # the admin UI is the source of structural truth, and we want to be
 # tolerant if/when the shape evolves.
 class SiteSettingsController < ApplicationController
-  before_action :authenticate_admin!, only: [:update]
+  before_action :authenticate_admin!, only: [ :update ]
 
   SECTIONS = %w[schedule subcategories homepage_photos].freeze
 

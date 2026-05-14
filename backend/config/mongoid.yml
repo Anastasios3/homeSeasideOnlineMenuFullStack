@@ -1,0 +1,33 @@
+development:
+  clients:
+    default:
+      uri: <%= ENV['MONGODB_URI'] %>
+      options:
+        server_selection_timeout: 30
+test:
+  clients:
+    default:
+      database: backend_test
+      hosts:
+        - <%= ENV.fetch('MONGODB_HOST', 'localhost:27017') %>
+      options:
+        read:
+          mode: :primary
+        max_pool_size: 1
+# Production reads the connection string from MONGODB_URI exclusively.
+# The deploy will refuse to boot if this var is missing — that's deliberate.
+# Use a MongoDB Atlas SRV URI; include the database name in the path.
+# Pool size + selection timeout are tuned for a small-to-medium dyno; bump
+# pool higher if RAILS_MAX_THREADS is increased past 5.
+production:
+  clients:
+    default:
+      uri: <%= ENV['MONGODB_URI'] %>
+      options:
+        server_selection_timeout: 5
+        connect_timeout: 5
+        socket_timeout: 5
+        max_pool_size: 5
+        retry_writes: true
+        write:
+          w: majority

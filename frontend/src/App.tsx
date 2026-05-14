@@ -20,8 +20,8 @@ import { getAdminToken, setAdminToken, clearAdminToken } from "./auth";
 import { loadScheduleFromServer } from "./config/schedule";
 import { loadSubcategoriesFromServer } from "./config/subcategories";
 import { loadHomepagePhotosFromServer } from "./config/homepagePhotos";
+import { API_URL } from "./config/api";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 /* ============================================================
    Footer

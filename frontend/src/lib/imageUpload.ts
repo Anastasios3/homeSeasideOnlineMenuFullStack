@@ -18,8 +18,8 @@
 
 import axios from "axios";
 import { getAdminToken } from "../auth";
+import { API_URL } from "../config/api";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export const PHOTO_SIZES = [640, 1280, 1920] as const;
 export type PhotoSize = typeof PHOTO_SIZES[number];

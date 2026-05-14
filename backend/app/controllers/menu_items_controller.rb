@@ -1,14 +1,14 @@
 class MenuItemsController < ApplicationController
-  before_action :authenticate_admin!, only: [:create, :update, :destroy]
-  before_action :set_menu_item, only: [:show, :update, :destroy]
+  before_action :authenticate_admin!, only: [ :create, :update, :destroy ]
+  before_action :set_menu_item, only: [ :show, :update, :destroy ]
 
   # GET /menu_items
   def index
     @menu_items = if params[:all] == "true"
                     MenuItem.all.order_by(created_at: :asc)
-                  else
+    else
                     MenuItem.where(available: true).order_by(created_at: :asc)
-                  end
+    end
     render json: @menu_items.map { |item| serialize_item(item) }
   end
 
@@ -58,9 +58,9 @@ class MenuItemsController < ApplicationController
     params.require(:menu_item).permit(
       :main_category, :price, :pricing_type, :price_secondary, :available, :image_url,
       allergens: [],
-      name: [:en, :el],
-      description: [:en, :el],
-      category: [:en, :el]
+      name: [ :en, :el ],
+      description: [ :en, :el ],
+      category: [ :en, :el ]
     )
   end
 

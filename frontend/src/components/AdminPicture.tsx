@@ -1,7 +1,7 @@
 import { type FC, type CSSProperties } from "react";
 import type { PhotoSlot } from "../api/siteSetting";
+import { API_URL } from "../config/api";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 /**
  * Resolve a possibly-relative URL (e.g. "/uploads/abc.jpg") against the

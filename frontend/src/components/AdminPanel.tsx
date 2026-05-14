@@ -36,6 +36,7 @@ import type { CuratedEntry } from "../api/siteSetting";
 import { ALBUM1_PHOTOS } from "../assets/photos/album1";
 import { useTimeOfDay } from "../hooks/useTimeOfDay";
 import "../styles/AdminPanel.css";
+import { API_URL, apiUrl } from "../config/api";
 
 /** Build Authorization header from stored JWT */
 const authHeaders = () => {
@@ -66,13 +67,8 @@ interface MenuItemData {
   image_url?: string | null;
 }
 
-const API = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/menu_items`
-  : "http://localhost:3000/menu_items";
-
-const UPLOAD_API = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/uploads`
-  : "http://localhost:3000/uploads";
+const API = apiUrl("/menu_items");
+const UPLOAD_API = apiUrl("/uploads");
 
 const KNOWN_ALLERGENS = [
   "Dairy", "Gluten", "Eggs", "Nuts",
@@ -147,7 +143,7 @@ const getField = (
 const getImageFullUrl = (url: string | null | undefined): string | null => {
   if (!url) return null;
   if (url.startsWith("/")) {
-    const base = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const base = API_URL;
     return `${base}${url}`;
   }
   return url;
@@ -447,7 +443,11 @@ const PhotoManager: FC<PhotoManagerProps> = ({ onClose, onSaved }) => {
   };
 
   const toggleBundledRotation = (slug: string) => {
-    inRotation(slug) ? removeFromRotation(slug) : addBundledToRotation(slug);
+    if (inRotation(slug)) {
+      removeFromRotation(slug);
+    } else {
+      addBundledToRotation(slug);
+    }
   };
 
   const updateEntry = (slug: string, patch: Partial<CuratedEntry>) => {

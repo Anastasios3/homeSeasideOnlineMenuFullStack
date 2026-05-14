@@ -69,6 +69,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
   }, []);
   const orderedKeys = useMemo<CategoryType[]>(
     () => getCategoryOrder(phase) as CategoryType[],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- scheduleVersion is a re-evaluation trigger: bumping it forces this memo to re-read the in-module cache that getCategoryOrder consumes (the function itself doesn't appear in the dep list because it's stable).
     [phase, scheduleVersion]
   );
   const [activeCategory, setActiveCategory] = useState<CategoryType>(

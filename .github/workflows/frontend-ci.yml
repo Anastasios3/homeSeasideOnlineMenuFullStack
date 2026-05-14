@@ -1,0 +1,48 @@
+name: Frontend CI
+
+# Path-filtered: only runs on frontend changes. Backend-only PRs skip this.
+on:
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+defaults:
+  run:
+    working-directory: frontend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npx tsc -b --noEmit
+
+      - name: Build
+        # vite build runs the `prebuild` script (sitemap + og.jpg generation)
+        # automatically per package.json. If either script fails, build fails.
+        env:
+          VITE_API_URL: https://api.example.com
+          VITE_SITE_URL: https://example.com
+        run: npm run build

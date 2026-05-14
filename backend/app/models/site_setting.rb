@@ -108,22 +108,22 @@ class SiteSetting
 
   def self.default_curation
     bundled = [
-      ["food-session-30", %w[morning afternoon],         %w[venue detail],   "Morning light, fresh menu",                  "Πρωινό φως, φρέσκο μενού",                          9],
-      ["food-session-5",  %w[morning],                   %w[coffee food],    "Espresso, latte art, and what's next",       "Espresso, latte art, και τι ακολουθεί",             8],
-      ["food-session-10", %w[morning afternoon],         %w[coffee food],    "Slow breakfast by the window",               "Αργό πρωινό δίπλα στο παράθυρο",                    7],
-      ["food-session-40", %w[morning],                   %w[food detail],    "Honeycomb, walnuts, microgreens",            "Κηρήθρα, καρύδια, μικροφύλλα",                       0],
-      ["food-session-15", %w[afternoon],                 %w[food],           "Toasted sandwich, embossed tile, quiet hours","Ψητό σάντουιτς, ανάγλυφο πλακάκι, ήσυχες ώρες",     0],
-      ["food-session-20", %w[afternoon],                 %w[food],           "Stacked, layered, plenty",                   "Στρώσεις και ποικιλία",                              0],
-      ["food-session-25", %w[afternoon],                 %w[drink food],     "Fresh mango, salad, and a long lunch",       "Φρέσκο μάνγκο, σαλάτα, και ένα μεγάλο μεσημέρι",    0],
-      ["food-session-45", %w[afternoon],                 %w[food],           "Smoked salmon, garden greens",               "Καπνιστός σολομός, λαχανικά",                        0],
-      ["food-session-50", %w[golden],                    %w[dessert],        "Sweet endings as the light turns",           "Γλυκό κλείσιμο όσο το φως αλλάζει",                 7],
-      ["food-session-55", %w[golden],                    %w[dessert detail], "Chia, banana, berry — slow afternoon",       "Chia, μπανάνα, μούρα — αργό απόγευμα",              0],
-      ["food-session-67", %w[golden evening],            %w[ocean],          "The sea at golden hour",                     "Η θάλασσα στη χρυσή ώρα",                            10],
-      ["food-session-65", %w[golden evening],            %w[ocean],          "Pink skies, salt air",                       "Ρόδινος ουρανός, αλμυρός αέρας",                    0],
-      ["food-session-60", %w[evening night],             %w[food drink],     "Pizza, red wine, no rush",                   "Πίτσα, κόκκινο κρασί, χωρίς βιασύνη",               8],
-      ["food-session-58", %w[evening],                   %w[food],           "Late dinner, perfect crust",                 "Όψιμο δείπνο, τέλεια κρούστα",                       0],
-      ["food-session-70", %w[evening night],             %w[venue],          "Home Seaside, after dark",                   "Home Seaside, μετά το ηλιοβασίλεμα",                10],
-      ["food-session-1",  %w[evening night],             %w[venue detail],   "Glass, plant, the house bottle",             "Ποτήρι, φυτό, το μπουκάλι του σπιτιού",             0]
+      [ "food-session-30", %w[morning afternoon],         %w[venue detail],   "Morning light, fresh menu",                  "Πρωινό φως, φρέσκο μενού",                          9 ],
+      [ "food-session-5",  %w[morning],                   %w[coffee food],    "Espresso, latte art, and what's next",       "Espresso, latte art, και τι ακολουθεί",             8 ],
+      [ "food-session-10", %w[morning afternoon],         %w[coffee food],    "Slow breakfast by the window",               "Αργό πρωινό δίπλα στο παράθυρο",                    7 ],
+      [ "food-session-40", %w[morning],                   %w[food detail],    "Honeycomb, walnuts, microgreens",            "Κηρήθρα, καρύδια, μικροφύλλα",                       0 ],
+      [ "food-session-15", %w[afternoon],                 %w[food],           "Toasted sandwich, embossed tile, quiet hours", "Ψητό σάντουιτς, ανάγλυφο πλακάκι, ήσυχες ώρες",     0 ],
+      [ "food-session-20", %w[afternoon],                 %w[food],           "Stacked, layered, plenty",                   "Στρώσεις και ποικιλία",                              0 ],
+      [ "food-session-25", %w[afternoon],                 %w[drink food],     "Fresh mango, salad, and a long lunch",       "Φρέσκο μάνγκο, σαλάτα, και ένα μεγάλο μεσημέρι",    0 ],
+      [ "food-session-45", %w[afternoon],                 %w[food],           "Smoked salmon, garden greens",               "Καπνιστός σολομός, λαχανικά",                        0 ],
+      [ "food-session-50", %w[golden],                    %w[dessert],        "Sweet endings as the light turns",           "Γλυκό κλείσιμο όσο το φως αλλάζει",                 7 ],
+      [ "food-session-55", %w[golden],                    %w[dessert detail], "Chia, banana, berry — slow afternoon",       "Chia, μπανάνα, μούρα — αργό απόγευμα",              0 ],
+      [ "food-session-67", %w[golden evening],            %w[ocean],          "The sea at golden hour",                     "Η θάλασσα στη χρυσή ώρα",                            10 ],
+      [ "food-session-65", %w[golden evening],            %w[ocean],          "Pink skies, salt air",                       "Ρόδινος ουρανός, αλμυρός αέρας",                    0 ],
+      [ "food-session-60", %w[evening night],             %w[food drink],     "Pizza, red wine, no rush",                   "Πίτσα, κόκκινο κρασί, χωρίς βιασύνη",               8 ],
+      [ "food-session-58", %w[evening],                   %w[food],           "Late dinner, perfect crust",                 "Όψιμο δείπνο, τέλεια κρούστα",                       0 ],
+      [ "food-session-70", %w[evening night],             %w[venue],          "Home Seaside, after dark",                   "Home Seaside, μετά το ηλιοβασίλεμα",                10 ],
+      [ "food-session-1",  %w[evening night],             %w[venue detail],   "Glass, plant, the house bottle",             "Ποτήρι, φυτό, το μπουκάλι του σπιτιού",             0 ]
     ]
     bundled.each_with_index.map do |(slug, phases, subjects, en, el, pri), idx|
       {

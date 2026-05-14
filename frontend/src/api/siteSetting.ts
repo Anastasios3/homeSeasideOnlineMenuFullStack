@@ -1,8 +1,8 @@
 import axios from "axios";
 import { getAdminToken } from "../auth";
 import type { DayPhase, PhaseCutoffs } from "../config/schedule";
+import { API_URL } from "../config/api";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 /**
  * Shape returned by GET /site_setting. All three sections are always present;

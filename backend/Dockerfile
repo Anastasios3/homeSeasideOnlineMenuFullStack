@@ -68,6 +68,12 @@ COPY --chown=rails:rails --from=build /rails /rails
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
+# Liveness probe so orchestrators (Render, Fly, Kamal, k8s) get container-level
+# health without needing an external HTTP check. /up is Rails' built-in
+# Rails::HealthController endpoint, configured in routes.rb.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -fsS http://localhost/up || exit 1
+
 # Start server via Thruster by default, this can be overwritten at runtime
 EXPOSE 80
 CMD ["./bin/thrust", "./bin/rails", "server"]

@@ -8,6 +8,7 @@ import {
   type MainCategoryId,
 } from "../config/subcategories";
 import "../styles/MenuSection.css";
+import { API_URL } from "../config/api";
 
 type Language = "EN" | "EL";
 type CategoryType = "coffee" | "spirits" | "cocktails" | "beer&wine" | "food";
@@ -42,7 +43,6 @@ interface MenuSectionProps {
   activeCategory: CategoryType | null;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const getCategoryEN = (item: MenuItemData): string => {
   if (typeof item.category === "string") return item.category;

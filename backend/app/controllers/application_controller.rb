@@ -1,5 +1,11 @@
 class ApplicationController < ActionController::API
-  rescue_from StandardError, with: :handle_internal_error
+  # Map domain exceptions to the right HTTP status. `StandardError` is the
+  # catch-all last so anything unexpected still returns 500 with a logged
+  # backtrace rather than leaking a stack trace to the client.
+  rescue_from Mongoid::Errors::DocumentNotFound, with: :handle_not_found
+  rescue_from Mongoid::Errors::Validations,      with: :handle_validation_error
+  rescue_from ActionController::ParameterMissing, with: :handle_bad_request
+  rescue_from StandardError,                     with: :handle_internal_error
 
   private
 
@@ -23,6 +29,22 @@ class ApplicationController < ActionController::API
 
   def jwt_secret
     ENV.fetch("JWT_SECRET") { Rails.application.secret_key_base }
+  end
+
+  def handle_not_found(exception)
+    Rails.logger.info("[404] #{exception.class}: #{exception.message}")
+    render json: { error: "Not found" }, status: :not_found
+  end
+
+  def handle_validation_error(exception)
+    Rails.logger.info("[422] #{exception.class}: #{exception.message}")
+    errors = exception.document.errors.full_messages
+    render json: { error: "Validation failed", details: errors }, status: :unprocessable_entity
+  end
+
+  def handle_bad_request(exception)
+    Rails.logger.info("[400] #{exception.class}: #{exception.message}")
+    render json: { error: "Bad request", details: exception.message }, status: :bad_request
   end
 
   def handle_internal_error(exception)
