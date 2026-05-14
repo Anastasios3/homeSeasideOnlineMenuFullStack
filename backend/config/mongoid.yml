@@ -17,6 +17,14 @@ test:
 # Production reads the connection string from MONGODB_URI exclusively.
 # The deploy will refuse to boot if this var is missing — that's deliberate.
 # Use a MongoDB Atlas SRV URI; include the database name in the path.
+#
+# IMPORTANT: any option set HERE will override the URI. The mongo driver
+# also refuses to start if the URI's `w=majority` (parsed into
+# `:write_concern`) and a YAML `write: {w: majority}` (parsed into
+# `:write`) are both present, because :majority (symbol from yaml) and
+# "majority" (string from URI) aren't considered identical. So keep
+# write-concern + retry-writes ONLY in the URI, never both places.
+#
 # Pool size + selection timeout are tuned for a small-to-medium dyno; bump
 # pool higher if RAILS_MAX_THREADS is increased past 5.
 production:
@@ -28,6 +36,3 @@ production:
         connect_timeout: 5
         socket_timeout: 5
         max_pool_size: 5
-        retry_writes: true
-        write:
-          w: majority
