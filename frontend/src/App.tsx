@@ -10,7 +10,6 @@ import AboutPage from "./components/AboutPage";
 import CategoryLanding from "./components/CategoryLanding";
 import VisitPage from "./components/VisitPage";
 import { Lock, ArrowLeft, Instagram } from "lucide-react";
-import { VENUE } from "./components/HomePage";
 import { useDocumentMeta } from "./seo";
 import "./App.css";
 
@@ -20,14 +19,17 @@ import { getAdminToken, setAdminToken, clearAdminToken } from "./auth";
 import { loadScheduleFromServer } from "./config/schedule";
 import { loadSubcategoriesFromServer } from "./config/subcategories";
 import { loadHomepagePhotosFromServer } from "./config/homepagePhotos";
-import { loadSiteContentFromServer } from "./config/siteContent";
+import { instagramUrl, loadSiteContentFromServer } from "./config/siteContent";
+import { useSiteContent } from "./hooks/useSiteContent";
 import { API_URL } from "./config/api";
 
 
 /* ============================================================
    Footer
    ============================================================ */
-const Footer: FC<{ page?: "home" | "menu" | "admin" }> = ({ page = "home" }) => (
+const Footer: FC<{ page?: "home" | "menu" | "admin" }> = ({ page = "home" }) => {
+  const { venue } = useSiteContent();
+  return (
   <footer className="site-footer">
     <div className="site-footer__inner">
       <span className="site-footer__brand">Home Seaside · Rethymno</span>
@@ -37,14 +39,14 @@ const Footer: FC<{ page?: "home" | "menu" | "admin" }> = ({ page = "home" }) => 
         <Link to="/menu" className="site-footer__admin-link">Menu</Link>
         <span className="site-footer__sep">·</span>
         <a
-          href={VENUE.instagram}
+          href={instagramUrl(venue.instagramHandle)}
           target="_blank"
           rel="noopener noreferrer"
           className="site-footer__admin-link"
           aria-label="Home Seaside on Instagram"
         >
           <Instagram size={12} />
-          {VENUE.instagramHandle}
+          {venue.instagramHandle}
         </a>
         <span className="site-footer__sep">·</span>
         {page === "admin" ? (
@@ -62,7 +64,8 @@ const Footer: FC<{ page?: "home" | "menu" | "admin" }> = ({ page = "home" }) => 
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 /* ============================================================
    Admin Login Gate — authenticates against backend
