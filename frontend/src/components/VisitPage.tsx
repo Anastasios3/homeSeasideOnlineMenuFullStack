@@ -1,7 +1,8 @@
 import { type FC } from "react";
 import { MessageSquareText, Instagram, ExternalLink } from "lucide-react";
 import { useDocumentMeta } from "../seo";
-import { VENUE } from "./HomePage";
+import { useSiteContent } from "../hooks/useSiteContent";
+import { instagramUrl, pickText } from "../config/siteContent";
 import "../styles/VisitPage.css";
 
 interface VisitPageProps {
@@ -64,6 +65,8 @@ const TRIPADVISOR_REVIEW_URL = "https://www.tripadvisor.com/Restaurant_Review-g1
 
 /**
  * /visit — the page our QR codes (on tables and receipts) point to.
+ * Header, Instagram CTA, and the three choice blocks read from the
+ * site-content CMS; review URLs and the noindex meta stay fixed.
  *
  * Compliance note: this page does NOT pre-filter customers by experience
  * before showing the review CTA. Google explicitly forbids "review gating"
@@ -77,6 +80,10 @@ const TRIPADVISOR_REVIEW_URL = "https://www.tripadvisor.com/Restaurant_Review-g1
  * QR; it shouldn't compete with /about or the homepage in search.
  */
 const VisitPage: FC<VisitPageProps> = ({ language }) => {
+  const content = useSiteContent();
+  const visit = content.visit;
+  const venue = content.venue;
+
   useDocumentMeta({
     title: language === "EN"
       ? "Thanks for visiting · Home Seaside"
@@ -88,112 +95,21 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
     noindex: true,
   });
 
-  const feedbackMailto = `mailto:${VENUE.email}?subject=${encodeURIComponent(
+  const feedbackMailto = `mailto:${venue.email}?subject=${encodeURIComponent(
     language === "EN" ? "Feedback for Home Seaside" : "Γνώμη για το Home Seaside"
   )}`;
-
-  if (language === "EN") {
-    return (
-      <article className="visit">
-        <div className="visit__inner">
-          <header className="visit__header">
-            <p className="visit__eyebrow">Home Seaside · Rethymno</p>
-            <h1 className="visit__title">Thanks for visiting today</h1>
-            <p className="visit__lede">
-              Tell us how it went. Whichever option you pick, it lands with us, not a third party.
-            </p>
-          </header>
-
-          <a
-            href={VENUE.instagram}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="visit__instagram-cta"
-          >
-            <span className="visit__instagram-cta-icon">
-              <Instagram size={30} strokeWidth={1.8} />
-            </span>
-            <span className="visit__instagram-cta-body">
-              <span className="visit__instagram-cta-title">@home_seaside</span>
-              <span className="visit__instagram-cta-subtitle">
-                Daily stories, drinks, sunset photos. The life of the bar.
-              </span>
-            </span>
-            <ExternalLink size={16} className="visit__instagram-cta-arrow" />
-          </a>
-
-          <div className="visit__choices">
-            <a
-              className="visit__choice visit__choice--public"
-              href={GBP_REVIEW_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className="visit__choice-icon">
-                <GoogleG size={28} />
-              </span>
-              <span className="visit__choice-body">
-                <span className="visit__choice-title">Leave a Google review</span>
-                <span className="visit__choice-desc">
-                  Public, on our Google listing. The first place travellers check before they pick where to eat in Rethymno.
-                </span>
-              </span>
-              <ExternalLink size={16} className="visit__choice-arrow" />
-            </a>
-
-            <a
-              className="visit__choice visit__choice--tripadvisor"
-              href={TRIPADVISOR_REVIEW_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className="visit__choice-icon">
-                <TripAdvisorOwl size={28} />
-              </span>
-              <span className="visit__choice-body">
-                <span className="visit__choice-title">Leave a TripAdvisor review</span>
-                <span className="visit__choice-desc">
-                  Public, on TripAdvisor. The first place a lot of guests look
-                  before they arrive in Rethymno.
-                </span>
-              </span>
-              <ExternalLink size={16} className="visit__choice-arrow" />
-            </a>
-
-            <a
-              className="visit__choice visit__choice--private"
-              href={feedbackMailto}
-            >
-              <span className="visit__choice-icon">
-                <MessageSquareText size={28} strokeWidth={1.8} />
-              </span>
-              <span className="visit__choice-body">
-                <span className="visit__choice-title">Send us private feedback</span>
-                <span className="visit__choice-desc">
-                  Goes straight to the manager. Anything you'd rather keep off the public record, or just a quick note for us.
-                </span>
-              </span>
-              <ExternalLink size={16} className="visit__choice-arrow" />
-            </a>
-          </div>
-        </div>
-      </article>
-    );
-  }
 
   return (
     <article className="visit">
       <div className="visit__inner">
         <header className="visit__header">
-          <p className="visit__eyebrow">Home Seaside · Ρέθυμνο</p>
-          <h1 className="visit__title">Ευχαριστούμε για την επίσκεψη</h1>
-          <p className="visit__lede">
-            Πες μας πώς πέρασες. Όποια επιλογή κι αν διαλέξεις, έρχεται σε εμάς, όχι σε κάποιον τρίτο.
-          </p>
+          <p className="visit__eyebrow">{pickText(visit.eyebrow, language)}</p>
+          <h1 className="visit__title">{pickText(visit.title, language)}</h1>
+          <p className="visit__lede">{pickText(visit.lede, language)}</p>
         </header>
 
         <a
-          href={VENUE.instagram}
+          href={instagramUrl(venue.instagramHandle)}
           target="_blank"
           rel="noopener noreferrer"
           className="visit__instagram-cta"
@@ -202,9 +118,9 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
             <Instagram size={30} strokeWidth={1.8} />
           </span>
           <span className="visit__instagram-cta-body">
-            <span className="visit__instagram-cta-title">@home_seaside</span>
+            <span className="visit__instagram-cta-title">{venue.instagramHandle}</span>
             <span className="visit__instagram-cta-subtitle">
-              Καθημερινές στιγμές, ποτά, ηλιοβασιλέματα. Η ζωή του μπαρ.
+              {pickText(visit.instagramSubtitle, language)}
             </span>
           </span>
           <ExternalLink size={16} className="visit__instagram-cta-arrow" />
@@ -221,9 +137,9 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
               <GoogleG size={28} />
             </span>
             <span className="visit__choice-body">
-              <span className="visit__choice-title">Άφησε αξιολόγηση στο Google</span>
+              <span className="visit__choice-title">{pickText(visit.choices.google.title, language)}</span>
               <span className="visit__choice-desc">
-                Δημόσια, στο Google listing μας. Το πρώτο μέρος που κοιτούν οι ταξιδιώτες πριν αποφασίσουν πού θα φάνε στο Ρέθυμνο.
+                {pickText(visit.choices.google.description, language)}
               </span>
             </span>
             <ExternalLink size={16} className="visit__choice-arrow" />
@@ -239,10 +155,9 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
               <TripAdvisorOwl size={28} />
             </span>
             <span className="visit__choice-body">
-              <span className="visit__choice-title">Άφησε αξιολόγηση στο TripAdvisor</span>
+              <span className="visit__choice-title">{pickText(visit.choices.tripadvisor.title, language)}</span>
               <span className="visit__choice-desc">
-                Δημόσια, στο TripAdvisor. Το πρώτο μέρος που κοιτάζουν πολλοί
-                επισκέπτες πριν φτάσουν στο Ρέθυμνο.
+                {pickText(visit.choices.tripadvisor.description, language)}
               </span>
             </span>
             <ExternalLink size={16} className="visit__choice-arrow" />
@@ -256,9 +171,9 @@ const VisitPage: FC<VisitPageProps> = ({ language }) => {
               <MessageSquareText size={28} strokeWidth={1.8} />
             </span>
             <span className="visit__choice-body">
-              <span className="visit__choice-title">Στείλε μας ιδιωτικά τη γνώμη σου</span>
+              <span className="visit__choice-title">{pickText(visit.choices.private.title, language)}</span>
               <span className="visit__choice-desc">
-                Πάει απευθείας στον υπεύθυνο. Ό,τι προτιμάς να μην ειπωθεί δημόσια, ή απλά ένα μήνυμα για εμάς.
+                {pickText(visit.choices.private.description, language)}
               </span>
             </span>
             <ExternalLink size={16} className="visit__choice-arrow" />
