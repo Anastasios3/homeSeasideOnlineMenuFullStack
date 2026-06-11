@@ -64,4 +64,23 @@ class SiteSettingTest < ActiveSupport::TestCase
       assert entry["position"].is_a?(Integer)
     end
   end
+
+  # ── Site content (CMS) lifecycle fields ───────────────────────────────
+
+  test "fresh document has empty live content and no draft or previous" do
+    s = SiteSetting.current
+    assert_equal({}, s.site_content)
+    assert_nil s.site_content_draft
+    assert_nil s.site_content_previous
+    assert_nil s.site_content_draft_saved_at
+    assert_nil s.site_content_published_at
+  end
+
+  test "site content fields persist arbitrary nested hashes" do
+    s = SiteSetting.current
+    s.site_content_draft = { "faq" => { "items" => [ { "id" => "faq-1", "question" => { "en" => "Q", "el" => "Ε" } } ] } }
+    s.save!
+    reloaded = SiteSetting.current
+    assert_equal "Ε", reloaded.site_content_draft.dig("faq", "items", 0, "question", "el")
+  end
 end

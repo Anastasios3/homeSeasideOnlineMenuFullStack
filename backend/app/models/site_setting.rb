@@ -74,6 +74,32 @@ class SiteSetting
   #     "position": 0 }
   field :homepage_photos, type: Hash, default: -> { SiteSetting.default_homepage_photos }
 
+  # ----- Site content (CMS) -----
+  # Live published copy + photos for the content pages (home, about, visit,
+  # faq, category intros, business facts, illustration overrides).
+  #
+  # {} means "no overrides yet" — the frontend falls back to its bundled
+  # DEFAULT_SITE_CONTENT per field, the same way an empty curation falls
+  # back to ALBUM1_CURATION. The default prose deliberately does NOT live
+  # here: the copy's single source of truth is
+  # frontend/src/config/siteContent.ts, so the two can never drift.
+  #
+  # Lifecycle: the admin edits `site_content_draft` (cross-device, server
+  # side), previews it locally, then publishes. Publish atomically moves
+  # draft → live and snapshots the old live into `site_content_previous`,
+  # which powers one-click revert (revert swaps live ↔ previous, so
+  # pressing it twice is a redo). All five fields live on this singleton
+  # document, so each transition is a single atomic Mongo write.
+  #
+  # NOTE: live content is intentionally NOT in SiteSettingsController::SECTIONS —
+  # it can only change via publish/revert, never generic PATCH, so the
+  # previous-snapshot invariant can't be bypassed.
+  field :site_content,          type: Hash, default: -> { {} }
+  field :site_content_draft,    type: Hash
+  field :site_content_previous, type: Hash
+  field :site_content_draft_saved_at, type: Time
+  field :site_content_published_at,   type: Time
+
   def self.current
     first || create!
   end
