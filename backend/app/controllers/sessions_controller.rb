@@ -1,7 +1,13 @@
 class SessionsController < ApplicationController
+  before_action :authenticate_admin!, only: [ :verify ]
+
   # POST /admin/login
   def create
-    user = AdminUser.find_by(username: params[:username])
+    # `where().first` returns nil on miss; using `find_by` would raise
+    # DocumentNotFound and leak username existence via a 404, which both
+    # breaks the "always 401 on bad credentials" contract and gives away
+    # whether a username exists.
+    user = AdminUser.where(username: params[:username]).first
 
     if user&.authenticate(params[:password])
       token = generate_token(user.id.to_s)
@@ -18,7 +24,6 @@ class SessionsController < ApplicationController
 
   # GET /admin/verify
   def verify
-    authenticate_admin!
     render json: { valid: true }
   end
 

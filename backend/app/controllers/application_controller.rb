@@ -1,11 +1,11 @@
 class ApplicationController < ActionController::API
-  # Map domain exceptions to the right HTTP status. `StandardError` is the
-  # catch-all last so anything unexpected still returns 500 with a logged
-  # backtrace rather than leaking a stack trace to the client.
-  rescue_from Mongoid::Errors::DocumentNotFound, with: :handle_not_found
+  # Map domain exceptions to the right HTTP status. Rails matches rescue_from
+  # handlers bottom-to-top (most-recently registered wins), so the broad
+  # StandardError catch-all goes FIRST and the specific ones go AFTER it.
+  rescue_from StandardError,                     with: :handle_internal_error
   rescue_from Mongoid::Errors::Validations,      with: :handle_validation_error
   rescue_from ActionController::ParameterMissing, with: :handle_bad_request
-  rescue_from StandardError,                     with: :handle_internal_error
+  rescue_from Mongoid::Errors::DocumentNotFound, with: :handle_not_found
 
   private
 
