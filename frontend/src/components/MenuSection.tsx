@@ -7,6 +7,8 @@ import {
   SUBCATEGORIES_STORAGE_KEY,
   type MainCategoryId,
 } from "../config/subcategories";
+import { illustrationSrc } from "../config/siteContent";
+import { useSiteContent } from "../hooks/useSiteContent";
 import "../styles/MenuSection.css";
 import { API_URL } from "../config/api";
 
@@ -127,10 +129,11 @@ interface EmptyStateProps {
 }
 const EmptyState: FC<EmptyStateProps> = ({ language, variant = "none", query, onClear }) => {
   const isSearch = variant === "search";
+  const { illustrations } = useSiteContent();
   return (
     <div className="menu-empty" role="status">
       <img
-        src="/illustration-vase.webp"
+        src={illustrationSrc(illustrations.menuEmpty, "/illustration-vase.webp")}
         alt=""
         aria-hidden="true"
         className="menu-empty__art"
