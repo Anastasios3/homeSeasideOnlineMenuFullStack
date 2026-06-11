@@ -26,6 +26,12 @@ export interface SiteSettingPayload {
     gallery: GallerySlot[];     // legacy — superseded by `curation`
     curation: CuratedEntry[];   // unified library: bundled refs + custom uploads
   };
+  /**
+   * Live published site content (CMS), or null when nothing has ever been
+   * published — the frontend then renders its bundled defaults. Shape is
+   * owned by config/siteContent.ts; the server stores it opaquely.
+   */
+  site_content?: unknown | null;
   updated_at: string | null;
 }
 
@@ -115,6 +121,67 @@ export async function updateSiteSetting(
     `${API_URL}/site_setting`,
     partial,
     { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return res.data;
+}
+
+/* ── Site-content CMS draft lifecycle (admin-only) ─────────────────────
+   Live content can only change via publish/revert; the draft endpoints
+   manage the work-in-progress copy. All shapes are opaque hashes here —
+   config/siteContent.ts owns the structure. */
+
+export interface SiteContentDraftPayload {
+  site_content_draft: unknown | null;
+  has_previous: boolean;
+  draft_saved_at: string | null;
+  published_at: string | null;
+}
+
+function adminHeaders() {
+  const token = getAdminToken();
+  if (!token) throw new Error("Not authenticated");
+  return { Authorization: `Bearer ${token}` };
+}
+
+export async function fetchSiteContentDraft(): Promise<SiteContentDraftPayload> {
+  const res = await axios.get<SiteContentDraftPayload>(
+    `${API_URL}/site_setting/content_draft`,
+    { headers: adminHeaders() },
+  );
+  return res.data;
+}
+
+export async function saveSiteContentDraft(content: unknown): Promise<SiteContentDraftPayload> {
+  const res = await axios.put<SiteContentDraftPayload>(
+    `${API_URL}/site_setting/content_draft`,
+    { site_content: content },
+    { headers: adminHeaders() },
+  );
+  return res.data;
+}
+
+export async function discardSiteContentDraft(): Promise<SiteContentDraftPayload> {
+  const res = await axios.delete<SiteContentDraftPayload>(
+    `${API_URL}/site_setting/content_draft`,
+    { headers: adminHeaders() },
+  );
+  return res.data;
+}
+
+export async function publishSiteContent(): Promise<SiteSettingPayload & { has_previous: boolean }> {
+  const res = await axios.post<SiteSettingPayload & { has_previous: boolean }>(
+    `${API_URL}/site_setting/content/publish`,
+    {},
+    { headers: adminHeaders() },
+  );
+  return res.data;
+}
+
+export async function revertSiteContent(): Promise<SiteSettingPayload & { has_previous: boolean }> {
+  const res = await axios.post<SiteSettingPayload & { has_previous: boolean }>(
+    `${API_URL}/site_setting/content/revert`,
+    {},
+    { headers: adminHeaders() },
   );
   return res.data;
 }

@@ -20,6 +20,7 @@ import { getAdminToken, setAdminToken, clearAdminToken } from "./auth";
 import { loadScheduleFromServer } from "./config/schedule";
 import { loadSubcategoriesFromServer } from "./config/subcategories";
 import { loadHomepagePhotosFromServer } from "./config/homepagePhotos";
+import { loadSiteContentFromServer } from "./config/siteContent";
 import { API_URL } from "./config/api";
 
 
@@ -324,6 +325,7 @@ function App() {
     loadScheduleFromServer();
     loadSubcategoriesFromServer();
     loadHomepagePhotosFromServer();
+    loadSiteContentFromServer();
   }, []);
 
   return (
