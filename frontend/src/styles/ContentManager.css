@@ -1,0 +1,326 @@
+/* ============================================================
+   ContentManager — site-content CMS editor modal
+   Reuses the existing modal/btn/form-input/accordion-group CSS
+   from AdminPanel.css; this file adds the content-specific atoms.
+   ============================================================ */
+
+/* ── section layout ─────────────────────────────────────────── */
+.cm-section {
+  padding-top: 0;
+}
+
+.cm-section__title {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: var(--sp-7) 0 var(--sp-4);
+}
+.cm-section__title:first-child {
+  margin-top: 0;
+}
+
+/* ── localized field pair (EN + EL side by side) ────────────── */
+.cm-localized {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.cm-localized__label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--text-tertiary);
+  margin-bottom: var(--sp-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cm-field-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+  margin-bottom: var(--sp-2);
+}
+
+/* ── list editing (hours / chapters / FAQ) ──────────────────── */
+.cm-list {
+  list-style: none;
+  margin: 0 0 var(--sp-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.cm-list-item {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+  background: var(--surface-secondary);
+}
+
+.cm-list-item__header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.cm-list-item__num {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  font-weight: var(--fw-semibold);
+  min-width: 1.4rem;
+}
+
+.cm-list-item__title {
+  flex: 1;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cm-list-item__controls {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.cm-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--text-sm);
+  color: var(--accent-primary);
+  background: none;
+  border: 1px dashed var(--accent-primary);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-4);
+  cursor: pointer;
+  transition: background-color var(--duration-fast);
+}
+.cm-add-btn:hover {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+}
+
+/* ── photo ref picker ───────────────────────────────────────── */
+.cm-photo-slot {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--sp-4);
+}
+
+.cm-photo-slot__preview {
+  position: relative;
+  background: var(--surface-secondary);
+  aspect-ratio: 4/3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cm-photo-slot__preview--hero {
+  aspect-ratio: 16/9;
+}
+
+.cm-photo-slot__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cm-photo-slot__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+}
+
+.cm-photo-slot__actions {
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--surface-primary);
+  border-top: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+}
+
+.cm-photo-slug {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  padding: var(--sp-1) var(--sp-3);
+  background: var(--surface-secondary);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono, monospace);
+  align-self: center;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Album picker grid (inline, toggled) */
+.cm-album-picker {
+  padding: var(--sp-3);
+  background: var(--surface-secondary);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.cm-album-picker__hint {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  margin-bottom: var(--sp-3);
+}
+
+.cm-album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: var(--sp-2);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.cm-album-thumb {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  background: none;
+  transition: border-color var(--duration-fast);
+}
+.cm-album-thumb--selected {
+  border-color: var(--accent-primary);
+}
+.cm-album-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── illustration slot ──────────────────────────────────────── */
+.cm-illus-slot {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--sp-4);
+}
+
+.cm-illus-slot__preview {
+  background: var(--surface-secondary);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 180px;
+}
+.cm-illus-slot__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cm-illus-slot__actions {
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--surface-primary);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.cm-illus-slot__label {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  font-weight: var(--fw-medium);
+  margin-bottom: var(--sp-2);
+}
+
+/* ── publish error list ─────────────────────────────────────── */
+.cm-publish-errors {
+  margin: var(--sp-4) 0 0;
+  padding: var(--sp-4);
+  background: color-mix(in srgb, var(--color-error, #e53e3e) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error, #e53e3e) 30%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.cm-publish-errors__title {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-error, #e53e3e);
+  margin-bottom: var(--sp-3);
+}
+
+.cm-publish-errors__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.cm-publish-errors__item {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+.cm-publish-errors__item:hover {
+  text-decoration: underline;
+}
+
+.cm-publish-errors__label {
+  font-weight: var(--fw-medium);
+}
+
+.cm-publish-errors__problem {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+/* ── footer split ───────────────────────────────────────────── */
+.cm-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.cm-footer__left,
+.cm-footer__right {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: center;
+}
+
+/* ── status chip in the modal header ───────────────────────── */
+.cm-status {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  padding: var(--sp-1) var(--sp-3);
+  background: var(--surface-secondary);
+  border-radius: var(--radius-full, 999px);
+  white-space: nowrap;
+}
+.cm-status--draft {
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
+}

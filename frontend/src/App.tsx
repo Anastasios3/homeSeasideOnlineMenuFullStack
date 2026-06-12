@@ -5,6 +5,7 @@ import TopBar from "./components/TopBar";
 import CategoryNav from "./components/CategoryNav";
 import MenuSection from "./components/MenuSection";
 import AdminPanel from "./components/AdminPanel";
+import PreviewBanner from "./components/PreviewBanner";
 import HomePage from "./components/HomePage";
 import AboutPage from "./components/AboutPage";
 import CategoryLanding from "./components/CategoryLanding";
@@ -333,6 +334,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <PreviewBanner />
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePageWrapper />} />
