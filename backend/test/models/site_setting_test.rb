@@ -60,7 +60,7 @@ class SiteSettingTest < ActiveSupport::TestCase
       assert_equal "bundled", entry["kind"]
       assert entry["slug"].is_a?(String)
       assert entry["phases"].is_a?(Array)
-      assert_includes [true, false], entry["hidden"]
+      assert_includes [ true, false ], entry["hidden"]
       assert entry["position"].is_a?(Integer)
     end
   end
